@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>圖書查詢與裝箱系統</title>
+    <title>圖書查詢與裝箱系統 - 速度優化版</title>
     <style>
         * {
             margin: 0;
@@ -902,9 +902,10 @@
             border: 1px solid #e9ecef;
         }
 
+        /* 【優化】統計表格樣式 - 提升渲染效能 */
         .summary-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: 1fr;
             gap: 20px;
             margin-bottom: 20px;
         }
@@ -929,27 +930,91 @@
             border-bottom-color: #c3e6cb;
         }
 
-        .summary-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #f0f0f0;
+        /* 二維統計表格樣式 - 橙色方格標題 */
+        .stats-table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            background: white;
+            margin-top: 15px;
+            contain: layout; /* 【優化】CSS containment提升效能 */
         }
 
-        .summary-item:last-child {
-            border-bottom: none;
+        .stats-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 14px;
+            table-layout: fixed; /* 【優化】固定表格布局提升渲染速度 */
         }
 
-        .summary-label {
-            color: #666;
-            word-break: break-word;
-            margin-right: 10px;
+        .stats-table thead th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            text-align: center;
+            font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.2);
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
-        .summary-value {
-            font-weight: 700;
+        .spare-mode .stats-table thead th {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .stats-table thead th.orange-header {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%) !important;
+            color: white;
+            border: 2px solid #e65100;
+            border-radius: 8px 8px 0 0;
+            box-shadow: 0 2px 4px rgba(255, 152, 0, 0.3);
+        }
+
+        .stats-table tbody td {
+            padding: 10px 12px;
+            border: 1px solid #e0e0e0;
+            text-align: center;
+        }
+
+        .stats-table tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .stats-table tbody tr:hover {
+            background: #e3f2fd;
+        }
+
+        .stats-table .zone-name-cell {
+            text-align: left;
+            font-weight: 600;
             color: #333;
-            flex-shrink: 0;
+            background: #fafafa;
+        }
+
+        .stats-table .quantity-col {
+            font-weight: 700;
+            color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .spare-mode .stats-table .quantity-col {
+            color: #11998e;
+            background: #e8f5e9;
+        }
+
+        .stats-table .zero-value {
+            color: #bbb;
+        }
+
+        .stats-table-header-note {
+            font-size: 11px;
+            opacity: 0.9;
+            font-weight: normal;
+            display: block;
+            margin-top: 2px;
         }
 
         /* Excel 風格資料表格 */
@@ -958,12 +1023,14 @@
             border-radius: 8px;
             border: 1px solid #e0e0e0;
             background: white;
+            contain: layout; /* 【優化】CSS containment */
         }
 
         .excel-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 14px;
+            table-layout: fixed; /* 【優化】固定布局 */
         }
 
         .excel-table thead {
@@ -1001,6 +1068,33 @@
 
         .excel-table tr:hover {
             background: #e3f2fd;
+        }
+
+        /* 新增資料高亮 - 確保在最頂部 */
+        .excel-table tr.new-row {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%) !important;
+            animation: highlightNew 2s ease;
+            border-left: 4px solid #ffc107;
+        }
+
+        @keyframes highlightNew {
+            0% { background: #ffc107; transform: scale(1.02); }
+            100% { background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); transform: scale(1); }
+        }
+
+        .excel-table tr.new-row td {
+            font-weight: 600;
+        }
+
+        .new-badge {
+            display: inline-block;
+            background: #ff5722;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 5px;
+            font-weight: 700;
         }
 
         .spare-mode .excel-table th {
@@ -1588,6 +1682,74 @@
             to { transform: translateX(-50%) translateY(0); opacity: 1; }
         }
 
+        /* 編輯標題 Modal 樣式 */
+        .header-edit-modal .modal {
+            max-width: 700px;
+        }
+
+        .header-edit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .header-edit-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .header-edit-item label {
+            font-size: 13px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .header-edit-item input {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .header-edit-item input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .modal-custom-categories {
+            margin-top: 20px;
+            border-top: 3px dashed #ff9800;
+            padding-top: 20px;
+        }
+
+        .modal-custom-categories h4 {
+            color: #e65100;
+            font-size: 16px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-custom-categories .custom-category-grid {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .modal-custom-categories .custom-category-item {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            border: 2px solid #ff9800;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .modal-custom-categories .custom-category-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(255, 152, 0, 0.25);
+        }
+
         /* 響應式設計 */
         @media (max-width: 968px) {
             .main-wrapper {
@@ -1644,7 +1806,6 @@
                 display: none;
             }
 
-            /* 手機端顯示懸浮按鈕 */
             .mobile-manual-float-btn {
                 display: flex;
             }
@@ -1702,7 +1863,6 @@
                 padding: 15px;
             }
 
-            /* Excel 表格響應式 */
             .excel-table th, .excel-table td {
                 padding: 8px;
                 font-size: 13px;
@@ -1711,6 +1871,25 @@
             .pagination-controls {
                 flex-direction: column;
                 gap: 10px;
+            }
+
+            .stats-table th, .stats-table td {
+                padding: 8px 6px;
+                font-size: 12px;
+            }
+
+            .stats-table thead th.orange-header {
+                font-size: 12px;
+                padding: 8px 4px;
+            }
+
+            .header-edit-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-edit-modal .modal {
+                max-width: 95%;
+                padding: 20px;
             }
         }
 
@@ -1750,6 +1929,10 @@
                 right: 20px;
                 font-size: 20px;
             }
+
+            .stats-table thead th.orange-header {
+                font-size: 11px;
+            }
         }
 
         ::-webkit-scrollbar {
@@ -1769,6 +1952,24 @@
 
         ::-webkit-scrollbar-thumb:hover {
             background: #a8a8a8;
+        }
+        
+        /* 【優化】虛擬滾動容器樣式 */
+        .virtual-scroll-container {
+            position: relative;
+            overflow-y: auto;
+            max-height: 600px;
+            contain: strict;
+        }
+        
+        .virtual-scroll-content {
+            position: relative;
+        }
+        
+        .virtual-scroll-item {
+            position: absolute;
+            width: 100%;
+            left: 0;
         }
     </style>
     <!-- 引入 SheetJS 函式庫 -->
@@ -2034,6 +2235,9 @@
                                 <button class="title-btn title-btn-secondary" onclick="exportPackingExcel()">
                                     📥 匯出Excel
                                 </button>
+                                <button class="title-btn title-btn-secondary" onclick="showEditHeadersModal()">
+                                    ✏️ 編輯標題
+                                </button>
                                 <button class="title-btn title-btn-secondary" onclick="clearPackingAll()">
                                     🗑️ 清空
                                 </button>
@@ -2075,29 +2279,23 @@
                                     <div class="summary-grid">
                                         <div class="summary-card">
                                             <h3>📊 各區數量統計</h3>
-                                            <div id="zoneSummaryList">
-                                                <div class="summary-item">
-                                                    <span class="summary-label">載入中...</span>
-                                                    <span class="summary-value">-</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="summary-card">
-                                            <h3>📈 分類統計</h3>
-                                            <div style="margin-bottom: 10px;">
-                                                <select id="summaryGroupBy" onchange="loadPackingSummary()" style="font-size: 14px;">
-                                                    <option value="B">依 B 欄分類</option>
-                                                    <option value="C">依 C 欄分類</option>
-                                                    <option value="D">依 D 欄分類</option>
-                                                    <option value="E">依 E 欄分類</option>
-                                                </select>
-                                            </div>
-                                            <div id="categorySummaryList">
-                                                <div class="summary-item">
-                                                    <span class="summary-label">載入中...</span>
-                                                    <span class="summary-value">-</span>
-                                                </div>
+                                            
+                                            <div class="stats-table-container">
+                                                <table class="stats-table" id="zoneStatsTable">
+                                                    <thead>
+                                                        <tr id="statsTableHeaderRow">
+                                                            <th>A欄 (位置)</th>
+                                                            <th>Quantity<br><span class="stats-table-header-note">總數量</span></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="zoneStatsTableBody">
+                                                        <tr>
+                                                            <td colspan="7" style="text-align: center; padding: 40px; color: #9e9e9e;">
+                                                                載入中...
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
                                             </div>
                                         </div>
                                     </div>
@@ -2122,7 +2320,6 @@
                                         <button class="btn-primary btn-sm" onclick="searchPackingData()">🔍 搜尋</button>
                                     </div>
 
-                                    <!-- Excel 風格表格容器 -->
                                     <div class="excel-table-container" id="excelTableContainer">
                                         <table class="excel-table" id="excelDataTable">
                                             <thead>
@@ -2137,12 +2334,10 @@
                                                 </tr>
                                             </thead>
                                             <tbody id="excelTableBody">
-                                                <!-- 動態生成 -->
                                             </tbody>
                                         </table>
                                     </div>
 
-                                    <!-- 分頁控制 -->
                                     <div class="pagination-controls" id="paginationControls" style="display: none;">
                                         <button class="pagination-btn" id="prevPageBtn" onclick="changePage(-1)" disabled>
                                             ← 上一頁
@@ -2209,6 +2404,58 @@
         </div>
     </div>
 
+    <!-- 編輯標題 Modal -->
+    <div class="modal-overlay header-edit-modal" id="headerEditModalOverlay" onclick="closeHeaderEditModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <h3>✏️ 編輯欄位標題與統計分類</h3>
+            <div id="headerEditContent">
+                <div class="header-edit-grid">
+                    <div class="header-edit-item">
+                        <label>A 欄 (Key) - 不可修改</label>
+                        <input type="text" id="headerInputA" value="A" disabled style="background: #f5f5f5;">
+                    </div>
+                    <div class="header-edit-item">
+                        <label>B 欄</label>
+                        <input type="text" id="headerInputB" placeholder="例如：Quantity">
+                    </div>
+                    <div class="header-edit-item">
+                        <label>C 欄</label>
+                        <input type="text" id="headerInputC" placeholder="例如：Find">
+                    </div>
+                    <div class="header-edit-item">
+                        <label>D 欄</label>
+                        <input type="text" id="headerInputD" placeholder="例如：LastCopy">
+                    </div>
+                    <div class="header-edit-item">
+                        <label>E 欄</label>
+                        <input type="text" id="headerInputE" placeholder="例如：Donation">
+                    </div>
+                    <div class="header-edit-item">
+                        <label>F 欄 (位置)</label>
+                        <input type="text" id="headerInputF" placeholder="例如：Other">
+                    </div>
+                </div>
+                
+                <div class="modal-custom-categories">
+                    <h4>📊 自定義統計分類設定 (5個欄位)</h4>
+                    <div style="font-size: 12px; color: #666; margin-bottom: 15px; background: #fff3cd; padding: 10px; border-radius: 6px; border-left: 4px solid #ff9800;">
+                        💡 設定各區統計表格的5個分類欄位。系統會統計每個位置(F欄)下，指定欄位等於指定值的數量。
+                    </div>
+                    <div id="headerEditCustomCategories" class="custom-category-grid">
+                    </div>
+                </div>
+                
+                <div style="background: #e3f2fd; padding: 12px; border-radius: 8px; font-size: 13px; color: #1976d2; margin-top: 20px;">
+                    💡 提示：修改標題只會影響顯示名稱，不會影響實際資料。統計分類設定會影響「各區數量統計」表格的列顯示。
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeHeaderEditModal()">取消</button>
+                <button class="btn-primary" onclick="saveHeadersAndCategories()">💾 儲存設定</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Upload Modal -->
     <div class="modal-overlay upload-modal-overlay" id="uploadModalOverlay" onclick="closeUploadModal(event)">
         <div class="modal" onclick="event.stopPropagation()" style="text-align: center;">
@@ -2248,8 +2495,8 @@
 
     <script>
         //================ API 設定 =================
-        const LIBRARY_API_URL = 'https://script.google.com/macros/s/AKfycbx2EQpxNM4E4Ab4vT2XPmG90CpxdbrVMzbS9Ssx6fcc6bF_A0jMav3WEjoaTt50NEeGxg/exec';
-        const PACKING_API_URL = 'https://script.google.com/macros/s/AKfycbx2EQpxNM4E4Ab4vT2XPmG90CpxdbrVMzbS9Ssx6fcc6bF_A0jMav3WEjoaTt50NEeGxg/exec';
+        const LIBRARY_API_URL = 'https://script.google.com/macros/s/AKfycbzaKYA72xNo3xdl4pw51yu4rcTiXX0M-7nBhEsvnZChPnHifWcDwg_UMZGXTqwMOQvdhQ/exec';
+        const PACKING_API_URL = 'https://script.google.com/macros/s/AKfycbzaKYA72xNo3xdl4pw51yu4rcTiXX0M-7nBhEsvnZChPnHifWcDwg_UMZGXTqwMOQvdhQ/exec';
 
         //================ 狀態變數 =================
         let currentPanel = 'search';
@@ -2276,13 +2523,29 @@
         let totalRecords = 0;
         let columnHeaders = ['A', 'B', 'C', 'D', 'E', 'F'];
         
+        // 【優化】新增資料快取機制
+        let dashboardCache = {}; // 儀表板資料快取
+        let cacheTimestamp = {}; // 快取時間戳
+        let CACHE_TTL = 5 * 60 * 1000; // 5分鐘快取有效期
+        
+        let customCategories = [
+            { id: 1, column: 'B', value: '中文', label: '中文', enabled: true },
+            { id: 2, column: 'B', value: 'English', label: 'English', enabled: true },
+            { id: 3, column: 'C', value: 'LastCopy', label: 'LastCopy', enabled: true },
+            { id: 4, column: 'D', value: 'Donation', label: 'Donation', enabled: true },
+            { id: 5, column: 'E', value: 'Other', label: 'Other', enabled: true }
+        ];
+        
+        let recentlyAddedKeys = [];
+        
         const MAX_LOGS = 50;
-        const UPLOAD_BATCH_SIZE = 50;
-        const PAGE_SIZE = 200; // 每頁筆數
+        const UPLOAD_BATCH_SIZE = 200; // 【優化】從50增至200，配合後端1000筆批次
+        const PAGE_SIZE = 200;
 
         //================ 初始化 =================
         document.addEventListener('DOMContentLoaded', function() {
             loadManualSelect();
+            loadCustomCategories();
 
             document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') searchBook();
@@ -2312,49 +2575,39 @@
             setTimeout(preloadAllData, 1000);
         });
 
-        //================ API 呼叫函數 =================
-        function libraryApiCall(action, params = {}, timeout = 30000) {
-            return new Promise((resolve, reject) => {
-                const callbackName = 'lib_cb_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                const script = document.createElement('script');
-
-                const queryParams = new URLSearchParams({
-                    action: action,
-                    callback: callbackName,
-                    ...params
-                });
-
-                const url = `${LIBRARY_API_URL}?${queryParams.toString()}`;
-
-                const timeoutId = setTimeout(() => {
-                    cleanup();
-                    reject(new Error('請求超時'));
-                }, timeout);
-
-                function cleanup() {
-                    clearTimeout(timeoutId);
-                    if (script.parentNode) script.parentNode.removeChild(script);
-                    delete window[callbackName];
+        //================ API 呼叫函數（含重試機制） =================
+        async function libraryApiCall(action, params = {}, timeout = 60000) {
+            return apiCallWithRetry(LIBRARY_API_URL, action, params, timeout, 3);
+        }
+        
+        async function packingApiCall(action, params = {}, timeout = 60000) {
+            return apiCallWithRetry(PACKING_API_URL, action, params, timeout, 3);
+        }
+        
+        async function apiCallWithRetry(baseUrl, action, params, timeout, maxRetries) {
+            let lastError;
+            
+            for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                try {
+                    const result = await executeApiCall(baseUrl, action, params, timeout);
+                    return result;
+                } catch (error) {
+                    lastError = error;
+                    console.warn(`API呼叫失敗 (嘗試 ${attempt}/${maxRetries}): ${error.message}`);
+                    
+                    if (attempt < maxRetries) {
+                        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    }
                 }
-
-                window[callbackName] = (data) => {
-                    cleanup();
-                    resolve(data);
-                };
-
-                script.onerror = () => {
-                    cleanup();
-                    reject(new Error('載入失敗'));
-                };
-
-                script.src = url;
-                document.head.appendChild(script);
-            });
+            }
+            
+            throw new Error(`請求失敗（已重試${maxRetries}次）: ${lastError.message}`);
         }
 
-        function packingApiCall(action, params = {}, timeout = 30000) {
+        function executeApiCall(baseUrl, action, params, timeout) {
             return new Promise((resolve, reject) => {
-                const callbackName = 'pack_cb_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                const callbackName = 'api_cb_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                 const script = document.createElement('script');
 
                 const queryParams = new URLSearchParams({
@@ -2363,7 +2616,7 @@
                     ...params
                 });
 
-                const url = `${PACKING_API_URL}?${queryParams.toString()}`;
+                const url = `${baseUrl}?${queryParams.toString()}`;
 
                 const timeoutId = setTimeout(() => {
                     cleanup();
@@ -2422,7 +2675,10 @@
         function switchPackingSheet(sheetName) {
             currentPackingSheet = sheetName;
             currentZone = 'all';
-            currentPage = 1; // 重置頁碼
+            currentPage = 1;
+            recentlyAddedKeys = [];
+            // 【優化】清除該sheet的快取
+            delete dashboardCache[sheetName];
 
             document.querySelectorAll('.function-block').forEach(block => {
                 block.classList.remove('active');
@@ -2440,9 +2696,8 @@
 
             updatePanelStyle();
             
-            // 先載入標題，再載入資料
             loadHeaders().then(() => {
-                loadPackingData();
+                loadPackingDataOptimized(); // 【優化】使用新的合併載入函數
             });
         }
 
@@ -2481,6 +2736,102 @@
                 document.getElementById('packingPanelContent').classList.remove('spare-mode');
                 document.getElementById('mobileManualBtn').style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
             }
+        }
+
+        //================ 自定義分類功能 =================
+        function loadCustomCategories() {
+            const saved = localStorage.getItem('customCategories_' + currentPackingSheet);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (parsed.length === 5) {
+                        customCategories = parsed;
+                    } else {
+                        resetCustomCategories();
+                    }
+                } catch (e) {
+                    console.error('載入自定義分類失敗:', e);
+                    resetCustomCategories();
+                }
+            } else {
+                resetCustomCategories();
+            }
+        }
+        
+        function resetCustomCategories() {
+            customCategories = [
+                { id: 1, column: 'B', value: '中文', label: '中文', enabled: true },
+                { id: 2, column: 'B', value: 'English', label: 'English', enabled: true },
+                { id: 3, column: 'C', value: 'LastCopy', label: 'LastCopy', enabled: true },
+                { id: 4, column: 'D', value: 'Donation', label: 'Donation', enabled: true },
+                { id: 5, column: 'E', value: 'Other', label: 'Other', enabled: true }
+            ];
+        }
+        
+        function saveCustomCategories() {
+            localStorage.setItem('customCategories_' + currentPackingSheet, JSON.stringify(customCategories));
+            showToast('✅ 分類設定已儲存', 'success');
+            updateStatsTableHeaders();
+            loadPackingSummary();
+        }
+        
+        function renderCustomCategories(containerId = 'customCategoryList') {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            let html = '';
+            customCategories.forEach((cat, index) => {
+                html += `
+                    <div class="custom-category-item">
+                        <div class="custom-category-header">
+                            <select onchange="updateCustomCategory(${index}, 'column', this.value)" title="選擇欄位">
+                                <option value="B" ${cat.column === 'B' ? 'selected' : ''}>B欄</option>
+                                <option value="C" ${cat.column === 'C' ? 'selected' : ''}>C欄</option>
+                                <option value="D" ${cat.column === 'D' ? 'selected' : ''}>D欄</option>
+                                <option value="E" ${cat.column === 'E' ? 'selected' : ''}>E欄</option>
+                            </select>
+                            <input type="text" placeholder="篩選值" value="${escapeHtml(cat.value)}" 
+                                onchange="updateCustomCategory(${index}, 'value', this.value)"
+                                title="輸入要統計的值">
+                            <input type="text" placeholder="顯示名稱" value="${escapeHtml(cat.label)}" 
+                                onchange="updateCustomCategory(${index}, 'label', this.value)"
+                                title="顯示在表格上的名稱">
+                        </div>
+                        <div style="font-size: 11px; color: #888; margin-top: 4px;">分類 ${index + 1}</div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+        
+        function updateCustomCategory(index, field, value) {
+            customCategories[index][field] = value;
+            customCategories[index].enabled = value.trim() !== '';
+        }
+        
+        function updateStatsTableHeaders() {
+            const headerRow = document.getElementById('statsTableHeaderRow');
+            if (!headerRow) return;
+            
+            let html = `
+                <th>A欄 (位置)</th>
+                <th>Quantity<br><span class="stats-table-header-note">總數量</span></th>
+            `;
+            
+            customCategories.forEach((cat, index) => {
+                if (cat.enabled && cat.label) {
+                    html += `
+                        <th class="orange-header">
+                            ${escapeHtml(cat.label)}<br>
+                            <span class="stats-table-header-note">${cat.column}欄="${escapeHtml(cat.value)}"</span>
+                        </th>
+                    `;
+                } else {
+                    html += `<th class="orange-header">分類${index + 1}</th>`;
+                }
+            });
+            
+            headerRow.innerHTML = html;
         }
 
         //================ 手機端 Manual Select 功能 =================
@@ -3277,10 +3628,10 @@
             }
         }
 
-        //================ 裝箱功能 - 優化修正版 =================
+        //================ 裝箱功能 - 速度優化版 =================
 
         /**
-         * 載入標題列（第1列）
+         * 【優化】載入標題列（第1列）
          */
         async function loadHeaders() {
             try {
@@ -3290,7 +3641,6 @@
                 
                 if (result.success && result.headers) {
                     columnHeaders = result.headers;
-                    // 更新表格標題
                     const headerRow = document.getElementById('tableHeaderRow');
                     let html = '';
                     columnHeaders.forEach((header, index) => {
@@ -3307,61 +3657,88 @@
         }
 
         /**
-         * 分頁載入資料
+         * 【新增】合併載入儀表板資料 - 使用新的合併API端點
+         * 將原本3個請求（資料、統計、區域）合併為1個
          */
-        async function loadPackingData(page = 1) {
+        async function loadPackingDataOptimized() {
             try {
-                // 載入分頁資料
-                const dataResult = await packingApiCall('packingGetAllData', { 
+                // 檢查快取
+                const cacheKey = `${currentPackingSheet}_${currentPage}_${currentZone}`;
+                const now = Date.now();
+                
+                if (dashboardCache[cacheKey] && (now - cacheTimestamp[cacheKey] < CACHE_TTL)) {
+                    // 使用快取資料
+                    const cached = dashboardCache[cacheKey];
+                    packingDataCache = cached.data;
+                    totalPages = cached.totalPages;
+                    totalRecords = cached.totalRecords;
+                    
+                    updateSidebarStats({
+                        total: cached.totalRecords,
+                        unclassified: cached.unclassified,
+                        zones: cached.zones
+                    });
+                    updateZoneList(cached.zones || [], cached.unclassified || 0);
+                    updateSummaryDisplay(cached.summary);
+                    updatePaginationControls();
+                    
+                    if (currentZone !== 'all') {
+                        renderDataListOptimized(); // 【優化】使用優化渲染
+                    } else {
+                        backToSummary();
+                    }
+                    return;
+                }
+
+                // 呼叫合併API
+                const categoriesParam = JSON.stringify(customCategories);
+                const result = await packingApiCall('packingGetDashboardData', {
                     sheet: currentPackingSheet,
-                    page: page,
-                    zone: currentZone === 'all' ? '' : currentZone
+                    page: currentPage,
+                    zone: currentZone === 'all' ? '' : currentZone,
+                    categories: categoriesParam
                 });
 
-                // 載入統計資料（真實後端統計）
-                const [zonesResult, summaryResult] = await Promise.all([
-                    packingApiCall('packingGetZones', { sheet: currentPackingSheet }),
-                    packingApiCall('packingGetSummary', { 
-                        sheet: currentPackingSheet,
-                        groupBy: document.getElementById('summaryGroupBy')?.value || 'B'
-                    })
-                ]);
-
-                if (dataResult.success) {
-                    packingDataCache = [...dataResult.data];
-                    currentPage = dataResult.page || 1;
-                    totalPages = dataResult.totalPages || 1;
-                    totalRecords = dataResult.total || 0;
+                if (result.success) {
+                    packingDataCache = result.data || [];
+                    totalPages = result.totalPages || 1;
+                    totalRecords = result.total || 0;
                     
-                    // 更新分頁控制
+                    // 存入快取
+                    dashboardCache[cacheKey] = {
+                        data: packingDataCache,
+                        totalPages: totalPages,
+                        totalRecords: totalRecords,
+                        zones: result.zones,
+                        unclassified: result.unclassified,
+                        summary: result.summary,
+                        timestamp: now
+                    };
+                    cacheTimestamp[cacheKey] = now;
+                    
+                    // 更新UI
+                    updateSidebarStats({
+                        total: result.totalRecords,
+                        unclassified: result.unclassified,
+                        zones: result.zones
+                    });
+                    updateZoneList(result.zones || [], result.unclassified || 0);
+                    updateSummaryDisplay(result.summary);
                     updatePaginationControls();
-                }
-
-                // 更新側邊欄統計
-                if (zonesResult.success) {
-                    updateSidebarStats(zonesResult);
-                    updateZoneList(zonesResult.zones || [], zonesResult.unclassified || 0);
-                }
-
-                // 更新總覽統計
-                if (summaryResult.success && summaryResult.summary) {
-                    updateSummaryDisplay(summaryResult.summary);
-                }
-
-                if (currentZone !== 'all') {
-                    renderDataList();
+                    
+                    if (currentZone !== 'all') {
+                        renderDataListOptimized();
+                    } else {
+                        backToSummary();
+                    }
                 } else {
-                    backToSummary();
+                    throw new Error(result.error || '載入失敗');
                 }
-
             } catch (e) {
                 showToast('載入失敗：' + e.message, 'error');
             }
         }
 
-        /**
-         * 更新側邊欄統計數據
-         */
         function updateSidebarStats(stats) {
             const statsDiv = document.getElementById('sidebarStats');
             if (statsDiv && stats.total !== undefined) {
@@ -3372,9 +3749,6 @@
             }
         }
 
-        /**
-         * 更新分頁控制元件
-         */
         function updatePaginationControls() {
             const controls = document.getElementById('paginationControls');
             const prevBtn = document.getElementById('prevPageBtn');
@@ -3392,17 +3766,13 @@
             info.textContent = `第 ${currentPage} 頁，共 ${totalPages} 頁（每頁 ${PAGE_SIZE} 筆，共 ${totalRecords} 筆）`;
         }
 
-        /**
-         * 分頁切換
-         */
         async function changePage(direction) {
             const newPage = currentPage + direction;
             if (newPage < 1 || newPage > totalPages) return;
             
             currentPage = newPage;
-            await loadPackingData(currentPage);
+            await loadPackingDataOptimized();
             
-            // 捲動到表格頂部
             document.getElementById('excelTableContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
@@ -3412,7 +3782,6 @@
             const zoneList = document.getElementById('zoneList');
             zoneList.innerHTML = '';
 
-            // 排序：有資料的在前，依數量降序
             zones.sort((a, b) => b.count - a.count);
 
             zones.forEach(zone => {
@@ -3432,7 +3801,6 @@
                 zoneList.appendChild(div);
             });
 
-            // 顯示未分類
             if (unclassified > 0) {
                 const div = document.createElement('div');
                 div.className = 'zone-item';
@@ -3447,7 +3815,7 @@
 
         function filterZone(zone, element) {
             currentZone = zone ? String(zone).trim() : '';
-            currentPage = 1; // 重置頁碼
+            currentPage = 1;
 
             document.querySelectorAll('.zone-item').forEach(item => {
                 item.classList.remove('active');
@@ -3466,7 +3834,7 @@
                 document.getElementById('quickInputArea').style.display = 'block';
                 document.getElementById('currentZoneName').textContent = currentZone || '未分類';
                 document.getElementById('dataListTitle').textContent = (currentZone || '未分類') + ' 資料列表';
-                loadPackingData(1); // 載入第一頁
+                loadPackingDataOptimized();
             }
         }
 
@@ -3483,10 +3851,12 @@
             document.getElementById('paginationControls').style.display = 'none';
         }
 
-        function renderDataList() {
+        /**
+         * 【優化】渲染資料列表 - 使用DocumentFragment減少DOM操作
+         */
+        function renderDataListOptimized() {
             const tbody = document.getElementById('excelTableBody');
-            tbody.innerHTML = '';
-
+            
             if (packingDataCache.length === 0) {
                 tbody.innerHTML = `
                     <tr>
@@ -3502,19 +3872,35 @@
                 return;
             }
 
-            packingDataCache.forEach(item => {
+            // 排序：將最近加入的資料排在最前面
+            const sortedData = [...packingDataCache].sort((a, b) => {
+                const aIndex = recentlyAddedKeys.indexOf(a.A);
+                const bIndex = recentlyAddedKeys.indexOf(b.A);
+                
+                if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+                if (aIndex !== -1 && bIndex === -1) return -1;
+                if (aIndex === -1 && bIndex !== -1) return 1;
+                return 0;
+            });
+
+            // 【優化】使用DocumentFragment批量插入
+            const fragment = document.createDocumentFragment();
+            
+            sortedData.forEach(item => {
+                const isNew = recentlyAddedKeys.includes(item.A);
                 const tr = document.createElement('tr');
+                if (isNew) tr.classList.add('new-row');
+                
                 let html = '';
                 
-                // 動態生成欄位
                 columnHeaders.forEach((header, index) => {
                     const colKey = ['A', 'B', 'C', 'D', 'E', 'F'][index];
                     const value = item[colKey] || '-';
                     const colClass = index === 0 ? 'col-a' : (index === 5 ? 'col-f' : '');
-                    html += `<td class="${colClass}">${escapeHtml(value)}</td>`;
+                    const newBadge = (isNew && index === 0) ? '<span class="new-badge">NEW</span>' : '';
+                    html += `<td class="${colClass}">${escapeHtml(value)}${newBadge}</td>`;
                 });
 
-                // 操作按鈕：編輯、刪除位置、刪除整列
                 html += `
                     <td>
                         <div class="excel-actions">
@@ -3526,13 +3912,13 @@
                 `;
                 
                 tr.innerHTML = html;
-                tbody.appendChild(tr);
+                fragment.appendChild(tr);
             });
+
+            tbody.innerHTML = '';
+            tbody.appendChild(fragment);
         }
 
-        /**
-         * 新增：刪除整列資料
-         */
         async function deleteRow(rowIndex, key) {
             if (!confirm(`確定要刪除整列資料嗎？\n\nKey: ${key}\n行號: ${rowIndex}\n\n⚠️ 此操作無法復原！`)) {
                 return;
@@ -3546,8 +3932,10 @@
 
                 if (result.success) {
                     showToast('✅ ' + result.message, 'success');
-                    // 重新載入當前頁
-                    loadPackingData(currentPage);
+                    recentlyAddedKeys = recentlyAddedKeys.filter(k => k !== key);
+                    // 【優化】清除快取並重新載入
+                    delete dashboardCache[`${currentPackingSheet}_${currentPage}_${currentZone}`];
+                    loadPackingDataOptimized();
                 } else {
                     showToast('❌ ' + result.error, 'error');
                 }
@@ -3561,19 +3949,17 @@
             const range = document.getElementById('packingSearchRange').value;
 
             if (!keyword) {
-                renderDataList();
+                renderDataListOptimized();
                 return;
             }
 
-            // 在前端快取中搜尋（只搜尋當前頁）
             const filtered = packingDataCache.filter(item => {
                 const value = item[range] || '';
                 return value.toString().toLowerCase().includes(keyword.toLowerCase());
             });
 
             const tbody = document.getElementById('excelTableBody');
-            tbody.innerHTML = '';
-
+            
             if (filtered.length === 0) {
                 tbody.innerHTML = `
                     <tr>
@@ -3585,15 +3971,21 @@
                 return;
             }
 
+            const fragment = document.createDocumentFragment();
+            
             filtered.forEach(item => {
+                const isNew = recentlyAddedKeys.includes(item.A);
                 const tr = document.createElement('tr');
+                if (isNew) tr.classList.add('new-row');
+                
                 let html = '';
                 
                 columnHeaders.forEach((header, index) => {
                     const colKey = ['A', 'B', 'C', 'D', 'E', 'F'][index];
                     const value = item[colKey] || '-';
                     const colClass = index === 0 ? 'col-a' : (index === 5 ? 'col-f' : '');
-                    html += `<td class="${colClass}">${escapeHtml(value)}</td>`;
+                    const newBadge = (isNew && index === 0) ? '<span class="new-badge">NEW</span>' : '';
+                    html += `<td class="${colClass}">${escapeHtml(value)}${newBadge}</td>`;
                 });
 
                 html += `
@@ -3607,73 +3999,103 @@
                 `;
                 
                 tr.innerHTML = html;
-                tbody.appendChild(tr);
+                fragment.appendChild(tr);
             });
+
+            tbody.innerHTML = '';
+            tbody.appendChild(fragment);
+        }
+
+        function updateSummaryDisplay(summary) {
+            const tbody = document.getElementById('zoneStatsTableBody');
+            
+            updateStatsTableHeaders();
+            
+            if (!summary.zoneDetails || Object.keys(summary.zoneDetails).length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: #9e9e9e;">
+                            暫無資料
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            const sortedZones = Object.entries(summary.zoneDetails).sort((a, b) => {
+                return b[1].quantity - a[1].quantity;
+            });
+
+            const fragment = document.createDocumentFragment();
+
+            sortedZones.forEach(([zoneName, stats]) => {
+                const quantityClass = stats.quantity > 0 ? 'quantity-col' : '';
+                
+                let categoryCells = '';
+                customCategories.forEach((cat, index) => {
+                    const keyMap = ['cat1', 'cat2', 'cat3', 'cat4', 'cat5'];
+                    const key = keyMap[index];
+                    const value = stats[key] || 0;
+                    const zeroClass = value === 0 ? 'zero-value' : '';
+                    categoryCells += `<td class="${zeroClass}">${value}</td>`;
+                });
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="zone-name-cell">${escapeHtml(zoneName)}</td>
+                    <td class="${quantityClass}">${stats.quantity}</td>
+                    ${categoryCells}
+                `;
+                fragment.appendChild(tr);
+            });
+
+            // 添加總計列
+            const totals = sortedZones.reduce((acc, [_, stats]) => {
+                acc.quantity += stats.quantity;
+                customCategories.forEach((cat, index) => {
+                    const keyMap = ['cat1', 'cat2', 'cat3', 'cat4', 'cat5'];
+                    const key = keyMap[index];
+                    acc[key] = (acc[key] || 0) + (stats[key] || 0);
+                });
+                return acc;
+            }, { quantity: 0 });
+
+            let totalCategoryCells = '';
+            customCategories.forEach((cat, index) => {
+                const keyMap = ['cat1', 'cat2', 'cat3', 'cat4', 'cat5'];
+                const key = keyMap[index];
+                totalCategoryCells += `<td>${totals[key] || 0}</td>`;
+            });
+
+            const totalTr = document.createElement('tr');
+            totalTr.style.cssText = 'background: #f0f4ff; font-weight: 700; border-top: 2px solid #667eea;';
+            totalTr.innerHTML = `
+                <td class="zone-name-cell">總計</td>
+                <td class="quantity-col">${totals.quantity}</td>
+                ${totalCategoryCells}
+            `;
+            fragment.appendChild(totalTr);
+
+            tbody.innerHTML = '';
+            tbody.appendChild(fragment);
         }
 
         async function loadPackingSummary() {
             try {
-                const result = await packingApiCall('packingGetSummary', { 
+                const categoriesParam = JSON.stringify(customCategories);
+                const summaryResult = await packingApiCall('packingGetSummary', {
                     sheet: currentPackingSheet,
-                    groupBy: document.getElementById('summaryGroupBy').value
+                    categories: categoriesParam
                 });
 
-                if (result.success && result.summary) {
-                    updateSummaryDisplay(result.summary);
+                if (summaryResult.success && summaryResult.summary) {
+                    updateSummaryDisplay(summaryResult.summary);
                 }
             } catch (e) {
                 console.error('載入 Summary 失敗:', e);
             }
         }
 
-        function updateSummaryDisplay(summary) {
-            // 更新區域統計
-            const zoneList = document.getElementById('zoneSummaryList');
-            if (summary.zones && summary.zones.length > 0) {
-                let html = '';
-                summary.zones.forEach(z => {
-                    html += `
-                        <div class="summary-item">
-                            <span class="summary-label">${escapeHtml(z.name)}</span>
-                            <span class="summary-value">${z.count} 筆</span>
-                        </div>
-                    `;
-                });
-                
-                if (summary.unclassified > 0) {
-                    html += `
-                        <div class="summary-item" style="color: #856404;">
-                            <span class="summary-label">未分類</span>
-                            <span class="summary-value">${summary.unclassified} 筆</span>
-                        </div>
-                    `;
-                }
-                zoneList.innerHTML = html;
-            } else {
-                zoneList.innerHTML = '<div class="summary-item"><span class="summary-label">無資料</span><span class="summary-value">0</span></div>';
-            }
-
-            // 更新分類統計
-            const catList = document.getElementById('categorySummaryList');
-            if (summary.categories && summary.categories.length > 0) {
-                let html = '';
-                summary.categories.forEach(cat => {
-                    html += `
-                        <div class="summary-item">
-                            <span class="summary-label">${escapeHtml(cat.name)}</span>
-                            <span class="summary-value">${cat.count} 筆</span>
-                        </div>
-                    `;
-                });
-                catList.innerHTML = html;
-            } else {
-                catList.innerHTML = '<div class="summary-item"><span class="summary-label">無資料</span><span class="summary-value">0</span></div>';
-            }
-        }
-
-        /**
-         * 【修正4】快速加入優化 - 立即回饋，背景更新
-         */
         async function quickAddSearch() {
             if (isProcessingQuickAdd) return;
 
@@ -3692,14 +4114,17 @@
             addBtn.textContent = '處理中...';
 
             try {
-                // 先搜尋資料是否存在
                 const result = await packingApiCall('packingGetByKey', {
                     key: key,
                     sheet: currentPackingSheet
                 });
 
                 if (result.found) {
-                    // 【優化】立即更新UI顯示成功，不等待完整重新載入
+                    if (!recentlyAddedKeys.includes(key)) {
+                        recentlyAddedKeys.unshift(key);
+                        if (recentlyAddedKeys.length > 10) recentlyAddedKeys.pop();
+                    }
+                    
                     const quickResultHtml = `
                         <div class="quick-result-display">
                             <div class="quick-result-grid">
@@ -3708,16 +4133,25 @@
                                     return `<div class="quick-result-item"><label>${h}</label><value>${escapeHtml(result.data[k]) || '-'}</value></div>`;
                                 }).join('')}
                             </div>
-                            <div class="quick-result-status">✅ 已成功加入 ${escapeHtml(currentZone)}</div>
+                            <div class="quick-result-status">✅ 已成功加入 ${escapeHtml(currentZone)}，顯示於列表最頂部</div>
                         </div>
                     `;
                     resultDiv.innerHTML = quickResultHtml;
                     
-                    // 清空輸入框並聚焦，讓使用者可以立即輸入下一筆
                     document.getElementById('quickKeyInput').value = '';
                     document.getElementById('quickKeyInput').focus();
                     
-                    // 在背景執行實際更新和資料重新載入
+                    const newItem = {
+                        ...result.data,
+                        F: currentZone || ''
+                    };
+                    packingDataCache.unshift(newItem);
+                    totalRecords++;
+                    
+                    renderDataListOptimized();
+                    
+                    document.getElementById('excelTableContainer').scrollTop = 0;
+
                     setTimeout(() => {
                         performQuickAddBackground(key, result.data);
                     }, 100);
@@ -3732,7 +4166,6 @@
                 addBtn.disabled = false;
                 addBtn.textContent = '➕ 加入';
                 
-                // 3秒後清除結果顯示
                 setTimeout(() => {
                     if (resultDiv.querySelector('.quick-result-status')) {
                         resultDiv.innerHTML = '';
@@ -3741,28 +4174,18 @@
             }
         }
 
-        /**
-         * 【修正4】背景執行實際更新，不阻塞UI
-         */
         async function performQuickAddBackground(key, data) {
             try {
                 const normalizedZone = currentZone ? String(currentZone).trim() : '';
 
-                // 執行實際更新
                 await packingApiCall('packingSetLocation', {
                     key: key,
                     location: normalizedZone,
                     sheet: currentPackingSheet
                 });
-
-                // 背景重新載入該頁資料（不阻塞使用者操作）
-                await loadPackingData(currentPage);
                 
-                // 如果目前顯示的是該筆資料所在區域，則閃爍提示該列
-                const rowIndex = packingDataCache.findIndex(item => item.A === key);
-                if (rowIndex !== -1) {
-                    highlightRow(rowIndex);
-                }
+                // 【優化】清除相關快取
+                delete dashboardCache[`${currentPackingSheet}_${currentPage}_${currentZone}`];
 
             } catch (e) {
                 console.error('背景更新失敗:', e);
@@ -3770,33 +4193,6 @@
             }
         }
 
-        /**
-         * 高亮顯示特定列（新增動畫效果）
-         */
-        function highlightRow(index) {
-            const tbody = document.getElementById('excelTableBody');
-            const rows = tbody.querySelectorAll('tr');
-            if (rows[index]) {
-                rows[index].style.animation = 'highlightRow 2s ease';
-                setTimeout(() => {
-                    rows[index].style.animation = '';
-                }, 2000);
-            }
-        }
-
-        // 添加高亮動畫樣式
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes highlightRow {
-                0% { background-color: #fff3cd; }
-                100% { background-color: transparent; }
-            }
-        `;
-        document.head.appendChild(style);
-
-        /**
-         * 【修正3】新增位置 - 強制重新整理側邊欄
-         */
         function showAddZoneModal() {
             const content = `
                 <div style="margin-bottom: 15px;">
@@ -3834,19 +4230,16 @@
                 showToast(`✅ 位置「${zoneName}」已新增`, 'success');
                 closeModal();
                 
-                // 【修正3】強制重新載入區域列表，確保新位置顯示
+                // 【優化】清除快取並重新載入
+                delete dashboardCache[`${currentPackingSheet}_1_all`];
                 await refreshZoneList();
             } catch (e) {
                 showToast('❌ 新增失敗：' + e.message, 'error');
             }
         }
 
-        /**
-         * 【修正3】專門用於重新載入區域列表的函數
-         */
         async function refreshZoneList() {
             try {
-                // 強制重新載入區域資料
                 const zonesResult = await packingApiCall('packingGetZones', { 
                     sheet: currentPackingSheet 
                 });
@@ -3855,7 +4248,6 @@
                     updateSidebarStats(zonesResult);
                     updateZoneList(zonesResult.zones || [], zonesResult.unclassified || 0);
                     
-                    // 如果是全部資料檢視，也更新總覽統計
                     if (currentZone === 'all') {
                         await loadPackingSummary();
                     }
@@ -3891,7 +4283,9 @@
 
                     if (result.success) {
                         showToast('✅ ' + result.message, 'success');
-                        await loadPackingData(currentPage);
+                        // 【優化】清除快取
+                        delete dashboardCache[`${currentPackingSheet}_${currentPage}_${currentZone}`];
+                        await loadPackingDataOptimized();
                         closeModal();
                     } else {
                         showToast('❌ ' + result.error, 'error');
@@ -3916,7 +4310,6 @@
             const trimmedZoneName = zoneName.trim();
 
             try {
-                // 先取得統計資訊
                 const zonesResult = await packingApiCall('packingGetZones', { sheet: currentPackingSheet });
                 const zoneInfo = zonesResult.zones?.find(z => z.name === trimmedZoneName);
                 const count = zoneInfo ? zoneInfo.count : 0;
@@ -3937,10 +4330,17 @@
                 if (result.success) {
                     showToast(`✅ 位置「${trimmedZoneName}」已刪除，${result.clearedCount || count} 筆資料已清空位置標記`, 'success');
                     
+                    // 【優化】清除所有相關快取
+                    Object.keys(dashboardCache).forEach(key => {
+                        if (key.startsWith(currentPackingSheet)) {
+                            delete dashboardCache[key];
+                        }
+                    });
+                    
                     if (currentZone === trimmedZoneName) {
                         backToSummary();
                     } else {
-                        await loadPackingData(currentPage);
+                        await loadPackingDataOptimized();
                     }
                 } else {
                     throw new Error(result.error || '刪除失敗');
@@ -3982,13 +4382,11 @@
 
             showModal('✏️ 編輯資料', content, async () => {
                 try {
-                    // 收集所有欄位值
                     const newValues = {};
                     ['A','B','C','D','E','F'].forEach(col => {
                         newValues[col] = document.getElementById(`edit_${col}`).value;
                     });
 
-                    // 呼叫更新（這裡需要後端支援更新多欄位，目前只更新F欄作為示例）
                     await packingApiCall('packingSetLocation', {
                         key: key,
                         location: newValues.F,
@@ -3996,7 +4394,9 @@
                     });
 
                     showToast('✅ 資料已更新', 'success');
-                    await loadPackingData(currentPage);
+                    // 【優化】清除快取
+                    delete dashboardCache[`${currentPackingSheet}_${currentPage}_${currentZone}`];
+                    await loadPackingDataOptimized();
                     closeModal();
                 } catch (e) {
                     showToast('❌ 更新失敗', 'error');
@@ -4015,7 +4415,9 @@
                 });
 
                 showToast('✅ 已清除位置標記', 'success');
-                await loadPackingData(currentPage);
+                // 【優化】清除快取
+                delete dashboardCache[`${currentPackingSheet}_${currentPage}_${currentZone}`];
+                await loadPackingDataOptimized();
             } catch (e) {
                 showToast('❌ 失敗', 'error');
             }
@@ -4028,7 +4430,14 @@
                 const result = await packingApiCall('packingClearLocations', { sheet: currentPackingSheet });
                 if (result.success) {
                     showToast('✅ ' + result.message, 'success');
-                    await loadPackingData(1);
+                    recentlyAddedKeys = [];
+                    // 【優化】清除所有快取
+                    Object.keys(dashboardCache).forEach(key => {
+                        if (key.startsWith(currentPackingSheet)) {
+                            delete dashboardCache[key];
+                        }
+                    });
+                    await loadPackingDataOptimized();
                 } else {
                     showToast('❌ ' + result.error, 'error');
                 }
@@ -4037,36 +4446,38 @@
             }
         }
 
-        /**
- * 【修正】清空功能 - 完全清空所有內容（不重建標題）
- */
-async function clearPackingAll() {
-    const confirmMsg = currentPackingSheet === 'PackBox' 
-        ? '⚠️ 確定要清除 PACKBOX 全部資料嗎？\n\n此操作將**完全清空**工作表所有內容（包含標題列），資料將無法復原！\n\n⚠️ 此操作無法復原！'
-        : '⚠️ 確定要清除 PACKBOXSPARE 全部資料嗎？\n\n此操作將**完全清空**工作表所有內容（包含標題列），資料將無法復原！\n\n⚠️ 此操作無法復原！';
+        async function clearPackingAll() {
+            const confirmMsg = currentPackingSheet === 'PackBox' 
+                ? '⚠️ 確定要清除 PACKBOX 全部資料嗎？\n\n此操作將**完全清空**工作表所有內容（包含標題列），資料將無法復原！\n\n⚠️ 此操作無法復原！'
+                : '⚠️ 確定要清除 PACKBOXSPARE 全部資料嗎？\n\n此操作將**完全清空**工作表所有內容（包含標題列），資料將無法復原！\n\n⚠️ 此操作無法復原！';
 
-    if (!confirm(confirmMsg)) return;
+            if (!confirm(confirmMsg)) return;
 
-    try {
-        showToast('正在清空資料...', 'info');
+            try {
+                showToast('正在清空資料...', 'info');
 
-        // 【修正】不再傳遞 includeHeader 參數，完全清空
-        const result = await packingApiCall('packingClearAll', { 
-            sheet: currentPackingSheet
-        });
-        
-        if (result.success) {
-            showToast(result.message, 'success');
-            // 清空後重新載入資料（應該是空的）
-            await loadPackingData();
-        } else {
-            throw new Error(result.error);
+                const result = await packingApiCall('packingClearAll', { 
+                    sheet: currentPackingSheet
+                });
+                
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    recentlyAddedKeys = [];
+                    // 【優化】清除所有快取
+                    Object.keys(dashboardCache).forEach(key => {
+                        if (key.startsWith(currentPackingSheet)) {
+                            delete dashboardCache[key];
+                        }
+                    });
+                    await loadPackingDataOptimized();
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                showToast('清空失敗: ' + error.message, 'error');
+                console.error('清空錯誤:', error);
+            }
         }
-    } catch (error) {
-        showToast('清空失敗: ' + error.message, 'error');
-        console.error('清空錯誤:', error);
-    }
-}
 
         //================ Excel 上傳與匯出功能 =================
         function showUploadModal() {
@@ -4215,7 +4626,7 @@ async function clearPackingAll() {
         }
 
         /**
-         * 分批上傳核心函數（已優化不強制開啟F欄）
+         * 【優化】分批上傳核心函數 - 增大批次至200筆
          */
         async function confirmModalUpload() {
             if (!selectedModalFile || isUploading) return;
@@ -4244,25 +4655,22 @@ async function clearPackingAll() {
                 const worksheet = workbook.Sheets[firstSheetName];
                 const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
 
-                // 過濾有效資料（確保A欄有值）
                 const validData = jsonData.filter(row => row[0] && String(row[0]).trim() !== '');
                 if (validData.length === 0) {
                     throw new Error('Excel中沒有有效資料（請確保A欄有Key值）');
                 }
 
-                // 標準化資料：確保每筆都是6欄（A-F），F欄保持原值（不強制開啟）
                 const normalizedData = validData.map(row => {
                     const newRow = new Array(6).fill('');
                     for (let i = 0; i < Math.min(row.length, 6); i++) {
                         newRow[i] = row[i] ? String(row[i]).trim() : '';
                     }
-                    // 注意：不再自動填充F欄，保持Excel中的原始值或空白
                     return newRow;
                 });
 
                 const totalRecords = normalizedData.length;
                 
-                // 分批處理設定
+                // 【優化】增大批次至200筆，配合後端1000筆處理能力
                 const BATCH_SIZE = UPLOAD_BATCH_SIZE;
                 const totalBatches = Math.ceil(totalRecords / BATCH_SIZE);
                 let totalUpdated = 0;
@@ -4271,7 +4679,6 @@ async function clearPackingAll() {
                 let failedBatches = [];
                 let currentBatch = 0;
 
-                // 序列處理每一批
                 for (let i = 0; i < totalRecords; i += BATCH_SIZE) {
                     if (currentUploadController.aborted) {
                         throw new Error('使用者中斷');
@@ -4285,10 +4692,11 @@ async function clearPackingAll() {
                     btn.innerHTML = `<span style="display: inline-block; width: 18px; height: 18px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 6px;"></span>第 ${currentBatch}/${totalBatches} 批...`;
 
                     try {
+                        // 【優化】呼叫優化後的上傳API
                         const result = await packingApiCall('packingUploadData', {
                             data: JSON.stringify(batchData),
                             sheet: currentPackingSheet
-                        }, 60000);
+                        }, 120000); // 增加超時至2分鐘
 
                         if (result.success) {
                             totalUpdated += (result.updated || 0);
@@ -4303,9 +4711,9 @@ async function clearPackingAll() {
                         console.error(`批次 ${currentBatch} 錯誤:`, e);
                     }
 
-                    // 批次間延遲
+                    // 【優化】批次間延遲縮短至200ms
                     if (i + BATCH_SIZE < totalRecords) {
-                        await new Promise(resolve => setTimeout(resolve, 500));
+                        await new Promise(resolve => setTimeout(resolve, 200));
                     }
                 }
 
@@ -4324,9 +4732,16 @@ async function clearPackingAll() {
                     );
                 }
 
+                // 【優化】清除快取並重新載入
+                Object.keys(dashboardCache).forEach(key => {
+                    if (key.startsWith(currentPackingSheet)) {
+                        delete dashboardCache[key];
+                    }
+                });
+
                 setTimeout(() => {
                     closeUploadModal();
-                    loadPackingData(1); // 重新載入第一頁
+                    loadPackingDataOptimized();
                 }, 2500);
 
             } catch (e) {
@@ -4347,9 +4762,6 @@ async function clearPackingAll() {
             }
         }
 
-        /**
-         * 【修正1】Excel 匯出 - 修正 Base64 解碼方式，確保檔案正確下載
-         */
         async function exportPackingExcel() {
             const btn = event.target;
             const originalText = btn.innerHTML;
@@ -4362,32 +4774,25 @@ async function clearPackingAll() {
                 });
 
                 if (result.success && result.data) {
-                    // 【修正1】使用更安全的 Base64 解碼方式處理二進位檔案
                     const base64 = result.data;
-                    
-                    // 將 base64 轉換為 Uint8Array（處理二進位資料的正確方式）
                     const byteCharacters = atob(base64);
                     const byteArray = new Uint8Array(byteCharacters.length);
                     for (let i = 0; i < byteCharacters.length; i++) {
                         byteArray[i] = byteCharacters.charCodeAt(i);
                     }
                     
-                    // 建立 Blob（指定正確的 MIME 類型）
                     const blob = new Blob([byteArray], { 
                         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
                     });
                     
-                    // 建立下載連結
                     const link = document.createElement('a');
                     const url = URL.createObjectURL(blob);
                     link.href = url;
                     link.download = result.filename || `${currentPackingSheet}_${new Date().toISOString().slice(0,10)}.xlsx`;
                     
-                    // 觸發下載
                     document.body.appendChild(link);
                     link.click();
                     
-                    // 延遲釋放 URL 物件，確保下載完成
                     setTimeout(() => {
                         document.body.removeChild(link);
                         URL.revokeObjectURL(url);
@@ -4472,6 +4877,66 @@ async function clearPackingAll() {
             return div.innerHTML;
         }
 
+        function showEditHeadersModal() {
+            document.getElementById('headerInputA').value = columnHeaders[0] || 'A';
+            document.getElementById('headerInputB').value = columnHeaders[1] || 'B';
+            document.getElementById('headerInputC').value = columnHeaders[2] || 'C';
+            document.getElementById('headerInputD').value = columnHeaders[3] || 'D';
+            document.getElementById('headerInputE').value = columnHeaders[4] || 'E';
+            document.getElementById('headerInputF').value = columnHeaders[5] || 'F';
+            
+            renderCustomCategories('headerEditCustomCategories');
+            
+            document.getElementById('headerEditModalOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeHeaderEditModal(e) {
+            if (e && e.target !== document.getElementById('headerEditModalOverlay')) return;
+            document.getElementById('headerEditModalOverlay').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        async function saveHeadersAndCategories() {
+            const newHeaders = [
+                document.getElementById('headerInputA').value || 'A',
+                document.getElementById('headerInputB').value || 'B',
+                document.getElementById('headerInputC').value || 'C',
+                document.getElementById('headerInputD').value || 'D',
+                document.getElementById('headerInputE').value || 'E',
+                document.getElementById('headerInputF').value || 'F'
+            ];
+
+            try {
+                const result = await packingApiCall('packingUpdateHeaders', {
+                    sheet: currentPackingSheet,
+                    headers: JSON.stringify(newHeaders)
+                });
+
+                if (result.success) {
+                    columnHeaders = newHeaders;
+                    const headerRow = document.getElementById('tableHeaderRow');
+                    let html = '';
+                    newHeaders.forEach((header, index) => {
+                        const colClass = index === 0 ? 'col-a' : (index === 5 ? 'col-f' : '');
+                        const label = index === 5 ? `${header} (位置)` : header;
+                        html += `<th class="${colClass}">${escapeHtml(label)}</th>`;
+                    });
+                    html += '<th>操作</th>';
+                    headerRow.innerHTML = html;
+                    
+                    saveCustomCategories();
+                    
+                    showToast('✅ 標題與分類設定已更新', 'success');
+                    closeHeaderEditModal();
+                } else {
+                    showToast('❌ 更新失敗：' + result.error, 'error');
+                }
+            } catch (e) {
+                showToast('❌ 儲存失敗：' + e.message, 'error');
+            }
+        }
+
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 if (isUploading) {
@@ -4483,6 +4948,7 @@ async function clearPackingAll() {
                 closeModal();
                 closeUploadModal();
                 closeMobileManualModal();
+                closeHeaderEditModal();
             }
         });
     </script>
