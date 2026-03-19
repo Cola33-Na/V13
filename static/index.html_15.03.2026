@@ -1,0 +1,3891 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>圖書查詢與裝箱系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft JhengHei", "微軟正黑體", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            height: 100vh;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            flex-shrink: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .main-wrapper {
+            display: grid;
+            grid-template-columns: 85px 1fr;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .left-toolbar {
+            background: #f8f9fa;
+            border-right: 1px solid #e9ecef;
+            padding: 10px 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+            overflow-y: auto;
+            overflow-x: hidden;
+            flex-shrink: 0;
+        }
+
+        .tool-btn {
+            width: 75px;
+            min-height: 75px;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            background: white;
+            color: #667eea;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 8px 4px;
+            text-align: center;
+            line-height: 1.2;
+            flex-shrink: 0;
+        }
+
+        .tool-btn:hover, .tool-btn:active {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .tool-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #764ba2;
+        }
+
+        .tool-btn.packbox-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #764ba2;
+        }
+
+        .tool-btn.spare-btn.active {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border-color: #11998e;
+        }
+
+        .tool-btn .label {
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 1.1;
+        }
+
+        .tool-btn .sub-label {
+            font-size: 9px;
+            opacity: 0.9;
+            line-height: 1;
+        }
+
+        .toolbar-divider {
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #dee2e6, transparent);
+            margin: 10px 0;
+            flex-shrink: 0;
+        }
+
+        .toolbar-section-title {
+            font-size: 9px;
+            color: #adb5bd;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        .content-area {
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: #fafafa;
+            position: relative;
+            min-height: 0;
+        }
+
+        .function-block {
+            display: none;
+            animation: fadeIn 0.3s ease;
+            min-height: 100%;
+        }
+
+        .function-block.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .panel-content {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            min-height: 100%;
+        }
+
+        .block-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 3px solid #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            position: sticky;
+            top: 0;
+            background: #fafafa;
+            z-index: 10;
+            padding-top: 5px;
+        }
+
+        .block-title.spare-title {
+            border-bottom-color: #11998e;
+        }
+
+        .block-title-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .block-title-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .title-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .title-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .title-btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .title-btn-spare {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .title-btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .spare-title .title-btn-secondary {
+            color: #11998e;
+            border-color: #11998e;
+        }
+
+        /* 圖書查詢特定樣式 */
+        .search-layout {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            min-height: 100%;
+        }
+
+        .search-main {
+            padding: 25px;
+            overflow-y: auto;
+        }
+
+        .search-sidebar {
+            background: #f8f9fa;
+            border-left: 1px solid #e9ecef;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .control-box {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .search-hint {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #e3f2fd;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            line-height: 1.5;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-box input[type="text"] {
+            flex: 1;
+            min-width: 200px;
+            padding: 14px 16px;
+            font-size: 16px;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        input[type="text"], input[type="number"], textarea, select {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+            font-family: inherit;
+            width: 100%;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            touch-action: manipulation;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-spare {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-spare:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(17, 153, 142, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 13px;
+        }
+
+        .status-bar {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+            word-break: break-word;
+        }
+
+        .status-bar.info {
+            background: #e3f2fd;
+            color: #1976d2;
+            display: block;
+        }
+
+        .status-bar.error {
+            background: #ffebee;
+            color: #c62828;
+            display: block;
+        }
+
+        .status-bar.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            display: block;
+        }
+
+        .status-bar.warning {
+            background: #fff3cd;
+            color: #856404;
+            display: block;
+        }
+
+        /* 圖書查詢結果樣式 */
+        .library-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .location-badge {
+            background: rgba(255,255,255,0.95);
+            color: #764ba2;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            border: 2px solid white;
+            text-align: center;
+        }
+
+        .book-info {
+            background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .book-info h2 {
+            color: #e65100;
+            margin-bottom: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            border-bottom: 2px solid #ff9800;
+            padding-bottom: 8px;
+        }
+
+        .info-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: flex-start;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 152, 0, 0.2);
+            gap: 8px;
+        }
+
+        .info-number {
+            background: #ff9800;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 12px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #e65100;
+            font-weight: 700;
+            min-width: 80px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+        }
+
+        .info-value {
+            font-size: 14px;
+            color: #212121;
+            font-weight: 500;
+            flex: 1;
+            word-break: break-word;
+            line-height: 1.4;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        table {
+            width: 100%;
+            min-width: 600px;
+            border-collapse: collapse;
+            background: white;
+            font-size: 14px;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        tr:hover {
+            background: #f5f5f5;
+        }
+
+        .status-available {
+            color: #2e7d32;
+            font-weight: 600;
+        }
+
+        .status-unavailable {
+            color: #c62828;
+        }
+
+        /* Manual Select 樣式 */
+        .manual-list {
+            flex: 1;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+            max-height: 400px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .manual-item {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 44px;
+        }
+
+        .manual-item:hover {
+            background: #f8f9fa;
+        }
+
+        .manual-item-text {
+            flex: 1;
+            word-break: break-all;
+            margin-right: 8px;
+        }
+
+        .manual-item-remove {
+            color: #dc3545;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 18px;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .manual-input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .manual-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        /* 裝箱功能樣式 */
+        .packing-layout {
+            display: flex;
+            gap: 20px;
+            min-height: calc(100vh - 160px);
+        }
+
+        .packing-sidebar {
+            width: 250px;
+            flex-shrink: 0;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: calc(100vh - 140px);
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+        }
+
+        .packing-sidebar.spare-sidebar {
+            background: #e8f5e9;
+            border-color: #c3e6cb;
+        }
+
+        .zone-item {
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .zone-item:hover {
+            border-color: #667eea;
+            transform: translateX(3px);
+        }
+
+        .zone-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .spare-sidebar .zone-item:hover {
+            border-color: #11998e;
+        }
+
+        .spare-sidebar .zone-item.active {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .zone-name {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            word-break: break-word;
+            flex: 1;
+        }
+
+        .zone-count {
+            font-size: 12px;
+            opacity: 0.8;
+            flex-shrink: 0;
+            margin-left: 8px;
+        }
+
+        .zone-actions {
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .zone-item:hover .zone-actions {
+            opacity: 1;
+        }
+
+        .zone-edit, .zone-delete {
+            cursor: pointer;
+            padding: 4px;
+            margin-left: 4px;
+            font-size: 14px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .zone-edit:hover {
+            background: rgba(102, 126, 234, 0.2);
+        }
+
+        .zone-delete:hover {
+            background: rgba(220, 53, 69, 0.2);
+        }
+
+        .zone-item.active .zone-edit:hover,
+        .zone-item.active .zone-delete:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .sidebar-actions {
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 2px dashed #dee2e6;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .packing-main {
+            flex: 1;
+            min-width: 0;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: calc(100vh - 140px);
+            border: 1px solid #e9ecef;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .summary-card h3 {
+            font-size: 16px;
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e3f2fd;
+        }
+
+        .spare-title .summary-card h3 {
+            color: #11998e;
+            border-bottom-color: #c3e6cb;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-label {
+            color: #666;
+            word-break: break-word;
+            margin-right: 10px;
+        }
+
+        .summary-value {
+            font-weight: 700;
+            color: #333;
+            flex-shrink: 0;
+        }
+
+        .data-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .data-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s;
+        }
+
+        .data-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .data-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            cursor: pointer;
+            gap: 10px;
+        }
+
+        .data-key {
+            font-weight: 700;
+            color: #667eea;
+            font-size: 16px;
+            word-break: break-word;
+            flex: 1;
+        }
+
+        .spare-mode .data-key {
+            color: #11998e;
+        }
+
+        .data-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .data-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #dee2e6;
+        }
+
+        .data-item.collapsed .data-content {
+            display: none;
+        }
+
+        .data-field {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+            word-break: break-word;
+        }
+
+        .data-field label {
+            font-size: 12px;
+            color: #888;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .data-field value {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+            word-break: break-word;
+        }
+
+        .field-f {
+            background: #fff3cd;
+            border-color: #ffc107;
+        }
+
+        .quick-input-area {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #667eea;
+        }
+
+        .quick-input-area.spare-mode {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-color: #11998e;
+        }
+
+        .quick-input-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .quick-input-row input {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .quick-add-btn {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .quick-result-display {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 2px solid #28a745;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .quick-result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .quick-result-item {
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .quick-result-item label {
+            font-size: 11px;
+            color: #888;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .quick-result-item value {
+            font-weight: 600;
+            color: #333;
+            font-size: 15px;
+        }
+
+        .quick-result-status {
+            text-align: center;
+            padding: 8px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        /* Modal 樣式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlide 0.3s ease;
+            position: relative;
+            margin: auto;
+        }
+
+        @keyframes modalSlide {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal h3 {
+            margin-bottom: 20px;
+            color: #333;
+            padding-right: 30px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+
+        .upload-modal-overlay .modal {
+            max-width: 450px;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+            width: 100%;
+            display: block;
+            margin: 0;
+        }
+
+        .upload-area.spare-mode {
+            border-color: #11998e;
+        }
+
+        .upload-area:hover {
+            background: #f0f4ff;
+        }
+
+        .upload-area.spare-mode:hover {
+            background: #e8f5e9;
+        }
+
+        .upload-area.has-file {
+            border-color: #28a745;
+            border-style: solid;
+            background: #e8f5e9;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            line-height: 1;
+            display: block;
+        }
+
+        .upload-hint {
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+
+        .upload-progress-container {
+            margin: 20px 0;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .upload-progress-container.active {
+            display: block;
+        }
+
+        .upload-progress-bar {
+            height: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .upload-progress-bar.spare {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .upload-status-text {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+            display: none;
+        }
+
+        .upload-status-text.active {
+            display: block;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        /* Loading 與空狀態 */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #757575;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        .spare-mode .spinner {
+            border-top-color: #11998e;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #9e9e9e;
+        }
+
+        .sheet-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .sheet-badge.packbox {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .sheet-badge.spare {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        /* 日誌容器 */
+        .log-container {
+            margin-top: 20px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            overflow: hidden;
+        }
+
+        .log-header {
+            background: #f8f9fa;
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: 600;
+            color: #495057;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .log-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .log-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .log-time {
+            color: #6c757d;
+            font-size: 12px;
+            white-space: nowrap;
+            min-width: 60px;
+        }
+
+        .log-content {
+            flex: 1;
+            word-break: break-word;
+        }
+
+        .log-item.success {
+            background: #f1f8f4;
+            border-left: 3px solid #28a745;
+        }
+
+        .log-item.error {
+            background: #fdf2f2;
+            border-left: 3px solid #dc3545;
+        }
+
+        .empty-log {
+            text-align: center;
+            padding: 30px;
+            color: #adb5bd;
+            font-size: 14px;
+        }
+
+        /* 批量更新特定樣式 */
+        .batch-status-panel {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .batch-status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.processing {
+            background: #ffc107;
+            box-shadow: 0 0 0 rgba(255, 193, 7, 0.4);
+        }
+
+        .status-dot.idle {
+            background: #28a745;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+        }
+
+        .batch-status-text {
+            color: #495057;
+        }
+
+        .batch-status-text.processing {
+            color: #856404;
+        }
+
+        .batch-status-text.idle {
+            color: #155724;
+        }
+
+        .batch-progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .batch-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s;
+        }
+
+        .error-list-container {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #f5c6cb;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .error-list-header {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .error-list-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .error-list-content {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .error-item {
+            padding: 10px;
+            border-bottom: 1px solid #f1f1f1;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .error-barcode {
+            font-family: monospace;
+            font-weight: 600;
+            color: #dc3545;
+        }
+
+        .error-reason {
+            color: #6c757d;
+            font-size: 12px;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-primary {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .badge-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 968px) {
+            .main-wrapper {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+            }
+
+            .left-toolbar {
+                flex-direction: row;
+                justify-content: flex-start;
+                padding: 10px;
+                gap: 8px;
+                overflow-x: auto;
+                overflow-y: hidden;
+                height: auto;
+                max-height: 100px;
+                border-right: none;
+                border-bottom: 1px solid #e9ecef;
+            }
+
+            .tool-btn {
+                width: 72px;
+                min-width: 72px;
+                height: 72px;
+                min-height: 72px;
+                font-size: 18px;
+            }
+
+            .tool-btn .label {
+                font-size: 10px;
+            }
+
+            .tool-btn .sub-label {
+                font-size: 8px;
+            }
+
+            .toolbar-divider {
+                width: 1px;
+                height: 40px;
+                margin: 0 5px;
+            }
+
+            .block-title {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .search-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .search-sidebar {
+                display: none;
+            }
+
+            .block-title-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .packing-layout {
+                flex-direction: column;
+            }
+
+            .packing-sidebar {
+                width: 100%;
+                max-height: 200px;
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 8px;
+                padding: 10px;
+            }
+
+            .zone-item {
+                flex: 1;
+                min-width: 140px;
+                max-width: 200px;
+            }
+
+            .zone-actions {
+                opacity: 1;
+            }
+
+            .sidebar-actions {
+                flex-direction: row;
+                width: 100%;
+                margin-top: 10px;
+                flex-wrap: wrap;
+            }
+
+            .sidebar-actions button {
+                flex: 1;
+                min-width: 120px;
+            }
+
+            .packing-main {
+                max-height: none;
+            }
+
+            .panel-content {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .tool-btn {
+                width: 65px;
+                min-width: 65px;
+                height: 65px;
+                min-height: 65px;
+                font-size: 16px;
+                padding: 4px;
+            }
+
+            .block-title {
+                font-size: 16px;
+            }
+
+            .modal {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            .data-content {
+                grid-template-columns: 1fr;
+            }
+
+            .zone-item {
+                min-width: 100%;
+                max-width: none;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+<base target="_blank">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 圖書查詢與裝箱系統</h1>
+        </div>
+
+        <div class="main-wrapper">
+            <div class="left-toolbar">
+                <!-- 圖書查詢功能 -->
+                <button class="tool-btn active" data-target="search" onclick="switchPanel('search')" title="圖書查詢">
+                    <span style="font-size: 24px;">🔍</span>
+                    <span class="label">圖書查詢</span>
+                </button>
+
+                <button class="tool-btn" data-target="location" onclick="switchPanel('location')" title="查詢位置">
+                    <span style="font-size: 24px;">📍</span>
+                    <span class="label">查詢位置</span>
+                </button>
+
+                <button class="tool-btn" data-target="display" onclick="switchPanel('display')" title="顯示設定">
+                    <span style="font-size: 24px;">⚙️</span>
+                    <span class="label">顯示設定</span>
+                </button>
+
+                <button class="tool-btn" data-target="single" onclick="switchPanel('single')" title="單一更新">
+                    <span style="font-size: 24px;">📝</span>
+                    <span class="label">單一更新</span>
+                </button>
+
+                <button class="tool-btn" data-target="batch" onclick="switchPanel('batch')" title="批量更新">
+                    <span style="font-size: 24px;">📋</span>
+                    <span class="label">批量更新</span>
+                </button>
+
+                <div class="toolbar-divider"></div>
+
+                <!-- 裝箱功能 -->
+                <button class="tool-btn packbox-btn" onclick="switchPackingSheet('PACKBOX')" title="PACKBOX主箱">
+                    <span style="font-size: 28px;">📦</span>
+                    <span class="label">PACKBOX</span>
+                    <span class="sub-label">主箱</span>
+                </button>
+
+                <button class="tool-btn spare-btn" onclick="switchPackingSheet('PACKBOXSPARE')" title="PACKBOXSPARE備用箱">
+                    <span style="font-size: 28px;">🗄️</span>
+                    <span class="label">SPARE</span>
+                    <span class="sub-label">備用箱</span>
+                </button>
+            </div>
+
+            <div class="content-area">
+
+                <!-- 1. 圖書查詢 -->
+                <div id="panel-search" class="function-block active">
+                    <div class="search-layout">
+                        <div class="search-main">
+                            <div class="block-title">🔍 圖書查詢</div>
+
+                            <div class="control-box">
+                                <div class="search-hint">
+                                    💡 請輸入14位數條碼進行查詢（例如：12345678912345）
+                                </div>
+
+                                <div class="search-box">
+                                    <input type="text" id="searchInput" placeholder="請輸入14位數條碼..." autocomplete="off" maxlength="14" inputmode="numeric">
+                                    <button class="btn-primary" onclick="searchBook()" id="searchBtn" style="flex: 1;">
+                                        查詢
+                                    </button>
+                                </div>
+
+                                <div id="statusBar" class="status-bar"></div>
+
+                                <div id="results">
+                                    <div class="empty-state">
+                                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.3; margin-bottom: 16px;">
+                                            <circle cx="11" cy="11" r="8"></circle>
+                                            <path d="m21 21-4.35-4.35"></path>
+                                        </svg>
+                                        <p>請輸入14位數條碼開始查詢</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="search-sidebar desktop-only">
+                            <h3>
+                                📋 Manual Select
+                                <span id="manualCount" style="font-size: 12px; color: #666; font-weight: normal;">(0)</span>
+                            </h3>
+
+                            <div class="manual-list" id="manualList">
+                                <div class="empty-list">載入中...</div>
+                            </div>
+
+                            <div class="manual-input-group">
+                                <input type="text" id="newManualItem" placeholder="加入新項目..." onkeypress="if(event.key==='Enter') addManualItem()">
+                                <button class="btn-success btn-sm" onclick="addManualItem()">+</button>
+                            </div>
+
+                            <div class="manual-actions">
+                                <button class="btn-danger btn-sm" onclick="clearManualSelect()">清空全部</button>
+                                <button class="btn-secondary btn-sm" onclick="removeLastManual()">移除最後一筆</button>
+                            </div>
+
+                            <button class="btn-info btn-sm export-btn" onclick="exportManualSelect()">
+                                📥 匯出清單 (CSV)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. 查詢位置 -->
+                <div id="panel-location" class="function-block">
+                    <div class="panel-content">
+                        <div class="block-title">📍 查詢位置</div>
+
+                        <div class="control-box">
+                            <div class="search-hint">
+                                💡 請輸入14位數條碼查詢存放位置（例如：12345678912345）
+                            </div>
+
+                            <div class="search-box">
+                                <input type="text" id="locationInput" placeholder="請輸入14位數條碼..." autocomplete="off" maxlength="14" inputmode="numeric">
+                                <button class="btn-primary" onclick="searchLocation()" id="locationBtn" style="flex: 1;">
+                                    查詢位置
+                                </button>
+                            </div>
+
+                            <div id="locationStatusBar" class="status-bar"></div>
+
+                            <div id="locationResults">
+                                <div class="empty-state">
+                                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.3; margin-bottom: 16px;">
+                                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                                        <circle cx="12" cy="9" r="2.5"/>
+                                    </svg>
+                                    <p>請輸入14位數條碼查詢位置</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. 顯示設定 -->
+                <div id="panel-display" class="function-block">
+                    <div class="panel-content">
+                        <div class="block-title">⚙️ 顯示設定</div>
+                        <div class="control-box">
+                            <label style="display: block; margin-bottom: 10px; font-weight: 600;">圖書館顯示數量：</label>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <input type="number" id="displayLimit" value="100" min="1" max="500" style="width: 150px;">
+                                <button class="btn-secondary" onclick="updateDisplayLimit()">套用設定</button>
+                            </div>
+                            <div style="margin-top: 10px; font-size: 13px; color: #6c757d;">設定查詢結果顯示的圖書館數量上限（預設100筆）</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. 單一位置更新 -->
+                <div id="panel-single" class="function-block">
+                    <div class="panel-content">
+                        <div class="block-title">📝 單一位置更新</div>
+                        <div class="control-box">
+                            <input type="text" id="singleLocation" placeholder="新位置" style="margin-bottom: 10px;">
+                            <input type="text" id="singleBookKey" placeholder="14位數條碼" maxlength="14" inputmode="numeric" style="margin-bottom: 10px;">
+                            <button class="btn-success" onclick="updateSingleLocation()">更新</button>
+                            <div style="margin-top: 10px; font-size: 13px; color: #6c757d;">請輸入新位置及14位數字條碼。按下更新後請留意下方更新日誌。</div>
+                        </div>
+
+                        <div class="log-container">
+                            <div class="log-header">
+                                <span>📋 最近更新日誌（最近50筆）</span>
+                                <button class="btn-sm btn-secondary" onclick="clearLogs()">清空日誌</button>
+                            </div>
+                            <div class="log-list" id="logList">
+                                <div class="empty-log">暫無更新記錄</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. 批量位置更新 -->
+                <div id="panel-batch" class="function-block">
+                    <div class="panel-content">
+                        <div class="block-title">📋 批量位置更新</div>
+
+                        <div class="batch-status-panel" id="batchStatusPanel">
+                            <div style="flex: 1;">
+                                <div class="batch-status-indicator">
+                                    <div class="status-dot idle" id="statusDot"></div>
+                                    <span class="batch-status-text idle" id="statusText">系統狀態：空閒中</span>
+                                </div>
+                                <div class="batch-status-detail" id="statusDetail" style="display: none;">
+                                    <div id="statusMessage"></div>
+                                    <div class="batch-progress-bar" id="progressBar" style="display: none;">
+                                        <div class="batch-progress-fill" id="progressFill" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+                                <div style="font-size: 12px; color: #6c757d;">
+                                    <span id="lastUpdateTime">--</span>
+                                </div>
+                                <button class="btn-sm btn-secondary" onclick="checkBatchStatus(true)">🔄 立即刷新</button>
+                            </div>
+                        </div>
+
+                        <div class="control-box">
+                            <label style="display: block; margin-bottom: 15px; font-size: 16px; font-weight: 600;">
+                                <span style="background: #667eea; color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 8px;">3</span>
+                                批量更新書目位置
+                            </label>
+                            <div style="margin-bottom: 15px; padding: 15px; background: #fff3cd; border-radius: 8px; border: 1px solid #ffeaa7;">
+                                <label style="font-size: 14px; color: #856404; font-weight: 600; display: block; margin-bottom: 8px;">預設新位置：</label>
+                                <input type="text" id="batchDefaultLocation" placeholder="輸入新位置（如：3F-A區）..." style="border-color: #ffeaa7;">
+                            </div>
+                            <textarea id="batchData" placeholder="格式：14位純數字條碼（每行一筆，位置可選）&#10;系統會自動套用上方預設位置&#10;範例：&#10;12345678901234&#10;12345678901235&#10;12345678901236,特殊位置"></textarea>
+                            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                                <button class="btn-warning" onclick="clearBatchData()">🗑️ 清空</button>
+                                <button class="btn-primary" onclick="submitBatchUpdateAsync()">確認批量更新（異步）</button>
+                            </div>
+                            <div style="margin-top: 10px; font-size: 13px; color: #6c757d;">
+                                💡 提示：提交後立即返回，背景處理中。可透過上方狀態面板查看進度。
+                            </div>
+                            <div id="batchStatus" class="status-bar" style="margin-top: 15px; display: none;"></div>
+                        </div>
+
+                        <div class="error-list-container" id="errorListContainer" style="display: none;">
+                            <div class="error-list-header">
+                                <span>⚠️ AddNewAddressErr 錯誤記錄</span>
+                                <div class="error-list-actions">
+                                    <span class="badge badge-danger" id="errorCountBadge">0 筆</span>
+                                    <button class="btn-sm btn-info" onclick="exportErrorList()">📥 匯出錯誤</button>
+                                    <button class="btn-sm btn-danger" onclick="clearErrorList()" id="clearErrBtn">🗑️ 清空</button>
+                                </div>
+                            </div>
+                            <div class="error-list-content" id="errorListContent">
+                                <div class="empty-list">暫無錯誤記錄</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. 裝箱功能 (PACKBOX) -->
+                <div id="panel-packing" class="function-block">
+                    <div class="panel-content" id="packingPanelContent">
+                        <div class="block-title" id="packingBlockTitle">
+                            <div class="block-title-left">
+                                📦 裝箱管理
+                                <span class="sheet-badge packbox" id="currentSheetBadge">PACKBOX</span>
+                            </div>
+                            <div class="block-title-actions">
+                                <button class="title-btn title-btn-primary" id="uploadFileBtn" onclick="showUploadModal()">
+                                    📤 上傳檔案
+                                </button>
+                                <button class="title-btn title-btn-secondary" onclick="clearPackingAll()">
+                                    🗑️ 清空
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="packing-layout">
+                            <div class="packing-sidebar" id="packingSidebar">
+                                <div class="zone-item active" onclick="filterZone('all', this)">
+                                    <span class="zone-name">🏠 全部資料</span>
+                                    <span class="zone-count" id="zoneCountAll">0 筆</span>
+                                </div>
+
+                                <div id="zoneList"></div>
+
+                                <div class="sidebar-actions">
+                                    <button class="btn-success btn-sm" onclick="showAddZoneModal()">➕ 新增位置</button>
+                                    <button class="btn-warning btn-sm" onclick="clearPackingLocations()">🗑️ 清理位置</button>
+                                </div>
+                            </div>
+
+                            <div class="packing-main">
+                                <div class="quick-input-area" id="quickInputArea" style="display: none;">
+                                    <h4 style="margin-bottom: 10px;">➕ 快速新增到 <span id="currentZoneName"></span></h4>
+                                    <div class="quick-input-row">
+                                        <input type="text" id="quickKeyInput" placeholder="輸入 A欄 Key 值後按Enter或點擊加入..." autocomplete="off">
+                                        <button class="btn-primary quick-add-btn" id="quickAddBtn" onclick="quickAddSearch()">➕ 加入</button>
+                                    </div>
+                                    <div id="quickSearchResult" style="margin-top: 10px;"></div>
+                                </div>
+
+                                <div id="packingSummary">
+                                    <div class="summary-grid">
+                                        <div class="summary-card">
+                                            <h3>📊 各區數量統計</h3>
+                                            <div id="zoneSummaryList">
+                                                <div class="summary-item">
+                                                    <span class="summary-label">載入中...</span>
+                                                    <span class="summary-value">-</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="summary-card">
+                                            <h3>📈 分類統計</h3>
+                                            <div style="margin-bottom: 10px;">
+                                                <select id="summaryGroupBy" onchange="loadPackingSummary()" style="font-size: 14px;">
+                                                    <option value="B">依 B 欄分類</option>
+                                                    <option value="C">依 C 欄分類</option>
+                                                    <option value="D">依 D 欄分類</option>
+                                                    <option value="E">依 E 欄分類</option>
+                                                </select>
+                                            </div>
+                                            <div id="categorySummaryList">
+                                                <div class="summary-item">
+                                                    <span class="summary-label">載入中...</span>
+                                                    <span class="summary-value">-</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="packingDataList" style="display: none;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                                        <h3 id="dataListTitle">資料列表</h3>
+                                        <button class="btn-secondary btn-sm" onclick="backToSummary()">← 返回總覽</button>
+                                    </div>
+
+                                    <div style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                                        <input type="text" id="packingSearchInput" placeholder="搜尋..." style="flex: 1; min-width: 200px;" onkeypress="if(event.key==='Enter') searchPackingData()">
+                                        <select id="packingSearchRange" style="width: auto;">
+                                            <option value="A">A 欄</option>
+                                            <option value="B">B 欄</option>
+                                            <option value="C">C 欄</option>
+                                            <option value="D">D 欄</option>
+                                            <option value="E">E 欄</option>
+                                            <option value="F">F 欄</option>
+                                        </select>
+                                        <button class="btn-primary btn-sm" onclick="searchPackingData()">🔍 搜尋</button>
+                                    </div>
+
+                                    <div class="data-list" id="dataListContainer"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <h3 id="modalTitle">標題</h3>
+            <div id="modalContent"></div>
+            <div class="modal-actions" id="modalActions">
+                <button class="btn-secondary" onclick="closeModal()">取消</button>
+                <button class="btn-primary" id="modalConfirmBtn" onclick="modalConfirm()">確認</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div class="modal-overlay upload-modal-overlay" id="uploadModalOverlay" onclick="closeUploadModal(event)">
+        <div class="modal" onclick="event.stopPropagation()" style="text-align: center;">
+            <h3 id="uploadModalTitle" style="text-align: left;">📤 上傳 CSV 檔案</h3>
+
+            <div class="upload-modal-content">
+                <input type="file" id="modalFileInput" accept=".csv" onchange="handleModalFileSelect(event)" style="display: none;">
+                <label for="modalFileInput" class="upload-area" id="modalUploadArea" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 220px; margin: 20px 0;">
+                    <div class="upload-icon">📁</div>
+                    <div style="font-weight: 600; font-size: 18px; margin-bottom: 8px;">點擊選擇 CSV 檔案</div>
+                    <div class="upload-hint" style="font-size: 13px; color: #888; line-height: 1.6;">
+                        支援格式：A,B,C,D,E 欄位為資料，F欄為位置<br>
+                        檔案大小限制：5MB
+                    </div>
+                </label>
+
+                <div id="uploadFileInfo" style="display: none; margin: 15px 0; padding: 15px; background: #e8f5e9; border-radius: 8px; border-left: 4px solid #28a745; text-align: left;">
+                    <div style="font-weight: 600; color: #2e7d32; font-size: 14px;">✅ 已選擇檔案：<span id="selectedFileName"></span></div>
+                </div>
+
+                <div class="upload-progress-container" id="uploadProgressContainer">
+                    <div class="upload-progress-bar" id="uploadProgressBar">0%</div>
+                </div>
+                <div class="upload-status-text" id="uploadStatusText">準備上傳...</div>
+
+                <div id="uploadModalStatus" class="status-bar" style="margin-top: 15px; display: none; text-align: left;"></div>
+            </div>
+
+            <div class="modal-actions" style="margin-top: 25px;">
+                <button class="btn-secondary" onclick="cancelUpload()" id="cancelUploadBtn" style="flex: 1; display: none;">⏹️ 中斷</button>
+                <button class="btn-secondary" onclick="closeUploadModal()" id="closeUploadModalBtn" style="flex: 1;">取消</button>
+                <button class="btn-primary" id="modalUploadBtn" onclick="confirmModalUpload()" disabled style="flex: 1;">🚀 開始上傳</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        //================ API 設定 =================
+        const LIBRARY_API_URL = 'https://script.google.com/macros/s/AKfycbx2EQpxNM4E4Ab4vT2XPmG90CpxdbrVMzbS9Ssx6fcc6bF_A0jMav3WEjoaTt50NEeGxg/exec';
+        const PACKING_API_URL = 'https://script.google.com/macros/s/AKfycbx2EQpxNM4E4Ab4vT2XPmG90CpxdbrVMzbS9Ssx6fcc6bF_A0jMav3WEjoaTt50NEeGxg/exec';
+
+        //================ 狀態變數 =================
+        let currentPanel = 'search';
+        let currentPackingSheet = 'PACKBOX';
+        let currentZone = 'all';
+        let currentDisplayLimit = 100;
+        let manualSelectData = [];
+        let updateLogs = [];
+        let packingDataCache = [];
+        let fullDataCache = {};
+        let savedZones = {};
+        let currentBatchId = null;
+        let statusCheckInterval = null;
+        let currentErrorList = [];
+        let modalCallback = null;
+        let selectedModalFile = null;
+        let isUploading = false;
+        let currentUploadController = null;
+        let isProcessingQuickAdd = false;
+        const MAX_LOGS = 50;
+
+        //================ 初始化 =================
+        document.addEventListener('DOMContentLoaded', function() {
+            loadManualSelect();
+            
+            // 輸入框事件綁定
+            document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') searchBook();
+            });
+            document.getElementById('searchInput')?.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^\d]/g, '').slice(0, 14);
+            });
+            document.getElementById('locationInput')?.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') searchLocation();
+            });
+            document.getElementById('locationInput')?.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^\d]/g, '').slice(0, 14);
+            });
+            document.getElementById('singleBookKey')?.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') updateSingleLocation();
+            });
+            document.getElementById('singleBookKey')?.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^\d]/g, '').slice(0, 14);
+            });
+            document.getElementById('quickKeyInput')?.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !isProcessingQuickAdd) {
+                    e.preventDefault();
+                    quickAddSearch();
+                }
+            });
+
+            // 預載資料但不在此切換面板
+            setTimeout(preloadAllData, 1000);
+        });
+
+        //================ API 呼叫函數 =================
+        function libraryApiCall(action, params = {}, timeout = 30000) {
+            return new Promise((resolve, reject) => {
+                const callbackName = 'lib_cb_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                const script = document.createElement('script');
+
+                const queryParams = new URLSearchParams({
+                    action: action,
+                    callback: callbackName,
+                    ...params
+                });
+
+                const url = `${LIBRARY_API_URL}?${queryParams.toString()}`;
+
+                const timeoutId = setTimeout(() => {
+                    cleanup();
+                    reject(new Error('請求超時'));
+                }, timeout);
+
+                function cleanup() {
+                    clearTimeout(timeoutId);
+                    if (script.parentNode) script.parentNode.removeChild(script);
+                    delete window[callbackName];
+                }
+
+                window[callbackName] = (data) => {
+                    cleanup();
+                    resolve(data);
+                };
+
+                script.onerror = () => {
+                    cleanup();
+                    reject(new Error('載入失敗'));
+                };
+
+                script.src = url;
+                document.head.appendChild(script);
+            });
+        }
+
+        function packingApiCall(action, params = {}, timeout = 30000) {
+            return new Promise((resolve, reject) => {
+                const callbackName = 'pack_cb_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                const script = document.createElement('script');
+
+                const queryParams = new URLSearchParams({
+                    action: action,
+                    callback: callbackName,
+                    ...params
+                });
+
+                const url = `${PACKING_API_URL}?${queryParams.toString()}`;
+
+                const timeoutId = setTimeout(() => {
+                    cleanup();
+                    reject(new Error('請求超時'));
+                }, timeout);
+
+                function cleanup() {
+                    clearTimeout(timeoutId);
+                    if (script.parentNode) script.parentNode.removeChild(script);
+                    delete window[callbackName];
+                }
+
+                window[callbackName] = (data) => {
+                    cleanup();
+                    resolve(data);
+                };
+
+                script.onerror = () => {
+                    cleanup();
+                    reject(new Error('載入失敗'));
+                };
+
+                script.src = url;
+                document.head.appendChild(script);
+            });
+        }
+
+        //================ 面板切換 =================
+        function switchPanel(panelName) {
+            stopStatusMonitoring();
+
+            document.querySelectorAll('.function-block').forEach(block => {
+                block.classList.remove('active');
+            });
+            document.querySelectorAll('.tool-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            document.getElementById('panel-' + panelName).classList.add('active');
+            document.querySelector(`.tool-btn[data-target="${panelName}"]`)?.classList.add('active');
+
+            currentPanel = panelName;
+
+            if (panelName === 'search') {
+                setTimeout(() => document.getElementById('searchInput')?.focus(), 100);
+            } else if (panelName === 'location') {
+                setTimeout(() => document.getElementById('locationInput')?.focus(), 100);
+            } else if (panelName === 'single') {
+                setTimeout(() => document.getElementById('singleBookKey')?.focus(), 100);
+            } else if (panelName === 'batch') {
+                startStatusMonitoring();
+            }
+        }
+
+        function switchPackingSheet(sheetName) {
+            currentPackingSheet = sheetName;
+            currentZone = 'all';
+
+            document.querySelectorAll('.function-block').forEach(block => {
+                block.classList.remove('active');
+            });
+            document.querySelectorAll('.tool-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            document.getElementById('panel-packing').classList.add('active');
+            if (sheetName === 'PACKBOX') {
+                document.querySelector('.packbox-btn').classList.add('active');
+            } else {
+                document.querySelector('.spare-btn').classList.add('active');
+            }
+
+            updatePanelStyle();
+
+            // 載入資料並確保正確初始化視圖
+            loadPackingData().then(() => {
+                // 確保載入後顯示全部資料總覽
+                backToSummary();
+            });
+        }
+
+        function updatePanelStyle() {
+            const isSpare = currentPackingSheet === 'PACKBOXSPARE';
+            const title = document.getElementById('packingBlockTitle');
+            const uploadBtn = document.getElementById('uploadFileBtn');
+            const quickAddBtn = document.getElementById('quickAddBtn');
+
+            if (isSpare) {
+                title.className = 'block-title spare-title';
+                title.querySelector('.block-title-left').innerHTML = `
+                    🗄️ 裝箱管理
+                    <span class="sheet-badge spare">PACKBOXSPARE</span>
+                `;
+                uploadBtn.className = 'title-btn title-btn-spare';
+                if (quickAddBtn) {
+                    quickAddBtn.className = 'btn-spare quick-add-btn';
+                }
+                document.getElementById('packingSidebar').classList.add('spare-sidebar');
+                document.getElementById('quickInputArea').classList.add('spare-mode');
+                document.getElementById('packingPanelContent').classList.add('spare-mode');
+            } else {
+                title.className = 'block-title';
+                title.querySelector('.block-title-left').innerHTML = `
+                    📦 裝箱管理
+                    <span class="sheet-badge packbox">PACKBOX</span>
+                `;
+                uploadBtn.className = 'title-btn title-btn-primary';
+                if (quickAddBtn) {
+                    quickAddBtn.className = 'btn-primary quick-add-btn';
+                }
+                document.getElementById('packingSidebar').classList.remove('spare-sidebar');
+                document.getElementById('quickInputArea').classList.remove('spare-mode');
+                document.getElementById('packingPanelContent').classList.remove('spare-mode');
+            }
+        }
+
+        //================ 圖書查詢功能 =================
+        async function searchBook() {
+            const input = document.getElementById('searchInput').value.trim();
+            const btn = document.getElementById('searchBtn');
+            const resultsDiv = document.getElementById('results');
+
+            const barcodeRegex = /^\d{14}$/;
+            if (!barcodeRegex.test(input)) {
+                showLibraryStatus('search', '必須為14位數條碼', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '查詢中...';
+            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>查詢中...</p></div>';
+            showLibraryStatus('search', '查詢進行中...', 'info');
+
+            try {
+                const data = await libraryApiCall('query', {
+                    input: input,
+                    limit: currentDisplayLimit
+                });
+
+                if (data.success && data.found) {
+                    displayLibraryResults(data);
+                    showLibraryStatus('search', `✅ 查詢成功`, 'success');
+                    addToManualSelectBackground(input);
+                    document.getElementById('searchInput').value = '';
+                } else if (data.success && !data.found) {
+                    resultsDiv.innerHTML = `
+                        <div class="empty-state">
+                            <p>找不到條碼「${escapeHtml(input)}」</p>
+                            <p style="font-size: 13px; margin-top: 10px;">請確認條碼是否正確</p>
+                        </div>
+                    `;
+                    showLibraryStatus('search', '查無資料', 'error');
+                } else {
+                    throw new Error(data.error || '未知錯誤');
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="empty-state"><p>查詢失敗：${escapeHtml(error.message)}</p></div>`;
+                showLibraryStatus('search', '查詢失敗：' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '查詢';
+            }
+        }
+
+        function displayLibraryResults(data) {
+            const book = data.bookInfo;
+            const libs = data.libraries;
+            const rawLocation = data.rawLocation || '';
+
+            const bookFields = [
+                { num: 1, key: 'title', label: '書名' },
+                { num: 2, key: 'catalogNo', label: '館藏編目號碼' },
+                { num: 3, key: 'callNo', label: '索書號' },
+                { num: 4, key: 'author', label: '著者' },
+                { num: 5, key: 'description', label: '著錄' },
+                { num: 6, key: 'pubLoc', label: '出版地' },
+                { num: 7, key: 'publisher', label: '出版者' },
+                { num: 8, key: 'pubYear', label: '出版年份' },
+                { num: 9, key: 'series', label: '叢書名' }
+            ];
+
+            let bookInfoHtml = `
+                <div class="book-info">
+                    <h2>📖 書目資料</h2>
+                    <div class="info-list">
+            `;
+
+            bookFields.forEach(field => {
+                const value = book[field.key] || '-';
+                if (value !== '-' || field.key === 'title') {
+                    bookInfoHtml += `
+                        <div class="info-row">
+                            <div class="info-number">${field.num}</div>
+                            <div class="info-label">${field.label}</div>
+                            <div class="info-value">${escapeHtml(value)}</div>
+                        </div>
+                    `;
+                }
+            });
+
+            bookInfoHtml += '</div></div>';
+
+            const displayHint = libs.total > libs.displayed ? ` (顯示前 ${libs.displayed} 筆)` : '';
+
+            let librarySummaryHtml = `
+                <div class="library-summary">
+                    <span>📚 可選圖書館：${libs.total} 間${displayHint}</span>
+                    ${rawLocation ? `<span class="location-badge">位置: ${escapeHtml(rawLocation)}</span>` : '<span class="location-badge">無位置資料</span>'}
+                </div>
+            `;
+
+            let html = librarySummaryHtml + bookInfoHtml;
+
+            if (libs && libs.list && libs.list.length > 0) {
+                html += `
+                    <div style="margin-top: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                            <div>
+                                <span style="font-size: 16px; font-weight: 600; color: #333;">🏛️ 圖書館館藏清單</span>
+                                <span class="badge badge-primary" style="margin-left: 10px;">
+                                    顯示 ${libs.displayed} / ${libs.total} 間
+                                </span>
+                                ${data.fromCache ? '<span class="badge badge-success" style="margin-left: 5px;">快取</span>' : ''}
+                            </div>
+                        </div>
+                `;
+
+                if (libs.hasMore) {
+                    html += `<div style="margin-bottom: 15px; color: #666; font-size: 13px; background: #fff3cd; padding: 8px 12px; border-radius: 6px;">
+                        ⚠️ 還有 ${libs.total - libs.displayed} 間圖書館未顯示，請在左側「顯示設定」增加數量
+                    </div>`;
+                }
+
+                html += `<div class="table-container"><table>
+                    <thead>
+                        <tr>
+                            <th>圖書館</th>
+                            <th>索書號</th>
+                            <th>期次</th>
+                            <th>媒體碼</th>
+                            <th>館藏現況</th>
+                            <th>館藏</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+                libs.list.forEach(lib => {
+                    const statusClass = lib.status && lib.status.includes('可供借出') ? 'status-available' : 'status-unavailable';
+                    html += `
+                        <tr>
+                            <td><strong>${escapeHtml(lib.library)}</strong></td>
+                            <td>${escapeHtml(lib.callNumber)}</td>
+                            <td>${escapeHtml(lib.issue) || '-'}</td>
+                            <td>${escapeHtml(lib.mediaCode) || '-'}</td>
+                            <td class="${statusClass}">${escapeHtml(lib.status) || '-'}</td>
+                            <td>${escapeHtml(lib.collection) || '-'}</td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table></div></div>';
+            }
+
+            document.getElementById('results').innerHTML = html;
+        }
+
+        async function searchLocation() {
+            const input = document.getElementById('locationInput').value.trim();
+            const btn = document.getElementById('locationBtn');
+            const resultsDiv = document.getElementById('locationResults');
+
+            const barcodeRegex = /^\d{14}$/;
+            if (!barcodeRegex.test(input)) {
+                showLibraryStatus('location', '必須為14位數條碼', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '查詢中...';
+            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>查詢位置中...</p></div>';
+            showLibraryStatus('location', '查詢進行中...', 'info');
+
+            try {
+                const data = await libraryApiCall('queryLocation', { barcode: input });
+
+                if (data.success && data.found) {
+                    const location = data.location || '無位置資料';
+                    resultsDiv.innerHTML = `
+                        <div class="location-result-box" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px solid #4caf50; border-radius: 12px; padding: 25px; text-align: center;">
+                            <div style="font-size: 16px; color: #666; margin-bottom: 10px;">條碼編號</div>
+                            <div style="font-size: 24px; font-weight: 700; color: #333; margin-bottom: 15px; font-family: monospace;">${escapeHtml(input)}</div>
+                            <div style="font-size: 16px; color: #666; margin-bottom: 10px;">存放位置</div>
+                            <div style="font-size: 32px; font-weight: 700; color: #2e7d32; padding: 15px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">${escapeHtml(location)}</div>
+                        </div>
+                    `;
+                    showLibraryStatus('location', '✅ 查詢成功', 'success');
+                    addToManualSelectBackground(input);
+                    document.getElementById('locationInput').value = '';
+                } else if (data.success && !data.found) {
+                    resultsDiv.innerHTML = `
+                        <div class="location-result-box" style="background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border: 2px solid #f44336; border-radius: 12px; padding: 25px; text-align: center;">
+                            <div style="font-size: 16px; color: #666; margin-bottom: 10px;">條碼編號</div>
+                            <div style="font-size: 24px; font-weight: 700; color: #333; margin-bottom: 15px; font-family: monospace;">${escapeHtml(input)}</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #c62828;">找不到Barcode，請重新確認</div>
+                        </div>
+                    `;
+                    showLibraryStatus('location', '找不到Barcode', 'error');
+                } else {
+                    throw new Error(data.error || '未知錯誤');
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="empty-state"><p>查詢失敗：${escapeHtml(error.message)}</p></div>`;
+                showLibraryStatus('location', '查詢失敗：' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '查詢位置';
+            }
+        }
+
+        function updateDisplayLimit() {
+            const val = parseInt(document.getElementById('displayLimit').value);
+            if (val && val > 0) {
+                currentDisplayLimit = val;
+                showLibraryStatus('display', `已設定顯示數量為 ${val} 筆`, 'success');
+            }
+        }
+
+        async function updateSingleLocation() {
+            const bookKey = document.getElementById('singleBookKey').value.trim();
+            const location = document.getElementById('singleLocation').value.trim();
+
+            const barcodeRegex = /^\d{14}$/;
+            if (!barcodeRegex.test(bookKey)) {
+                addLog(`❌ ${bookKey || '(空)'}：必須為14位數條碼`, 'error');
+                return;
+            }
+
+            if (!location) {
+                addLog(`❌ ${bookKey}：位置不能為空值`, 'error');
+                return;
+            }
+
+            document.getElementById('singleBookKey').value = '';
+            document.getElementById('singleBookKey').focus();
+
+            try {
+                const data = await libraryApiCall('updateSingleLocation', {
+                    bookKey: bookKey,
+                    location: location
+                });
+
+                if (data.success) {
+                    addLog(`✅ ${bookKey} → ${location}`, 'success');
+                } else {
+                    addLog(`❌ ${bookKey}：${data.error}`, 'error');
+                }
+            } catch (e) {
+                addLog(`❌ ${bookKey}：${e.message}`, 'error');
+            }
+        }
+
+        async function submitBatchUpdateAsync() {
+            const rawData = document.getElementById('batchData').value.trim();
+            const defaultLoc = document.getElementById('batchDefaultLocation').value.trim();
+            const btn = event.target;
+
+            if (!rawData) {
+                showLibraryStatus('batch', '請輸入批量資料', 'error');
+                return;
+            }
+
+            if (!defaultLoc) {
+                showLibraryStatus('batch', '❌ 位置不能為空值', 'error');
+                return;
+            }
+
+            const lines = rawData.split('\n').filter(l => l.trim());
+            if (lines.length === 0) {
+                showLibraryStatus('batch', '沒有有效資料', 'error');
+                return;
+            }
+
+            currentBatchId = 'BATCH_' + Date.now();
+
+            const processedLines = lines.map(line => {
+                const trimmedLine = line.trim();
+                const key = trimmedLine.substring(0, 14);
+                return key + ',' + defaultLoc;
+            });
+
+            const processedData = processedLines.join('\n');
+
+            btn.disabled = true;
+            btn.textContent = '⏳ 已提交...';
+            showLibraryStatus('batch', `✅ 已提交 ${lines.length} 筆資料，系統正在處理...`, 'success');
+            document.getElementById('batchData').value = '';
+
+            startStatusMonitoring();
+
+            try {
+                await libraryApiCall('batchUpdateLocation', { 
+                    data: processedData,
+                    defaultLocation: '',
+                    async: 'true',
+                    batchId: currentBatchId,
+                    itemCount: lines.length
+                });
+            } catch (e) {
+                console.log('異步提交完成或超時:', e.message);
+            }
+
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.textContent = '確認批量更新（異步）';
+            }, 2000);
+        }
+
+        function startStatusMonitoring() {
+            checkBatchStatus();
+            statusCheckInterval = setInterval(() => {
+                checkBatchStatus();
+            }, 5000);
+        }
+
+        function stopStatusMonitoring() {
+            if (statusCheckInterval) {
+                clearInterval(statusCheckInterval);
+                statusCheckInterval = null;
+            }
+        }
+
+        async function checkBatchStatus(manual = false) {
+            try {
+                const data = await libraryApiCall('checkBatchStatus', { batchId: currentBatchId });
+
+                if (data.success) {
+                    updateBatchStatusUI(data);
+
+                    if (data.errorCount > 0) {
+                        loadErrorList();
+                    } else if (data.status === 'idle' && !manual) {
+                        hideErrorList();
+                    }
+
+                    if (data.status === 'completed' || data.status === 'idle') {
+                        if (currentBatchId && data.batchId === currentBatchId) {
+                            currentBatchId = null;
+                        }
+                    }
+
+                    if (manual) {
+                        const now = new Date().toLocaleTimeString('zh-HK');
+                        document.getElementById('lastUpdateTime').textContent = '最後更新：' + now;
+                    }
+                }
+            } catch (e) {
+                console.error('檢查狀態失敗:', e);
+            }
+        }
+
+        function updateBatchStatusUI(data) {
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            const detail = document.getElementById('statusDetail');
+            const message = document.getElementById('statusMessage');
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+
+            if (data.status === 'processing') {
+                dot.className = 'status-dot processing';
+                text.className = 'batch-status-text processing';
+                text.textContent = '系統狀態：更新中';
+                detail.style.display = 'block';
+                const elapsed = data.elapsedTime ? ` (${Math.floor(data.elapsedTime)}秒)` : '';
+                message.innerHTML = `正在處理批次 <b>${data.batchId || '未知'}</b>${elapsed}<br>項目數：${data.itemCount || '未知'} 筆`;
+                progressBar.style.display = 'block';
+                progressFill.style.width = '60%';
+            } else if (data.status === 'completed') {
+                dot.className = 'status-dot idle';
+                text.className = 'batch-status-text idle';
+                text.textContent = '系統狀態：已完成';
+                detail.style.display = 'block';
+                message.innerHTML = `上次處理完成<br>時間：${data.completedTime || '剛剛'}<br>結果：成功 ${data.successCount || 0} 筆，失敗 ${data.errorCount || 0} 筆`;
+                progressBar.style.display = 'none';
+            } else {
+                dot.className = 'status-dot idle';
+                text.className = 'batch-status-text idle';
+                text.textContent = '系統狀態：空閒中';
+                detail.style.display = 'none';
+                progressBar.style.display = 'none';
+            }
+        }
+
+        async function loadErrorList() {
+            if (document.getElementById('errorListContainer').style.display === 'block') return;
+
+            try {
+                const data = await libraryApiCall('getErrorList');
+                if (data.success && data.data.length > 0) {
+                    displayErrorList(data.data);
+                }
+            } catch (e) {
+                console.error('載入錯誤列表失敗:', e);
+            }
+        }
+
+        function displayErrorList(errors) {
+            currentErrorList = errors;
+            const container = document.getElementById('errorListContainer');
+            const content = document.getElementById('errorListContent');
+            const badge = document.getElementById('errorCountBadge');
+
+            container.style.display = 'block';
+            badge.textContent = errors.length + ' 筆';
+
+            let html = '';
+            errors.forEach((row) => {
+                const barcode = row[0] || '';
+                const reason = row[2] || '';
+                html += `
+                    <div class="error-item">
+                        <div>
+                            <div class="error-barcode">${escapeHtml(barcode)}</div>
+                            <div class="error-reason">${escapeHtml(reason)}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            content.innerHTML = html || '<div class="empty-list">暫無錯誤記錄</div>';
+        }
+
+        function hideErrorList() {
+            document.getElementById('errorListContainer').style.display = 'none';
+        }
+
+        async function clearErrorList() {
+            const btn = document.getElementById('clearErrBtn');
+            btn.disabled = true;
+            btn.textContent = '清空中...';
+
+            try {
+                const data = await libraryApiCall('clearErrorList');
+                if (data.success) {
+                    showLibraryStatus('batch', `✅ 已清空 ${data.clearedRows} 筆錯誤記錄`, 'success');
+                    hideErrorList();
+                    currentErrorList = [];
+                    checkBatchStatus(true);
+                } else {
+                    showLibraryStatus('batch', '❌ 清空失敗：' + data.error, 'error');
+                }
+            } catch (e) {
+                showLibraryStatus('batch', '❌ 清空失敗：' + e.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🗑️ 清空';
+            }
+        }
+
+        function exportErrorList() {
+            if (!currentErrorList || currentErrorList.length === 0) {
+                alert('沒有可匯出的錯誤記錄');
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+            csvContent += "條碼,位置,錯誤原因\n";
+
+            currentErrorList.forEach(row => {
+                const barcode = row[0] || '';
+                const location = row[1] || '';
+                const reason = row[2] || '';
+                const escapedBarcode = barcode.toString().replace(/"/g, '""');
+                const escapedLocation = location.toString().replace(/"/g, '""');
+                const escapedReason = reason.toString().replace(/"/g, '""');
+                csvContent += `"${escapedBarcode}","${escapedLocation}","${escapedReason}"\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "error_list_" + new Date().toISOString().slice(0,10) + ".csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function clearBatchData() {
+            document.getElementById('batchData').value = '';
+            document.getElementById('batchDefaultLocation').value = '';
+            showLibraryStatus('batch', '已清空輸入內容', 'success');
+        }
+
+        function addLog(message, type = 'success') {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+            updateLogs.unshift({
+                time: timeStr,
+                message: message,
+                type: type
+            });
+
+            if (updateLogs.length > MAX_LOGS) {
+                updateLogs = updateLogs.slice(0, MAX_LOGS);
+            }
+
+            renderLogs();
+        }
+
+        function renderLogs() {
+            const logList = document.getElementById('logList');
+            if (updateLogs.length === 0) {
+                logList.innerHTML = '<div class="empty-log">暫無更新記錄</div>';
+                return;
+            }
+
+            let html = '';
+            updateLogs.forEach(log => {
+                html += `
+                    <div class="log-item ${log.type}">
+                        <div class="log-time">${log.time}</div>
+                        <div class="log-content">${escapeHtml(log.message)}</div>
+                    </div>
+                `;
+            });
+
+            logList.innerHTML = html;
+        }
+
+        function clearLogs() {
+            updateLogs = [];
+            renderLogs();
+        }
+
+        function showLibraryStatus(panel, message, type) {
+            let statusId = 'statusBar';
+            if (panel === 'batch') statusId = 'batchStatus';
+            if (panel === 'location') statusId = 'locationStatusBar';
+
+            const bar = document.getElementById(statusId);
+            if (!bar) return;
+
+            bar.className = 'status-bar ' + type;
+            bar.textContent = message;
+            bar.style.display = 'block';
+
+            if (type === 'success' || type === 'info') {
+                setTimeout(() => {
+                    if (bar.textContent === message) {
+                        bar.style.display = 'none';
+                    }
+                }, 5000);
+            }
+        }
+
+        //================ Manual Select 功能 =================
+        async function loadManualSelect() {
+            try {
+                const data = await libraryApiCall('getManualSelect');
+                if (data.success) {
+                    manualSelectData = data.data || [];
+                    renderManualList();
+                }
+            } catch (e) {
+                document.getElementById('manualList').innerHTML = '<div class="empty-list">載入失敗</div>';
+            }
+        }
+
+        function renderManualList() {
+            const listDiv = document.getElementById('manualList');
+            const countSpan = document.getElementById('manualCount');
+
+            if (manualSelectData.length === 0) {
+                listDiv.innerHTML = '<div class="empty-list">暫無項目<br>在下方輸入添加</div>';
+            } else {
+                let html = '';
+                manualSelectData.forEach((item, index) => {
+                    html += `
+                        <div class="manual-item">
+                            <span class="manual-item-text" onclick="useManualItem('${escapeHtml(item)}')">${escapeHtml(item)}</span>
+                            <span class="manual-item-remove" onclick="removeManualItem('${escapeHtml(item)}', ${index})">×</span>
+                        </div>
+                    `;
+                });
+                listDiv.innerHTML = html;
+            }
+
+            countSpan.textContent = `(${manualSelectData.length})`;
+        }
+
+        async function addManualItem() {
+            const input = document.getElementById('newManualItem');
+            const value = input.value.trim();
+            if (!value) return;
+
+            if (!manualSelectData.includes(value)) {
+                manualSelectData.push(value);
+                renderManualList();
+                input.value = '';
+            }
+
+            try {
+                await libraryApiCall('addToManualSelect', { value: value });
+            } catch (e) {
+                console.error('背景同步失敗:', e);
+            }
+        }
+
+        async function removeManualItem(value, index) {
+            if (!confirm('確定移除「' + value + '」？')) return;
+
+            manualSelectData.splice(index, 1);
+            renderManualList();
+
+            try {
+                await libraryApiCall('removeFromManualSelect', { value: value });
+            } catch (e) {
+                console.error('背景同步失敗:', e);
+            }
+        }
+
+        async function removeLastManual() {
+            if (manualSelectData.length === 0) return;
+            const lastItem = manualSelectData[manualSelectData.length - 1];
+
+            manualSelectData.pop();
+            renderManualList();
+
+            try {
+                await libraryApiCall('removeFromManualSelect', { value: lastItem });
+            } catch (e) {
+                console.error('背景同步失敗:', e);
+            }
+        }
+
+        async function clearManualSelect() {
+            if (!confirm('確定清空全部 Manual Select 項目？')) return;
+
+            manualSelectData = [];
+            renderManualList();
+
+            try {
+                await libraryApiCall('clearManualSelect');
+            } catch (e) {
+                console.error('清空失敗:', e);
+            }
+        }
+
+        function exportManualSelect() {
+            if (manualSelectData.length === 0) {
+                alert('沒有可匯出的資料');
+                return;
+            }
+
+            const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + 
+                "項目名稱\n" + 
+                manualSelectData.join("\n");
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "manual_select_" + new Date().toISOString().slice(0,10) + ".csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function useManualItem(value) {
+            if (currentPanel === 'search') {
+                document.getElementById('searchInput').value = value;
+                searchBook();
+            } else if (currentPanel === 'location') {
+                document.getElementById('locationInput').value = value;
+                searchLocation();
+            }
+        }
+
+        async function addToManualSelectBackground(value) {
+            if (!manualSelectData.includes(value)) {
+                manualSelectData.push(value);
+                renderManualList();
+
+                try {
+                    await libraryApiCall('addToManualSelect', { value: value });
+                } catch (e) {
+                    console.error('背景添加失敗:', e);
+                }
+            }
+        }
+
+        //================ 裝箱功能 =================
+        async function preloadAllData() {
+            try {
+                const [packboxResult, spareResult] = await Promise.all([
+                    packingApiCall('packingGetAllData', { sheet: 'PACKBOX' }, 60000),
+                    packingApiCall('packingGetAllData', { sheet: 'PACKBOXSPARE' }, 60000)
+                ]);
+
+                if (packboxResult.success) fullDataCache['PACKBOX'] = packboxResult.data;
+                if (spareResult.success) fullDataCache['PACKBOXSPARE'] = spareResult.data;
+
+                // 不自動切換到裝箱面板，只快取資料
+            } catch (e) {
+                console.error('快取載入失敗:', e);
+            }
+        }
+
+        async function loadPackingData() {
+            try {
+                const [dataResult, zonesResult] = await Promise.all([
+                    packingApiCall('packingGetAllData', { sheet: currentPackingSheet }),
+                    packingApiCall('packingGetSavedZones', { sheet: currentPackingSheet })
+                ]);
+
+                if (dataResult.success) {
+                    // 確保 packingDataCache 是獨立副本，避免與 fullDataCache 引用同一陣列
+                    packingDataCache = [...dataResult.data];
+                    fullDataCache[currentPackingSheet] = dataResult.data;
+                }
+
+                if (zonesResult.success && zonesResult.zones) {
+                    savedZones[currentPackingSheet] = zonesResult.zones;
+                } else {
+                    savedZones[currentPackingSheet] = [];
+                }
+
+                updateZoneList();
+                loadPackingSummary();
+                
+                // 如果當前在特定區域視圖，重新渲染該區域
+                if (currentZone !== 'all') {
+                    renderDataList(currentZone);
+                }
+                
+                showToast(`已載入 ${packingDataCache.length} 筆資料`, 'success');
+            } catch (e) {
+                showToast('載入失敗：' + e.message, 'error');
+            }
+        }
+
+        function updateZoneList() {
+            const zoneCounts = {};
+            let unclassified = 0;
+
+            // 標準化處理：使用 trim() 去除前後空格，避免 "123" 與 "123 " 被視為不同
+            packingDataCache.forEach(item => {
+                const zoneValue = item.F ? String(item.F).trim() : '';
+                if (zoneValue) {
+                    zoneCounts[zoneValue] = (zoneCounts[zoneValue] || 0) + 1;
+                } else {
+                    unclassified++;
+                }
+            });
+
+            const savedZonesList = savedZones[currentPackingSheet] || [];
+            savedZonesList.forEach(zone => {
+                const zoneName = zone.name ? String(zone.name).trim() : '';
+                if (zoneName && !(zoneName in zoneCounts)) {
+                    zoneCounts[zoneName] = 0;
+                }
+            });
+
+            document.getElementById('zoneCountAll').textContent = packingDataCache.length + ' 筆';
+
+            const zoneList = document.getElementById('zoneList');
+            zoneList.innerHTML = '';
+
+            const sortedZones = Object.entries(zoneCounts).sort((a, b) => {
+                if (a[1] === 0 && b[1] > 0) return 1;
+                if (b[1] === 0 && a[1] > 0) return -1;
+                return b[1] - a[1];
+            });
+
+            sortedZones.forEach(([zone, count]) => {
+                const div = document.createElement('div');
+                div.className = 'zone-item';
+                div.onclick = function() { filterZone(zone, this); };
+                div.innerHTML = `
+                    <span class="zone-name">📍 ${escapeHtml(zone)}</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="zone-count">${count} 筆</span>
+                        <div class="zone-actions">
+                            <span class="zone-edit" onclick="event.stopPropagation(); showRenameZoneModal('${escapeHtml(zone)}')" title="修改名稱">✏️</span>
+                            <span class="zone-delete" onclick="event.stopPropagation(); deleteZone('${escapeHtml(zone)}')" title="刪除位置">🗑️</span>
+                        </div>
+                    </div>
+                `;
+                zoneList.appendChild(div);
+            });
+
+            if (unclassified > 0) {
+                const div = document.createElement('div');
+                div.className = 'zone-item';
+                div.onclick = function() { filterZone('', this); };
+                div.innerHTML = `
+                    <span class="zone-name">📍 未分類</span>
+                    <span class="zone-count">${unclassified} 筆</span>
+                `;
+                zoneList.appendChild(div);
+            }
+        }
+
+        function filterZone(zone, element) {
+            // 標準化 zone 名稱（去除前後空格）
+            currentZone = zone ? String(zone).trim() : '';
+
+            document.querySelectorAll('.zone-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            element.classList.add('active');
+
+            if (currentZone === 'all') {
+                document.getElementById('packingSummary').style.display = 'block';
+                document.getElementById('packingDataList').style.display = 'none';
+                document.getElementById('quickInputArea').style.display = 'none';
+                loadPackingSummary();
+            } else {
+                document.getElementById('packingSummary').style.display = 'none';
+                document.getElementById('packingDataList').style.display = 'block';
+                document.getElementById('quickInputArea').style.display = 'block';
+                document.getElementById('currentZoneName').textContent = currentZone || '未分類';
+                document.getElementById('dataListTitle').textContent = (currentZone || '未分類') + ' 資料列表';
+                renderDataList(currentZone);
+            }
+        }
+
+        function backToSummary() {
+            currentZone = 'all';
+            document.querySelectorAll('.zone-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector('.zone-item').classList.add('active');
+            document.getElementById('packingSummary').style.display = 'block';
+            document.getElementById('packingDataList').style.display = 'none';
+            document.getElementById('quickInputArea').style.display = 'none';
+        }
+
+        function renderDataList(zone) {
+            const container = document.getElementById('dataListContainer');
+            container.innerHTML = '';
+
+            // 標準化目標 zone（去除前後空格）
+            const targetZone = zone ? String(zone).trim() : '';
+
+            // 除錯資訊（開發時使用，確認資料匹配狀況）
+            console.log('Render Data List - Target Zone:', JSON.stringify(targetZone));
+            console.log('Total items in cache:', packingDataCache.length);
+            
+            const filtered = packingDataCache.filter(item => {
+                // 標準化 item.F（去除前後空格）
+                const itemZone = item.F ? String(item.F).trim() : '';
+                
+                // 除錯：顯示前幾筆資料的 F 欄位值
+                if (packingDataCache.indexOf(item) < 5) {
+                    console.log(`Item ${item.A}: F=${JSON.stringify(itemZone)}, match=${itemZone === targetZone}`);
+                }
+                
+                return itemZone === targetZone;
+            });
+
+            console.log('Filtered count:', filtered.length);
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #9e9e9e;">
+                        <p>此位置沒有資料</p>
+                        <p style="font-size: 12px; margin-top: 10px; color: #bbb;">
+                            位置名稱：${escapeHtml(targetZone || '(空白)')}<br>
+                            快取總數：${packingDataCache.length} 筆
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            filtered.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'data-item';
+                div.innerHTML = `
+                    <div class="data-header" onclick="toggleDataItem(this)">
+                        <span class="data-key">${escapeHtml(item.A)}</span>
+                        <div class="data-actions">
+                            <button class="btn-sm btn-secondary" onclick="event.stopPropagation(); showEditModal('${escapeHtml(item.A)}')">✏️</button>
+                            <button class="btn-sm btn-danger" onclick="event.stopPropagation(); deleteLocation('${escapeHtml(item.A)}')">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="data-content">
+                        <div class="data-field"><label>A (Key)</label><value>${escapeHtml(item.A)}</value></div>
+                        <div class="data-field"><label>B</label><value>${escapeHtml(item.B) || '-'}</value></div>
+                        <div class="data-field"><label>C</label><value>${escapeHtml(item.C) || '-'}</value></div>
+                        <div class="data-field"><label>D</label><value>${escapeHtml(item.D) || '-'}</value></div>
+                        <div class="data-field"><label>E</label><value>${escapeHtml(item.E) || '-'}</value></div>
+                        <div class="data-field field-f"><label>F (位置)</label><value>${escapeHtml(item.F) || '(未設定)'}</value></div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function toggleDataItem(header) {
+            const dataItem = header.parentElement;
+            dataItem.classList.toggle('collapsed');
+        }
+
+        async function loadPackingSummary() {
+            const groupBy = document.getElementById('summaryGroupBy').value;
+
+            try {
+                const result = await packingApiCall('packingGetSummary', { 
+                    sheet: currentPackingSheet,
+                    groupBy: groupBy
+                });
+
+                if (result.success) {
+                    const summary = result.summary;
+
+                    const zoneList = document.getElementById('zoneSummaryList');
+                    zoneList.innerHTML = '';
+
+                    const savedZonesList = savedZones[currentPackingSheet] || [];
+                    const allZones = [...summary.zones];
+
+                    savedZonesList.forEach(savedZone => {
+                        if (!allZones.find(z => z.name === savedZone.name)) {
+                            allZones.push({ name: savedZone.name, count: 0 });
+                        }
+                    });
+
+                    allZones.sort((a, b) => {
+                        if (a.count === 0 && b.count > 0) return 1;
+                        if (b.count === 0 && a.count > 0) return -1;
+                        return b.count - a.count;
+                    });
+
+                    if (allZones.length === 0) {
+                        zoneList.innerHTML = '<div class="summary-item"><span class="summary-label">無資料</span><span class="summary-value">0</span></div>';
+                    } else {
+                        allZones.forEach(z => {
+                            const div = document.createElement('div');
+                            div.className = 'summary-item';
+                            if (z.count === 0) div.style.opacity = '0.6';
+                            div.innerHTML = `
+                                <span class="summary-label">${escapeHtml(z.name)}</span>
+                                <span class="summary-value">${z.count} 筆</span>
+                            `;
+                            zoneList.appendChild(div);
+                        });
+                    }
+
+                    if (summary.unclassified > 0) {
+                        const div = document.createElement('div');
+                        div.className = 'summary-item';
+                        div.style.color = '#856404';
+                        div.innerHTML = `
+                            <span class="summary-label">未分類</span>
+                            <span class="summary-value">${summary.unclassified} 筆</span>
+                        `;
+                        zoneList.appendChild(div);
+                    }
+
+                    const catList = document.getElementById('categorySummaryList');
+                    catList.innerHTML = '';
+
+                    Object.entries(summary.categories).forEach(([name, count]) => {
+                        const div = document.createElement('div');
+                        div.className = 'summary-item';
+                        div.innerHTML = `
+                            <span class="summary-label">${escapeHtml(name)}</span>
+                            <span class="summary-value">${count} 筆</span>
+                        `;
+                        catList.appendChild(div);
+                    });
+                }
+            } catch (e) {
+                console.error('載入 Summary 失敗:', e);
+            }
+        }
+
+        function searchPackingData() {
+            const keyword = document.getElementById('packingSearchInput').value.trim();
+            const range = document.getElementById('packingSearchRange').value;
+
+            if (!keyword) {
+                renderDataList(currentZone);
+                return;
+            }
+
+            const filtered = packingDataCache.filter(item => {
+                const value = item[range] || '';
+                return value.toString().toLowerCase().includes(keyword.toLowerCase());
+            });
+
+            const container = document.getElementById('dataListContainer');
+            container.innerHTML = '';
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #9e9e9e;">沒有符合的資料</div>';
+                return;
+            }
+
+            filtered.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'data-item';
+                div.innerHTML = `
+                    <div class="data-header" onclick="toggleDataItem(this)">
+                        <span class="data-key">${escapeHtml(item.A)}</span>
+                        <div class="data-actions">
+                            <button class="btn-sm btn-secondary" onclick="event.stopPropagation(); showEditModal('${escapeHtml(item.A)}')">✏️</button>
+                            <button class="btn-sm btn-danger" onclick="event.stopPropagation(); deleteLocation('${escapeHtml(item.A)}')">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="data-content">
+                        <div class="data-field"><label>A (Key)</label><value>${escapeHtml(item.A)}</value></div>
+                        <div class="data-field"><label>B</label><value>${escapeHtml(item.B) || '-'}</value></div>
+                        <div class="data-field"><label>C</label><value>${escapeHtml(item.C) || '-'}</value></div>
+                        <div class="data-field"><label>D</label><value>${escapeHtml(item.D) || '-'}</value></div>
+                        <div class="data-field"><label>E</label><value>${escapeHtml(item.E) || '-'}</value></div>
+                        <div class="data-field field-f"><label>F (位置)</label><value>${escapeHtml(item.F) || '(未設定)'}</value></div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        async function quickAddSearch() {
+            if (isProcessingQuickAdd) return;
+
+            const key = document.getElementById('quickKeyInput').value.trim();
+            if (!key) {
+                showToast('請輸入Key值', 'error');
+                return;
+            }
+
+            const resultDiv = document.getElementById('quickSearchResult');
+            resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div>查找中...</div>';
+
+            isProcessingQuickAdd = true;
+            const addBtn = document.getElementById('quickAddBtn');
+            addBtn.disabled = true;
+            addBtn.textContent = '處理中...';
+
+            try {
+                let foundData = null;
+                const cacheData = fullDataCache[currentPackingSheet] || packingDataCache;
+                foundData = cacheData.find(item => item.A === key);
+
+                if (!foundData) {
+                    const result = await packingApiCall('packingGetByKey', {
+                        key: key,
+                        sheet: currentPackingSheet
+                    });
+
+                    if (result.found) foundData = result.data;
+                }
+
+                if (foundData) {
+                    await performQuickAdd(key, foundData);
+
+                    // 快速新增區域加入 A 欄位顯示（紅箭嘴位置）
+                    resultDiv.innerHTML = `
+                        <div class="quick-result-display">
+                            <div class="quick-result-grid">
+                                <div class="quick-result-item"><label>A (Key)</label><value>${escapeHtml(foundData.A)}</value></div>
+                                <div class="quick-result-item"><label>B 欄</label><value>${escapeHtml(foundData.B) || '-'}</value></div>
+                                <div class="quick-result-item"><label>C 欄</label><value>${escapeHtml(foundData.C) || '-'}</value></div>
+                                <div class="quick-result-item"><label>D 欄</label><value>${escapeHtml(foundData.D) || '-'}</value></div>
+                                <div class="quick-result-item"><label>E 欄</label><value>${escapeHtml(foundData.E) || '-'}</value></div>
+                            </div>
+                            <div class="quick-result-status">✅ 已成功加入 ${escapeHtml(currentZone)}</div>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = '<div style="color: #c62828; padding: 15px; background: #ffebee; border-radius: 8px; margin-top: 10px;">❌ 找不到該 Key 值</div>';
+                }
+            } catch (e) {
+                resultDiv.innerHTML = '<div style="color: #c62828; padding: 15px; background: #ffebee; border-radius: 8px; margin-top: 10px;">❌ 查找失敗：' + e.message + '</div>';
+            } finally {
+                isProcessingQuickAdd = false;
+                document.getElementById('quickKeyInput').value = '';
+                document.getElementById('quickKeyInput').focus();
+                addBtn.disabled = false;
+                addBtn.textContent = '➕ 加入';
+            }
+        }
+
+        async function performQuickAdd(key, data) {
+            try {
+                // 檢查 fullDataCache 和 packingDataCache 是否引用同一個陣列物件
+                const isSameArray = fullDataCache[currentPackingSheet] === packingDataCache;
+                
+                let targetItem = packingDataCache.find(item => item.A === key);
+                let isNewItem = false;
+
+                // 標準化 currentZone
+                const normalizedZone = currentZone ? String(currentZone).trim() : '';
+
+                if (targetItem) {
+                    // 更新現有項目的 F 欄位（標準化）
+                    targetItem.F = normalizedZone;
+                } else {
+                    // 只有當資料真的不存在時才建立新項目
+                    const newItem = {
+                        A: key,
+                        B: data.B || '',
+                        C: data.C || '',
+                        D: data.D || '',
+                        E: data.E || '',
+                        F: normalizedZone
+                    };
+                    packingDataCache.push(newItem);
+                    isNewItem = true;
+                }
+
+                // 同步更新 fullDataCache，避免重複推送（圓圈位置修正）
+                if (fullDataCache[currentPackingSheet]) {
+                    const cacheItem = fullDataCache[currentPackingSheet].find(item => item.A === key);
+                    if (cacheItem) {
+                        cacheItem.F = normalizedZone;
+                    } else if (isNewItem && !isSameArray) {
+                        // 只有在不是同一個陣列引用且是新項目時才推入 fullDataCache
+                        fullDataCache[currentPackingSheet].push({
+                            A: key,
+                            B: data.B || '',
+                            C: data.C || '',
+                            D: data.D || '',
+                            E: data.E || '',
+                            F: normalizedZone
+                        });
+                    }
+                    // 如果是同一個陣列引用，packingDataCache.push 已經同步更新了 fullDataCache，無需重複操作
+                }
+
+                await packingApiCall('packingSetLocation', {
+                    key: key,
+                    location: normalizedZone,
+                    sheet: currentPackingSheet
+                });
+
+                updateZoneList();
+                // 如果在特定區域視圖，重新渲染列表以顯示新加入的資料
+                if (currentZone !== 'all') {
+                    renderDataList(currentZone);
+                }
+                loadPackingSummary();
+            } catch (e) {
+                console.error('Perform quick add error:', e);
+                throw e;
+            }
+        }
+
+        function showAddZoneModal() {
+            const content = `
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">位置名稱</label>
+                    <input type="text" id="newZoneInput" placeholder="例如：A區-1號箱" style="width: 100%; font-size: 16px;">
+                    <div style="margin-top: 8px; font-size: 13px; color: #888;">新增的位置將儲存到資料庫，即使沒有資料也會保留</div>
+                </div>
+            `;
+
+            showModal('➕ 新增位置', content, async () => {
+                const zoneName = document.getElementById('newZoneInput').value.trim();
+                if (!zoneName) {
+                    showToast('請輸入位置名稱', 'error');
+                    return;
+                }
+
+                const existingZones = getAllZoneNames();
+                if (existingZones.includes(zoneName)) {
+                    showToast('此位置名稱已存在', 'error');
+                    return;
+                }
+
+                await addNewZone(zoneName);
+            });
+
+            setTimeout(() => {
+                const input = document.getElementById('newZoneInput');
+                if (input) input.focus();
+            }, 100);
+        }
+
+        function getAllZoneNames() {
+            const names = [];
+            document.querySelectorAll('.zone-item').forEach(item => {
+                const nameEl = item.querySelector('.zone-name');
+                if (nameEl) {
+                    const name = nameEl.textContent.replace('📍 ', '').replace('🏠 ', '').trim();
+                    if (name && name !== '全部資料') names.push(name);
+                }
+            });
+            return names;
+        }
+
+        async function addNewZone(zoneName) {
+            try {
+                const result = await packingApiCall('packingSaveZone', {
+                    zoneName: zoneName,
+                    sheet: currentPackingSheet
+                });
+
+                if (!result.success) throw new Error(result.error || '儲存失敗');
+
+                if (!savedZones[currentPackingSheet]) savedZones[currentPackingSheet] = [];
+                savedZones[currentPackingSheet].push({
+                    name: zoneName,
+                    createdAt: new Date().toISOString()
+                });
+
+                updateZoneList();
+                filterZone(zoneName, document.querySelectorAll('.zone-item')[1]);
+                showToast(`✅ 位置「${zoneName}」已新增`, 'success');
+                closeModal();
+            } catch (e) {
+                showToast('❌ 新增失敗：' + e.message, 'error');
+            }
+        }
+
+        function showRenameZoneModal(oldName) {
+            const content = `
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">原名稱</label>
+                    <div style="padding: 10px; background: #f5f5f5; border-radius: 6px; color: #666; margin-bottom: 15px;">${escapeHtml(oldName)}</div>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">新名稱</label>
+                    <input type="text" id="renameZoneInput" placeholder="輸入新名稱..." value="${escapeHtml(oldName)}" style="width: 100%; font-size: 16px;">
+                </div>
+            `;
+
+            showModal('✏️ 修改區域名稱', content, async () => {
+                const newName = document.getElementById('renameZoneInput').value.trim();
+                if (!newName || newName === oldName) {
+                    showToast('名稱未變更', 'info');
+                    return;
+                }
+
+                try {
+                    const result = await packingApiCall('packingRenameZone', {
+                        oldName: oldName,
+                        newName: newName,
+                        sheet: currentPackingSheet
+                    });
+
+                    if (result.success) {
+                        if (savedZones[currentPackingSheet]) {
+                            const zone = savedZones[currentPackingSheet].find(z => z.name === oldName);
+                            if (zone) zone.name = newName;
+                        }
+                        showToast('✅ ' + result.message, 'success');
+                        loadPackingData();
+                        closeModal();
+                    } else {
+                        showToast('❌ ' + result.error, 'error');
+                    }
+                } catch (e) {
+                    showToast('❌ 失敗', 'error');
+                }
+            });
+
+            setTimeout(() => {
+                const input = document.getElementById('renameZoneInput');
+                if (input) {
+                    input.select();
+                    input.focus();
+                }
+            }, 100);
+        }
+
+        // 新增：刪除位置功能
+        async function deleteZone(zoneName) {
+            if (!zoneName) return;
+            
+            const trimmedZoneName = zoneName.trim();
+            const count = packingDataCache.filter(item => {
+                const itemZone = item.F ? String(item.F).trim() : '';
+                return itemZone === trimmedZoneName;
+            }).length;
+            
+            const confirmMsg = count > 0 
+                ? `確定要刪除位置「${trimmedZoneName}」嗎？\n\n此操作將清空該位置下 ${count} 筆資料的裝箱位置（F欄），資料不會被刪除，僅移除位置標記。\n\n⚠️ 此操作無法復原！`
+                : `確定要刪除位置「${trimmedZoneName}」嗎？\n\n此位置目前沒有資料。`;
+                
+            if (!confirm(confirmMsg)) return;
+
+            try {
+                showToast(`正在刪除位置「${trimmedZoneName}」...`, 'info');
+                
+                // 呼叫 API 刪除位置（將該位置下所有資料的 F 欄設為空）
+                const result = await packingApiCall('packingDeleteZone', {
+                    zoneName: trimmedZoneName,
+                    sheet: currentPackingSheet
+                });
+
+                if (result.success) {
+                    // 更新前端快取
+                    packingDataCache.forEach(item => {
+                        const itemZone = item.F ? String(item.F).trim() : '';
+                        if (itemZone === trimmedZoneName) {
+                            item.F = '';
+                        }
+                    });
+                    
+                    if (fullDataCache[currentPackingSheet]) {
+                        fullDataCache[currentPackingSheet].forEach(item => {
+                            const itemZone = item.F ? String(item.F).trim() : '';
+                            if (itemZone === trimmedZoneName) {
+                                item.F = '';
+                            }
+                        });
+                    }
+                    
+                    // 從 savedZones 中移除
+                    if (savedZones[currentPackingSheet]) {
+                        savedZones[currentPackingSheet] = savedZones[currentPackingSheet].filter(z => {
+                            const zName = z.name ? String(z.name).trim() : '';
+                            return zName !== trimmedZoneName;
+                        });
+                    }
+                    
+                    // 如果當前正在查看該位置，返回總覽
+                    if (currentZone === trimmedZoneName) {
+                        backToSummary();
+                    }
+                    
+                    updateZoneList();
+                    loadPackingSummary();
+                    showToast(`✅ 位置「${trimmedZoneName}」已刪除，${result.clearedCount || count} 筆資料已清空位置標記`, 'success');
+                } else {
+                    throw new Error(result.error || '刪除失敗');
+                }
+            } catch (e) {
+                showToast('❌ 刪除失敗：' + e.message, 'error');
+            }
+        }
+
+        function showEditModal(key) {
+            const item = packingDataCache.find(i => i.A === key);
+            if (!item) return;
+
+            const content = `
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="padding: 10px; background: #f0f4ff; border-radius: 6px; border-left: 4px solid #667eea; margin-bottom: 5px;">
+                        <label style="font-size: 12px; color: #666; display: block; margin-bottom: 4px;">A (Key)</label>
+                        <div style="font-weight: 600; color: #333; font-size: 16px;">${escapeHtml(item.A)}</div>
+                    </div>
+                    <div><label style="font-size: 12px; color: #888; display: block; margin-bottom: 4px;">B 欄位</label><input type="text" id="editB" value="${escapeHtml(item.B)}" style="width: 100%;"></div>
+                    <div><label style="font-size: 12px; color: #888; display: block; margin-bottom: 4px;">C 欄位</label><input type="text" id="editC" value="${escapeHtml(item.C)}" style="width: 100%;"></div>
+                    <div><label style="font-size: 12px; color: #888; display: block; margin-bottom: 4px;">D 欄位</label><input type="text" id="editD" value="${escapeHtml(item.D)}" style="width: 100%;"></div>
+                    <div><label style="font-size: 12px; color: #888; display: block; margin-bottom: 4px;">E 欄位</label><input type="text" id="editE" value="${escapeHtml(item.E)}" style="width: 100%;"></div>
+                    <div style="background: #fff3cd; padding: 10px; border-radius: 6px; border: 1px solid #ffc107;">
+                        <label style="font-size: 12px; color: #856404; display: block; margin-bottom: 4px; font-weight: 600;">F 欄位（位置）</label>
+                        <input type="text" id="editF" value="${escapeHtml(item.F)}" style="width: 100%; border-color: #ffc107;">
+                    </div>
+                </div>
+            `;
+
+            showModal('✏️ 編輯資料', content, async () => {
+                try {
+                    const newF = document.getElementById('editF').value;
+                    item.F = newF;
+
+                    await packingApiCall('packingSetLocation', {
+                        key: key,
+                        location: newF,
+                        sheet: currentPackingSheet
+                    });
+
+                    showToast('✅ 資料已更新', 'success');
+                    updateZoneList();
+                    if (currentZone !== 'all') renderDataList(currentZone);
+                    closeModal();
+                } catch (e) {
+                    showToast('❌ 更新失敗', 'error');
+                }
+            });
+        }
+
+        async function deleteLocation(key) {
+            if (!confirm('確定要刪除「' + key + '」的位置標記嗎？')) return;
+
+            try {
+                const targetItem = packingDataCache.find(item => item.A === key);
+                if (targetItem) targetItem.F = '';
+                if (fullDataCache[currentPackingSheet]) {
+                    const cacheItem = fullDataCache[currentPackingSheet].find(item => item.A === key);
+                    if (cacheItem) cacheItem.F = '';
+                }
+
+                await packingApiCall('packingSetLocation', {
+                    key: key,
+                    location: '',
+                    sheet: currentPackingSheet
+                });
+
+                showToast('✅ 已刪除位置標記', 'success');
+                updateZoneList();
+                if (currentZone !== 'all') renderDataList(currentZone);
+                loadPackingSummary();
+            } catch (e) {
+                showToast('❌ 失敗', 'error');
+            }
+        }
+
+        async function clearPackingLocations() {
+            if (!confirm('確定要清除全部裝箱位置嗎？\n\n此操作將清空所有資料的 F 欄（位置欄位），資料本身不會被刪除。\n\n⚠️ 此操作無法復原！')) return;
+
+            try {
+                const result = await packingApiCall('packingClearLocations', { sheet: currentPackingSheet });
+                if (result.success) {
+                    showToast('✅ ' + result.message, 'success');
+                    loadPackingData();
+                } else {
+                    showToast('❌ ' + result.error, 'error');
+                }
+            } catch (e) {
+                showToast('❌ 失敗', 'error');
+            }
+        }
+
+        async function clearPackingAll() {
+            if (!confirm('⚠️ 確定要清除全部資料嗎？（包含標題列）')) return;
+
+            try {
+                const result = await packingApiCall('packingClearAll', { 
+                    sheet: currentPackingSheet,
+                    includeHeader: true
+                });
+
+                if (result.success) {
+                    showToast('✅ ' + result.message, 'success');
+                    delete fullDataCache[currentPackingSheet];
+                    packingDataCache = [];
+                    updateZoneList();
+                    loadPackingSummary();
+                } else {
+                    showToast('❌ ' + result.error, 'error');
+                }
+            } catch (e) {
+                showToast('❌ 失敗', 'error');
+            }
+        }
+
+        //================ 上傳功能 =================
+        function showUploadModal() {
+            if (isUploading) {
+                showToast('⚠️ 正在上傳中，請等待完成或中斷', 'warning');
+                return;
+            }
+
+            selectedModalFile = null;
+            document.getElementById('modalFileInput').value = '';
+            document.getElementById('uploadFileInfo').style.display = 'none';
+            document.getElementById('modalUploadBtn').disabled = true;
+            document.getElementById('uploadModalStatus').style.display = 'none';
+            document.getElementById('uploadProgressContainer').classList.remove('active');
+            document.getElementById('uploadProgressBar').style.width = '0%';
+            document.getElementById('uploadProgressBar').textContent = '0%';
+            document.getElementById('uploadStatusText').classList.remove('active');
+            document.getElementById('cancelUploadBtn').style.display = 'none';
+            document.getElementById('closeUploadModalBtn').style.display = 'block';
+            document.getElementById('modalUploadBtn').style.display = 'block';
+
+            document.getElementById('uploadModalTitle').textContent = `📤 上傳 CSV 到 ${currentPackingSheet}`;
+
+            const uploadArea = document.getElementById('modalUploadArea');
+            uploadArea.className = 'upload-area';
+            if (currentPackingSheet === 'PACKBOXSPARE') uploadArea.classList.add('spare-mode');
+            uploadArea.innerHTML = `
+                <div class="upload-icon">📁</div>
+                <div style="font-weight: 600; font-size: 18px; margin-bottom: 8px;">點擊選擇 CSV 檔案</div>
+                <div class="upload-hint" style="font-size: 13px; color: #888; line-height: 1.6;">
+                    支援格式：A,B,C,D,E 欄位為資料，F欄為位置<br>
+                    檔案大小限制：5MB
+                </div>
+            `;
+
+            const uploadBtn = document.getElementById('modalUploadBtn');
+            if (currentPackingSheet === 'PACKBOXSPARE') {
+                uploadBtn.className = 'btn-spare';
+                document.getElementById('uploadProgressBar').classList.add('spare');
+            } else {
+                uploadBtn.className = 'btn-primary';
+                document.getElementById('uploadProgressBar').classList.remove('spare');
+            }
+
+            document.getElementById('uploadModalOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeUploadModal(e) {
+            if (isUploading && e && e.target === document.getElementById('uploadModalOverlay')) {
+                showToast('⚠️ 請先中斷上傳再關閉', 'warning');
+                return;
+            }
+            if (e && e.target !== document.getElementById('uploadModalOverlay') && 
+                e.target !== document.getElementById('closeUploadModalBtn')) return;
+
+            document.getElementById('uploadModalOverlay').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function handleModalFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!file.name.toLowerCase().endsWith('.csv')) {
+                showUploadModalStatus('❌ 請選擇 CSV 檔案', 'error');
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                showUploadModalStatus('❌ 檔案大小超過 5MB 限制', 'error');
+                return;
+            }
+
+            selectedModalFile = file;
+            document.getElementById('selectedFileName').textContent = file.name;
+            document.getElementById('uploadFileInfo').style.display = 'block';
+            document.getElementById('modalUploadBtn').disabled = false;
+
+            const uploadArea = document.getElementById('modalUploadArea');
+            uploadArea.classList.add('has-file');
+            uploadArea.innerHTML = `
+                <div class="upload-icon">✅</div>
+                <div style="font-weight: 600; font-size: 18px; margin-bottom: 5px;">${escapeHtml(file.name)}</div>
+                <div style="color: #28a745; font-size: 14px; font-weight: 500;">
+                    檔案大小：${(file.size / 1024).toFixed(1)} KB<br>
+                    點擊重新選擇
+                </div>
+            `;
+
+            showUploadModalStatus('✅ 檔案已選擇，請點擊「開始上傳」', 'success');
+        }
+
+        function showUploadModalStatus(message, type) {
+            const bar = document.getElementById('uploadModalStatus');
+            bar.className = 'status-bar ' + type;
+            bar.innerHTML = message;
+            bar.style.display = 'block';
+
+            if (type === 'success') {
+                setTimeout(() => {
+                    bar.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        function updateProgress(percent, statusText) {
+            const progressBar = document.getElementById('uploadProgressBar');
+            const progressContainer = document.getElementById('uploadProgressContainer');
+            const statusTextEl = document.getElementById('uploadStatusText');
+
+            progressContainer.classList.add('active');
+            statusTextEl.classList.add('active');
+            progressBar.style.width = percent + '%';
+            progressBar.textContent = percent + '%';
+            if (statusText) statusTextEl.textContent = statusText;
+        }
+
+        function cancelUpload() {
+            if (currentUploadController) {
+                currentUploadController.abort();
+                currentUploadController = null;
+            }
+            isUploading = false;
+
+            document.getElementById('cancelUploadBtn').style.display = 'none';
+            document.getElementById('closeUploadModalBtn').style.display = 'block';
+            document.getElementById('modalUploadBtn').style.display = 'block';
+            document.getElementById('modalUploadBtn').disabled = false;
+            document.getElementById('modalUploadBtn').innerHTML = '🚀 開始上傳';
+
+            updateProgress(0, '已中斷');
+            showUploadModalStatus('⛔ 上傳已中斷', 'error');
+            showToast('上傳已中斷', 'info');
+        }
+
+        async function confirmModalUpload() {
+            if (!selectedModalFile || isUploading) return;
+
+            isUploading = true;
+            currentUploadController = new AbortController();
+
+            document.getElementById('cancelUploadBtn').style.display = 'block';
+            document.getElementById('closeUploadModalBtn').style.display = 'none';
+
+            const btn = document.getElementById('modalUploadBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner" style="width: 20px; height: 20px; border-width: 2px; display: inline-block; vertical-align: middle; margin-right: 8px;"></span>上傳中...';
+
+            updateProgress(10, '讀取檔案...');
+
+            const reader = new FileReader();
+
+            reader.onload = async function(e) {
+                updateProgress(40, '處理資料...');
+                const content = e.target.result;
+
+                try {
+                    let progress = 50;
+                    const progressInterval = setInterval(() => {
+                        if (progress < 90 && isUploading) {
+                            progress += 5;
+                            updateProgress(progress, '上傳處理中...');
+                        }
+                    }, 500);
+
+                    const result = await packingApiCall('packingUploadCSV', {
+                        data: content,
+                        sheet: currentPackingSheet
+                    }, 120000);
+
+                    clearInterval(progressInterval);
+
+                    if (result.success) {
+                        updateProgress(100, '完成！');
+                        showUploadModalStatus(`✅ ${result.message}`, 'success');
+                        setTimeout(() => {
+                            closeUploadModal();
+                            reloadCacheAfterUpload();
+                        }, 1500);
+                    } else {
+                        throw new Error(result.error || '上傳失敗');
+                    }
+                } catch (e) {
+                    if (e.name === 'AbortError') return;
+                    updateProgress(0, '上傳失敗');
+                    showUploadModalStatus('❌ ' + e.message, 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '🚀 開始上傳';
+                    document.getElementById('cancelUploadBtn').style.display = 'none';
+                    document.getElementById('closeUploadModalBtn').style.display = 'block';
+                    isUploading = false;
+                }
+            };
+
+            reader.onerror = function() {
+                updateProgress(0, '讀取失敗');
+                showUploadModalStatus('❌ 檔案讀取失敗', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '🚀 開始上傳';
+                document.getElementById('cancelUploadBtn').style.display = 'none';
+                document.getElementById('closeUploadModalBtn').style.display = 'block';
+                isUploading = false;
+            };
+
+            reader.readAsText(selectedModalFile);
+        }
+
+        async function reloadCacheAfterUpload() {
+            isUploading = false;
+            currentUploadController = null;
+            showToast('正在更新資料快取...', 'info');
+            delete fullDataCache[currentPackingSheet];
+            await loadPackingData();
+        }
+
+        //================ Modal 通用功能 =================
+        function showModal(title, content, callback) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalContent').innerHTML = content;
+            document.getElementById('modalOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            const confirmBtn = document.getElementById('modalConfirmBtn');
+            if (currentPackingSheet === 'PACKBOXSPARE') {
+                confirmBtn.className = 'btn-spare';
+            } else {
+                confirmBtn.className = 'btn-primary';
+            }
+
+            modalCallback = callback;
+        }
+
+        function closeModal(e) {
+            if (e && e.target !== document.getElementById('modalOverlay')) return;
+            document.getElementById('modalOverlay').classList.remove('active');
+            document.body.style.overflow = '';
+            modalCallback = null;
+        }
+
+        function modalConfirm() {
+            if (modalCallback) modalCallback();
+        }
+
+        //================ 輔助功能 =================
+        function showToast(message, type = 'info') {
+            const existingToast = document.querySelector('.temp-toast');
+            if (existingToast) existingToast.remove();
+
+            const toast = document.createElement('div');
+            toast.className = 'temp-toast status-bar ' + type;
+            toast.textContent = message;
+            toast.style.cssText = `
+                position: fixed;
+                top: 80px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 9999;
+                max-width: 90%;
+                min-width: 300px;
+                text-align: center;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            `;
+
+            document.body.appendChild(toast);
+
+            if (type === 'success' || type === 'info') {
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateX(-50%) translateY(-20px)';
+                    toast.style.transition = 'all 0.3s ease';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (isUploading) {
+                    if (confirm('正在上傳中，是否中斷？')) {
+                        cancelUpload();
+                    }
+                    return;
+                }
+                closeModal();
+                closeUploadModal();
+            }
+        });
+    </script>
+</body>
+</html>
