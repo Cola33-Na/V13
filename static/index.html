@@ -1017,7 +1017,7 @@
             margin-top: 2px;
         }
 
-        /* Excel 風格資料表格 */
+        /* Excel 風格資料表格 - 【新增】可調節欄寬 */
         .excel-table-container {
             overflow-x: auto;
             border-radius: 8px;
@@ -1046,6 +1046,14 @@
             text-align: left;
             font-weight: 600;
             border: 1px solid rgba(255,255,255,0.2);
+            position: relative;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            /* 【新增】可調節欄寬 */
+            resize: horizontal;
+            min-width: 80px;
+            max-width: 400px;
         }
 
         .excel-table th:first-child {
@@ -1054,12 +1062,22 @@
 
         .excel-table th:last-child {
             border-top-right-radius: 8px;
+            resize: none; /* 最後一欄不調整 */
+        }
+
+        /* 【新增】調整大小的handle優化 */
+        .excel-table th::-webkit-resizer {
+            background: rgba(255,255,255,0.5);
+            border-radius: 2px;
         }
 
         .excel-table td {
             padding: 10px 12px;
             border: 1px solid #e0e0e0;
             border-top: none;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .excel-table tr:nth-child(even) {
@@ -1682,6 +1700,187 @@
             to { transform: translateX(-50%) translateY(0); opacity: 1; }
         }
 
+        /* 【新增】手機端裝箱功能懸浮按鈕與面板 */
+        .mobile-packing-float-btn {
+            display: none;
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 998;
+            transition: all 0.3s;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobile-packing-float-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .mobile-packing-float-btn.active {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            transform: rotate(45deg);
+        }
+
+        .spare-mode .mobile-packing-float-btn {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            box-shadow: 0 4px 12px rgba(17, 153, 142, 0.5);
+        }
+
+        .spare-mode .mobile-packing-float-btn.active {
+            background: linear-gradient(135deg, #38ef7d 0%, #11998e 100%);
+        }
+
+        /* 【新增】手機端統計與位置懸浮面板 */
+        .mobile-packing-panel {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 997;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .mobile-packing-panel.active {
+            display: flex;
+        }
+
+        .mobile-packing-panel-content {
+            background: white;
+            width: 100%;
+            max-height: 85vh;
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            animation: slideUp 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .mobile-packing-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+            flex-shrink: 0;
+        }
+
+        .mobile-packing-panel-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .mobile-packing-panel-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #f8f9fa;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobile-packing-panel-body {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .mobile-stats-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .mobile-stats-section h4 {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .mobile-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .mobile-stat-item {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+        }
+
+        .mobile-stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .mobile-stat-label {
+            font-size: 11px;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        .mobile-zones-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 40vh;
+            overflow-y: auto;
+        }
+
+        .mobile-zone-item {
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mobile-zone-item:active {
+            background: #f0f4ff;
+            transform: scale(0.98);
+        }
+
+        .mobile-zone-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .spare-mode .mobile-zone-item.active {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border-color: #11998e;
+        }
+
         /* 響應式設計 - 手機端優化 */
         @media (max-width: 968px) {
             .main-wrapper {
@@ -1745,65 +1944,30 @@
             .block-title-actions {
                 width: 100%;
                 justify-content: flex-start;
+                flex-wrap: wrap;
             }
 
-            /* 【手機端優化】裝箱功能介面改為橫向滾動標籤式布局 */
+            /* 【手機端優化】裝箱功能介面改為懸浮面板模式 */
             .packing-layout {
                 flex-direction: column;
                 gap: 10px;
+                position: relative;
             }
 
+            /* 【修改】桌面端側邊欄在手機端隱藏，改為懸浮面板 */
             .packing-sidebar {
-                width: 100%;
-                max-height: none; /* 移除高度限制 */
-                flex-direction: row;
-                flex-wrap: nowrap; /* 不換行，橫向滾動 */
-                gap: 8px;
-                padding: 10px;
-                overflow-x: auto; /* 啟用橫向滾動 */
-                overflow-y: hidden;
-                -webkit-overflow-scrolling: touch; /* 平滑滾動 */
-                order: -1; /* 將側邊欄移到頂部 */
+                display: none; /* 手機端隱藏桌面側邊欄 */
             }
 
-            .zone-item {
-                flex: 0 0 auto; /* 不伸縮，固定寬度 */
-                min-width: 120px; /* 最小寬度 */
-                max-width: none; /* 移除最大寬度限制 */
-                white-space: nowrap; /* 文字不換行 */
-                padding: 10px 15px;
-            }
-
-            .zone-actions {
-                opacity: 1; /* 手機端始終顯示操作按鈕 */
-                margin-left: 8px;
-            }
-
-            .sidebar-actions {
-                flex-direction: row;
-                width: 100%;
-                margin-top: 10px;
-                flex-wrap: nowrap; /* 操作按鈕也橫向排列 */
-                gap: 8px;
-            }
-
-            .sidebar-actions button {
-                flex: 0 0 auto; /* 不強制拉伸 */
-                min-width: 100px;
-                padding: 8px 12px;
-                font-size: 12px;
-            }
-
-            .sidebar-stats {
-                width: auto; /* 自動寬度 */
-                min-width: 150px;
-                margin-bottom: 0;
-                flex-shrink: 0;
+            /* 【新增】手機端顯示懸浮按鈕 */
+            .mobile-packing-float-btn {
+                display: flex;
             }
 
             .packing-main {
-                max-height: none; /* 移除高度限制，自適應內容 */
+                max-height: none;
                 overflow-y: visible;
+                width: 100%;
             }
 
             .panel-content {
@@ -1828,6 +1992,19 @@
             .stats-table thead th.orange-header {
                 font-size: 12px;
                 padding: 8px 4px;
+            }
+
+            /* 手機端快速輸入區域優化 */
+            .quick-input-row {
+                flex-direction: column;
+            }
+
+            .quick-input-row input {
+                width: 100%;
+            }
+
+            .quick-add-btn {
+                width: 100%;
             }
         }
 
@@ -1855,13 +2032,16 @@
                 font-size: 12px;
             }
 
-            .zone-item {
-                min-width: 100px; /* 更小螢幕縮小最小寬度 */
-                padding: 8px 12px;
-                font-size: 13px;
+            .mobile-manual-float-btn {
+                width: 56px;
+                height: 56px;
+                bottom: 20px;
+                right: 20px;
+                font-size: 20px;
             }
 
-            .mobile-manual-float-btn {
+            /* 【新增】手機端懸浮按鈕位置調整 */
+            .mobile-packing-float-btn {
                 width: 56px;
                 height: 56px;
                 bottom: 20px;
@@ -1873,17 +2053,19 @@
                 font-size: 11px;
             }
 
-            /* 手機端快速輸入區域優化 */
-            .quick-input-row {
-                flex-direction: column;
+            /* 【新增】手機端統計網格調整 */
+            .mobile-stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
             }
 
-            .quick-input-row input {
-                width: 100%;
+            .mobile-stat-value {
+                font-size: 18px;
             }
 
-            .quick-add-btn {
-                width: 100%;
+            .mobile-packing-panel-content {
+                padding: 15px;
+                max-height: 90vh;
             }
         }
 
@@ -2187,7 +2369,7 @@
                                 <button class="title-btn title-btn-secondary" onclick="exportPackingExcel()">
                                     📥 匯出Excel
                                 </button>
-                                <!-- 【移除】編輯標題按鈕已刪除 -->
+                                <!-- 【移除】編輯欄位標題與統計分類按鈕已刪除 -->
                                 <button class="title-btn title-btn-secondary" onclick="clearPackingAll()">
                                     🗑️ 清空
                                 </button>
@@ -2195,6 +2377,7 @@
                         </div>
 
                         <div class="packing-layout">
+                            <!-- 【修改】桌面端側邊欄（手機端隱藏） -->
                             <div class="packing-sidebar" id="packingSidebar">
                                 <div class="sidebar-stats" id="sidebarStats" style="display: none;">
                                     <div><span>總資料筆數：</span><span id="statTotal">0</span></div>
@@ -2342,6 +2525,60 @@
         </div>
     </div>
 
+    <!-- 【新增】手機端裝箱功能懸浮按鈕（統計與位置） -->
+    <button class="mobile-packing-float-btn" id="mobilePackingBtn" onclick="toggleMobilePackingPanel()" title="統計與位置" style="display: none;">
+        📊
+    </button>
+
+    <!-- 【新增】手機端裝箱功能懸浮面板 -->
+    <div class="mobile-packing-panel" id="mobilePackingPanel" onclick="closeMobilePackingPanel(event)">
+        <div class="mobile-packing-panel-content" onclick="event.stopPropagation()">
+            <div class="mobile-packing-panel-header">
+                <span class="mobile-packing-panel-title">📊 統計與位置</span>
+                <button class="mobile-packing-panel-close" onclick="closeMobilePackingPanel()">✕</button>
+            </div>
+            
+            <div class="mobile-packing-panel-body">
+                <!-- 統計摘要 -->
+                <div class="mobile-stats-section">
+                    <h4>📈 資料統計</h4>
+                    <div class="mobile-stats-grid">
+                        <div class="mobile-stat-item">
+                            <div class="mobile-stat-value" id="mobileStatTotal">0</div>
+                            <div class="mobile-stat-label">總筆數</div>
+                        </div>
+                        <div class="mobile-stat-item">
+                            <div class="mobile-stat-value" id="mobileStatClassified" style="color: #28a745;">0</div>
+                            <div class="mobile-stat-label">已分類</div>
+                        </div>
+                        <div class="mobile-stat-item">
+                            <div class="mobile-stat-value" id="mobileStatUnclassified" style="color: #dc3545;">0</div>
+                            <div class="mobile-stat-label">未分類</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 位置列表 -->
+                <div class="mobile-stats-section">
+                    <h4>📍 位置列表</h4>
+                    <div class="mobile-zones-list" id="mobileZoneList">
+                        <div class="mobile-zone-item active" onclick="mobileFilterZone('all', this)">
+                            <span>🏠 全部資料</span>
+                            <span id="mobileZoneCountAll">0 筆</span>
+                        </div>
+                        <!-- 動態生成其他位置 -->
+                    </div>
+                </div>
+
+                <!-- 操作按鈕 -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+                    <button class="btn-success btn-sm" onclick="showAddZoneModal()">➕ 新增位置</button>
+                    <button class="btn-warning btn-sm" onclick="clearPackingLocations()">🗑️ 清理位置</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal -->
     <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
         <div class="modal" onclick="event.stopPropagation()">
@@ -2354,7 +2591,7 @@
         </div>
     </div>
 
-    <!-- 【移除】編輯標題 Modal 已整個刪除 -->
+    <!-- 【移除】編輯標題與統計分類 Modal 已整個刪除 -->
 
     <!-- Upload Modal -->
     <div class="modal-overlay upload-modal-overlay" id="uploadModalOverlay" onclick="closeUploadModal(event)">
@@ -2567,6 +2804,7 @@
 
             currentPanel = panelName;
             closeMobileManualModal();
+            closeMobilePackingPanel(); // 【新增】關閉裝箱懸浮面板
 
             if (panelName === 'search') {
                 setTimeout(() => document.getElementById('searchInput')?.focus(), 100);
@@ -2578,15 +2816,19 @@
                 startStatusMonitoring();
             }
             
-            // 【新增】控制手機端 Manual Select 按鈕顯示/隱藏 - 只在圖書查詢介面顯示
+            // 【新增】控制手機端按鈕顯示/隱藏
             const mobileManualBtn = document.getElementById('mobileManualBtn');
-            if (mobileManualBtn) {
-                if (panelName === 'search') {
-                    mobileManualBtn.style.display = 'flex';
-                } else {
-                    mobileManualBtn.style.display = 'none';
-                    closeMobileManualModal();
-                }
+            const mobilePackingBtn = document.getElementById('mobilePackingBtn');
+            
+            if (panelName === 'search') {
+                if (mobileManualBtn) mobileManualBtn.style.display = 'flex';
+                if (mobilePackingBtn) mobilePackingBtn.style.display = 'none';
+            } else if (panelName === 'packing') {
+                if (mobileManualBtn) mobileManualBtn.style.display = 'none';
+                if (mobilePackingBtn) mobilePackingBtn.style.display = 'flex';
+            } else {
+                if (mobileManualBtn) mobileManualBtn.style.display = 'none';
+                if (mobilePackingBtn) mobilePackingBtn.style.display = 'none';
             }
         }
 
@@ -2615,11 +2857,12 @@
 
             updatePanelStyle();
             
-            // 【新增】切換到裝箱功能時隱藏 Manual Select 按鈕
+            // 【新增】切換到裝箱功能時隱藏 Manual Select 按鈕，顯示裝箱懸浮按鈕
             const mobileManualBtn = document.getElementById('mobileManualBtn');
-            if (mobileManualBtn) {
-                mobileManualBtn.style.display = 'none';
-            }
+            const mobilePackingBtn = document.getElementById('mobilePackingBtn');
+            if (mobileManualBtn) mobileManualBtn.style.display = 'none';
+            if (mobilePackingBtn) mobilePackingBtn.style.display = 'flex';
+            
             closeMobileManualModal();
             
             loadHeaders().then(() => {
@@ -2647,6 +2890,7 @@
                 document.getElementById('quickInputArea').classList.add('spare-mode');
                 document.getElementById('packingPanelContent').classList.add('spare-mode');
                 document.getElementById('mobileManualBtn').style.background = 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)';
+                document.getElementById('mobilePackingBtn').classList.add('spare-mode'); // 【新增】
             } else {
                 title.className = 'block-title';
                 title.querySelector('.block-title-left').innerHTML = `
@@ -2661,6 +2905,7 @@
                 document.getElementById('quickInputArea').classList.remove('spare-mode');
                 document.getElementById('packingPanelContent').classList.remove('spare-mode');
                 document.getElementById('mobileManualBtn').style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                document.getElementById('mobilePackingBtn').classList.remove('spare-mode'); // 【新增】
             }
         }
 
@@ -2850,6 +3095,153 @@
 
         function exportMobileManualSelect() {
             exportManualSelect();
+        }
+
+        // 【新增】手機端裝箱功能懸浮面板控制
+        function toggleMobilePackingPanel() {
+            const panel = document.getElementById('mobilePackingPanel');
+            const btn = document.getElementById('mobilePackingBtn');
+
+            if (panel.classList.contains('active')) {
+                closeMobilePackingPanel();
+            } else {
+                panel.classList.add('active');
+                btn.classList.add('active');
+                updateMobilePackingPanel(); // 更新面板資料
+            }
+        }
+
+        function closeMobilePackingPanel(e) {
+            if (e && e.target !== document.getElementById('mobilePackingPanel') && 
+                e.target !== document.getElementById('mobilePackingBtn')) return;
+
+            document.getElementById('mobilePackingPanel').classList.remove('active');
+            document.getElementById('mobilePackingBtn').classList.remove('active');
+        }
+
+        // 【新增】更新手機端懸浮面板資料
+        function updateMobilePackingPanel() {
+            // 更新統計數字
+            document.getElementById('mobileStatTotal').textContent = totalRecords || 0;
+            
+            // 計算已分類和未分類
+            let classified = 0;
+            let unclassified = 0;
+            if (packingDataCache && packingDataCache.length > 0) {
+                packingDataCache.forEach(item => {
+                    if (item.F && item.F.trim() !== '') {
+                        classified++;
+                    } else {
+                        unclassified++;
+                    }
+                });
+            }
+            // 如果沒有資料，使用dashboardCache的數據
+            const cacheKey = `${currentPackingSheet}_${currentPage}_${currentZone}`;
+            if (dashboardCache[cacheKey] && dashboardCache[cacheKey].summary) {
+                const summary = dashboardCache[cacheKey].summary;
+                document.getElementById('mobileStatClassified').textContent = summary.classified || 0;
+                document.getElementById('mobileStatUnclassified').textContent = summary.unclassified || 0;
+            } else {
+                document.getElementById('mobileStatClassified').textContent = classified;
+                document.getElementById('mobileStatUnclassified').textContent = unclassified;
+            }
+            
+            // 更新位置列表
+            updateMobileZoneList();
+        }
+
+        // 【新增】更新手機端位置列表
+        function updateMobileZoneList() {
+            const zoneListDiv = document.getElementById('mobileZoneList');
+            const zonesResult = dashboardCache[`${currentPackingSheet}_1_all`] || {};
+            const zones = zonesResult.zones || [];
+            const unclassified = zonesResult.unclassified || 0;
+            
+            let html = '';
+            
+            // 全部資料選項
+            const isAllActive = currentZone === 'all';
+            html += `
+                <div class="mobile-zone-item ${isAllActive ? 'active' : ''}" onclick="mobileFilterZone('all', this)">
+                    <span>🏠 全部資料</span>
+                    <span>${totalRecords || 0} 筆</span>
+                </div>
+            `;
+            
+            // 各個位置
+            zones.forEach(zone => {
+                const isActive = currentZone === zone.name;
+                html += `
+                    <div class="mobile-zone-item ${isActive ? 'active' : ''}" onclick="mobileFilterZone('${escapeHtml(zone.name)}', this)">
+                        <span>📍 ${escapeHtml(zone.name)}</span>
+                        <span>${zone.count} 筆</span>
+                    </div>
+                `;
+            });
+            
+            // 未分類
+            if (unclassified > 0) {
+                const isUnclassifiedActive = currentZone === '';
+                html += `
+                    <div class="mobile-zone-item ${isUnclassifiedActive ? 'active' : ''}" onclick="mobileFilterZone('', this)">
+                        <span>📍 未分類</span>
+                        <span>${unclassified} 筆</span>
+                    </div>
+                `;
+            }
+            
+            zoneListDiv.innerHTML = html;
+        }
+
+        // 【新增】手機端篩選位置
+        function mobileFilterZone(zone, element) {
+            // 更新UI
+            document.querySelectorAll('.mobile-zone-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            element.classList.add('active');
+            
+            // 關閉面板
+            closeMobilePackingPanel();
+            
+            // 執行篩選（複用桌面端邏輯）
+            const normalizedZone = zone === 'all' ? 'all' : (zone === '' ? '' : zone);
+            currentZone = normalizedZone;
+            currentPage = 1;
+            
+            // 更新桌面端側邊欄的選中狀態（如果可見）
+            document.querySelectorAll('.zone-item').forEach(item => {
+                item.classList.remove('active');
+                const zoneName = item.querySelector('.zone-name')?.textContent?.replace('📍 ', '').trim();
+                if (normalizedZone === 'all' && zoneName === '🏠 全部資料') {
+                    item.classList.add('active');
+                } else if (normalizedZone === '' && zoneName === '📍 未分類') {
+                    item.classList.add('active');
+                } else if (zoneName === zone) {
+                    item.classList.add('active');
+                }
+            });
+            
+            if (normalizedZone === 'all') {
+                document.getElementById('packingSummary').style.display = 'block';
+                document.getElementById('packingDataList').style.display = 'none';
+                document.getElementById('quickInputArea').style.display = 'none';
+                document.getElementById('paginationControls').style.display = 'none';
+                loadPackingSummary();
+            } else {
+                document.getElementById('packingSummary').style.display = 'none';
+                document.getElementById('packingDataList').style.display = 'block';
+                document.getElementById('quickInputArea').style.display = 'block';
+                document.getElementById('currentZoneName').textContent = normalizedZone || '未分類';
+                document.getElementById('dataListTitle').textContent = (normalizedZone || '未分類') + ' 資料列表';
+                
+                // 顯示Loading
+                const tbody = document.getElementById('excelTableBody');
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;"><div class="spinner" style="margin: 0 auto 15px;"></div><p>Loading...</p></td></tr>';
+                
+                loadPackingDataOptimized();
+            }
         }
 
         //================ 圖書查詢功能 =================
@@ -3581,6 +3973,9 @@
                     updateSummaryDisplay(cached.summary);
                     updatePaginationControls();
                     
+                    // 【新增】更新手機端面板
+                    updateMobilePackingPanel();
+                    
                     if (currentZone !== 'all') {
                         renderDataListOptimized(); // 【優化】使用優化渲染
                     } else {
@@ -3624,6 +4019,9 @@
                     updateZoneList(result.zones || [], result.unclassified || 0);
                     updateSummaryDisplay(result.summary);
                     updatePaginationControls();
+                    
+                    // 【新增】更新手機端面板
+                    updateMobilePackingPanel();
                     
                     if (currentZone !== 'all') {
                         renderDataListOptimized();
@@ -3765,6 +4163,7 @@
 
         /**
          * 【優化】渲染資料列表 - 使用DocumentFragment減少DOM操作
+         * 【新增】支援欄寬調節（通過CSS resize: horizontal）
          */
         function renderDataListOptimized() {
             const tbody = document.getElementById('excelTableBody');
@@ -4232,6 +4631,9 @@
                 if (zonesResult.success) {
                     updateSidebarStats(zonesResult);
                     updateZoneList(zonesResult.zones || [], zonesResult.unclassified || 0);
+                    
+                    // 【新增】更新手機端面板
+                    updateMobilePackingPanel();
                     
                     if (currentZone === 'all') {
                         await loadPackingSummary();
@@ -4877,6 +5279,7 @@
                 closeModal();
                 closeUploadModal();
                 closeMobileManualModal();
+                closeMobilePackingPanel(); // 【新增】關閉手機端裝箱面板
                 // 【移除】closeHeaderEditModal 呼叫已刪除
             }
         });
