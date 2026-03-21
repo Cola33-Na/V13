@@ -1682,75 +1682,7 @@
             to { transform: translateX(-50%) translateY(0); opacity: 1; }
         }
 
-        /* 編輯標題 Modal 樣式 */
-        .header-edit-modal .modal {
-            max-width: 700px;
-        }
-
-        .header-edit-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .header-edit-item {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .header-edit-item label {
-            font-size: 13px;
-            color: #666;
-            font-weight: 600;
-        }
-
-        .header-edit-item input {
-            padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-
-        .header-edit-item input:focus {
-            border-color: #667eea;
-            outline: none;
-        }
-
-        .modal-custom-categories {
-            margin-top: 20px;
-            border-top: 3px dashed #ff9800;
-            padding-top: 20px;
-        }
-
-        .modal-custom-categories h4 {
-            color: #e65100;
-            font-size: 16px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .modal-custom-categories .custom-category-grid {
-            grid-template-columns: 1fr;
-            gap: 12px;
-        }
-
-        .modal-custom-categories .custom-category-item {
-            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
-            border: 2px solid #ff9800;
-            border-radius: 10px;
-            padding: 15px;
-        }
-
-        .modal-custom-categories .custom-category-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(255, 152, 0, 0.25);
-        }
-
-        /* 響應式設計 */
+        /* 響應式設計 - 手機端優化 */
         @media (max-width: 968px) {
             .main-wrapper {
                 grid-template-columns: 1fr;
@@ -1815,48 +1747,63 @@
                 justify-content: flex-start;
             }
 
+            /* 【手機端優化】裝箱功能介面改為橫向滾動標籤式布局 */
             .packing-layout {
                 flex-direction: column;
+                gap: 10px;
             }
 
             .packing-sidebar {
                 width: 100%;
-                max-height: 250px;
+                max-height: none; /* 移除高度限制 */
                 flex-direction: row;
-                flex-wrap: wrap;
+                flex-wrap: nowrap; /* 不換行，橫向滾動 */
                 gap: 8px;
                 padding: 10px;
+                overflow-x: auto; /* 啟用橫向滾動 */
+                overflow-y: hidden;
+                -webkit-overflow-scrolling: touch; /* 平滑滾動 */
+                order: -1; /* 將側邊欄移到頂部 */
             }
 
             .zone-item {
-                flex: 1;
-                min-width: 140px;
-                max-width: 200px;
+                flex: 0 0 auto; /* 不伸縮，固定寬度 */
+                min-width: 120px; /* 最小寬度 */
+                max-width: none; /* 移除最大寬度限制 */
+                white-space: nowrap; /* 文字不換行 */
+                padding: 10px 15px;
             }
 
             .zone-actions {
-                opacity: 1;
+                opacity: 1; /* 手機端始終顯示操作按鈕 */
+                margin-left: 8px;
             }
 
             .sidebar-actions {
                 flex-direction: row;
                 width: 100%;
                 margin-top: 10px;
-                flex-wrap: wrap;
+                flex-wrap: nowrap; /* 操作按鈕也橫向排列 */
+                gap: 8px;
             }
 
             .sidebar-actions button {
-                flex: 1;
-                min-width: 120px;
+                flex: 0 0 auto; /* 不強制拉伸 */
+                min-width: 100px;
+                padding: 8px 12px;
+                font-size: 12px;
             }
 
             .sidebar-stats {
-                width: 100%;
-                margin-bottom: 8px;
+                width: auto; /* 自動寬度 */
+                min-width: 150px;
+                margin-bottom: 0;
+                flex-shrink: 0;
             }
 
             .packing-main {
-                max-height: none;
+                max-height: none; /* 移除高度限制，自適應內容 */
+                overflow-y: visible;
             }
 
             .panel-content {
@@ -1881,15 +1828,6 @@
             .stats-table thead th.orange-header {
                 font-size: 12px;
                 padding: 8px 4px;
-            }
-
-            .header-edit-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .header-edit-modal .modal {
-                max-width: 95%;
-                padding: 20px;
             }
         }
 
@@ -1918,8 +1856,9 @@
             }
 
             .zone-item {
-                min-width: 100%;
-                max-width: none;
+                min-width: 100px; /* 更小螢幕縮小最小寬度 */
+                padding: 8px 12px;
+                font-size: 13px;
             }
 
             .mobile-manual-float-btn {
@@ -1932,6 +1871,19 @@
 
             .stats-table thead th.orange-header {
                 font-size: 11px;
+            }
+
+            /* 手機端快速輸入區域優化 */
+            .quick-input-row {
+                flex-direction: column;
+            }
+
+            .quick-input-row input {
+                width: 100%;
+            }
+
+            .quick-add-btn {
+                width: 100%;
             }
         }
 
@@ -2235,9 +2187,7 @@
                                 <button class="title-btn title-btn-secondary" onclick="exportPackingExcel()">
                                     📥 匯出Excel
                                 </button>
-                                <button class="title-btn title-btn-secondary" onclick="showEditHeadersModal()">
-                                    ✏️ 編輯標題
-                                </button>
+                                <!-- 【移除】編輯標題按鈕已刪除 -->
                                 <button class="title-btn title-btn-secondary" onclick="clearPackingAll()">
                                     🗑️ 清空
                                 </button>
@@ -2404,57 +2354,7 @@
         </div>
     </div>
 
-    <!-- 編輯標題 Modal -->
-    <div class="modal-overlay header-edit-modal" id="headerEditModalOverlay" onclick="closeHeaderEditModal(event)">
-        <div class="modal" onclick="event.stopPropagation()">
-            <h3>✏️ 編輯欄位標題與統計分類</h3>
-            <div id="headerEditContent">
-                <div class="header-edit-grid">
-                    <div class="header-edit-item">
-                        <label>A 欄 (Key) - 不可修改</label>
-                        <input type="text" id="headerInputA" value="A" disabled style="background: #f5f5f5;">
-                    </div>
-                    <div class="header-edit-item">
-                        <label>B 欄</label>
-                        <input type="text" id="headerInputB" placeholder="例如：Quantity">
-                    </div>
-                    <div class="header-edit-item">
-                        <label>C 欄</label>
-                        <input type="text" id="headerInputC" placeholder="例如：Find">
-                    </div>
-                    <div class="header-edit-item">
-                        <label>D 欄</label>
-                        <input type="text" id="headerInputD" placeholder="例如：LastCopy">
-                    </div>
-                    <div class="header-edit-item">
-                        <label>E 欄</label>
-                        <input type="text" id="headerInputE" placeholder="例如：Donation">
-                    </div>
-                    <div class="header-edit-item">
-                        <label>F 欄 (位置)</label>
-                        <input type="text" id="headerInputF" placeholder="例如：Other">
-                    </div>
-                </div>
-                
-                <div class="modal-custom-categories">
-                    <h4>📊 自定義統計分類設定 (5個欄位)</h4>
-                    <div style="font-size: 12px; color: #666; margin-bottom: 15px; background: #fff3cd; padding: 10px; border-radius: 6px; border-left: 4px solid #ff9800;">
-                        💡 設定各區統計表格的5個分類欄位。系統會統計每個位置(F欄)下，指定欄位等於指定值的數量。
-                    </div>
-                    <div id="headerEditCustomCategories" class="custom-category-grid">
-                    </div>
-                </div>
-                
-                <div style="background: #e3f2fd; padding: 12px; border-radius: 8px; font-size: 13px; color: #1976d2; margin-top: 20px;">
-                    💡 提示：修改標題只會影響顯示名稱，不會影響實際資料。統計分類設定會影響「各區數量統計」表格的列顯示。
-                </div>
-            </div>
-            <div class="modal-actions">
-                <button class="btn-secondary" onclick="closeHeaderEditModal()">取消</button>
-                <button class="btn-primary" onclick="saveHeadersAndCategories()">💾 儲存設定</button>
-            </div>
-        </div>
-    </div>
+    <!-- 【移除】編輯標題 Modal 已整個刪除 -->
 
     <!-- Upload Modal -->
     <div class="modal-overlay upload-modal-overlay" id="uploadModalOverlay" onclick="closeUploadModal(event)">
@@ -2801,34 +2701,7 @@
             loadPackingSummary();
         }
         
-        function renderCustomCategories(containerId = 'customCategoryList') {
-            const container = document.getElementById(containerId);
-            if (!container) return;
-            
-            let html = '';
-            customCategories.forEach((cat, index) => {
-                html += `
-                    <div class="custom-category-item">
-                        <div class="custom-category-header">
-                            <select onchange="updateCustomCategory(${index}, 'column', this.value)" title="選擇欄位">
-                                <option value="B" ${cat.column === 'B' ? 'selected' : ''}>B欄</option>
-                                <option value="C" ${cat.column === 'C' ? 'selected' : ''}>C欄</option>
-                                <option value="D" ${cat.column === 'D' ? 'selected' : ''}>D欄</option>
-                                <option value="E" ${cat.column === 'E' ? 'selected' : ''}>E欄</option>
-                            </select>
-                            <input type="text" placeholder="篩選值" value="${escapeHtml(cat.value)}" 
-                                onchange="updateCustomCategory(${index}, 'value', this.value)"
-                                title="輸入要統計的值">
-                            <input type="text" placeholder="顯示名稱" value="${escapeHtml(cat.label)}" 
-                                onchange="updateCustomCategory(${index}, 'label', this.value)"
-                                title="顯示在表格上的名稱">
-                        </div>
-                        <div style="font-size: 11px; color: #888; margin-top: 4px;">分類 ${index + 1}</div>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        }
+        // 【移除】renderCustomCategories 函數已刪除（因為編輯功能已移除）
         
         function updateCustomCategory(index, field, value) {
             customCategories[index][field] = value;
@@ -4991,65 +4864,7 @@
             return div.innerHTML;
         }
 
-        function showEditHeadersModal() {
-            document.getElementById('headerInputA').value = columnHeaders[0] || 'A';
-            document.getElementById('headerInputB').value = columnHeaders[1] || 'B';
-            document.getElementById('headerInputC').value = columnHeaders[2] || 'C';
-            document.getElementById('headerInputD').value = columnHeaders[3] || 'D';
-            document.getElementById('headerInputE').value = columnHeaders[4] || 'E';
-            document.getElementById('headerInputF').value = columnHeaders[5] || 'F';
-            
-            renderCustomCategories('headerEditCustomCategories');
-            
-            document.getElementById('headerEditModalOverlay').classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeHeaderEditModal(e) {
-            if (e && e.target !== document.getElementById('headerEditModalOverlay')) return;
-            document.getElementById('headerEditModalOverlay').classList.remove('active');
-            document.body.style.overflow = '';
-        }
-
-        async function saveHeadersAndCategories() {
-            const newHeaders = [
-                document.getElementById('headerInputA').value || 'A',
-                document.getElementById('headerInputB').value || 'B',
-                document.getElementById('headerInputC').value || 'C',
-                document.getElementById('headerInputD').value || 'D',
-                document.getElementById('headerInputE').value || 'E',
-                document.getElementById('headerInputF').value || 'F'
-            ];
-
-            try {
-                const result = await packingApiCall('packingUpdateHeaders', {
-                    sheet: currentPackingSheet,
-                    headers: JSON.stringify(newHeaders)
-                });
-
-                if (result.success) {
-                    columnHeaders = newHeaders;
-                    const headerRow = document.getElementById('tableHeaderRow');
-                    let html = '';
-                    newHeaders.forEach((header, index) => {
-                        const colClass = index === 0 ? 'col-a' : (index === 5 ? 'col-f' : '');
-                        const label = index === 5 ? `${header} (位置)` : header;
-                        html += `<th class="${colClass}">${escapeHtml(label)}</th>`;
-                    });
-                    html += '<th>操作</th>';
-                    headerRow.innerHTML = html;
-                    
-                    saveCustomCategories();
-                    
-                    showToast('✅ 標題與分類設定已更新', 'success');
-                    closeHeaderEditModal();
-                } else {
-                    showToast('❌ 更新失敗：' + result.error, 'error');
-                }
-            } catch (e) {
-                showToast('❌ 儲存失敗：' + e.message, 'error');
-            }
-        }
+        // 【移除】showEditHeadersModal、closeHeaderEditModal、saveHeadersAndCategories 函數已刪除
 
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
@@ -5062,7 +4877,7 @@
                 closeModal();
                 closeUploadModal();
                 closeMobileManualModal();
-                closeHeaderEditModal();
+                // 【移除】closeHeaderEditModal 呼叫已刪除
             }
         });
     </script>
