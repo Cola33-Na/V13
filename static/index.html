@@ -1700,7 +1700,7 @@
             to { transform: translateX(-50%) translateY(0); opacity: 1; }
         }
 
-        /* 【新增】手機端裝箱功能懸浮按鈕與面板 */
+        /* 【新增】手機端裝箱功能懸浮按鈕（統計與位置） */
         .mobile-packing-float-btn {
             display: none;
             position: fixed;
@@ -2105,6 +2105,99 @@
             width: 100%;
             left: 0;
         }
+
+        /* 【新增】手機端底部操作懸浮欄 */
+        .mobile-actions-bar {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e9ecef;
+            padding: 10px 15px;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 999;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+        }
+
+        .mobile-action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            color: #667eea;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .mobile-action-btn:active {
+            background: #f0f4ff;
+            transform: scale(0.95);
+        }
+
+        .mobile-action-btn .icon {
+            font-size: 20px;
+        }
+
+        .mobile-action-btn.danger {
+            color: #dc3545;
+        }
+
+        .mobile-action-btn.danger:active {
+            background: #ffebee;
+        }
+
+        .spare-mode .mobile-action-btn {
+            color: #11998e;
+        }
+
+        .spare-mode .mobile-action-btn.danger {
+            color: #dc3545;
+        }
+
+        @media (max-width: 968px) {
+            .mobile-actions-bar {
+                display: flex;
+            }
+            
+            /* 隱藏桌面端的標題操作按鈕 */
+            #panel-packing .block-title-actions {
+                display: none;
+            }
+            
+            /* 調整packing-layout底部padding，避免被懸浮欄遮擋 */
+            .packing-layout {
+                padding-bottom: 80px;
+            }
+
+            /* 調整手機端懸浮按鈕位置，避免與底部欄重疊 */
+            .mobile-packing-float-btn {
+                bottom: 90px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .mobile-actions-bar {
+                padding: 8px 10px;
+            }
+            
+            .mobile-action-btn {
+                padding: 6px 12px;
+                font-size: 11px;
+            }
+            
+            .mobile-action-btn .icon {
+                font-size: 18px;
+            }
+        }
     </style>
     <!-- 引入 SheetJS 函式庫 -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
@@ -2485,6 +2578,22 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- 【新增】手機端操作懸浮欄 -->
+                    <div class="mobile-actions-bar" id="mobileActionsBar">
+                        <button class="mobile-action-btn" onclick="showUploadModal()">
+                            <span class="icon">📤</span>
+                            <span class="label">上傳Excel</span>
+                        </button>
+                        <button class="mobile-action-btn" onclick="exportPackingExcel()">
+                            <span class="icon">📥</span>
+                            <span class="label">匯出Excel</span>
+                        </button>
+                        <button class="mobile-action-btn danger" onclick="clearPackingAll()">
+                            <span class="icon">🗑️</span>
+                            <span class="label">清空</span>
+                        </button>
                     </div>
                 </div>
 
@@ -4040,9 +4149,14 @@
             const statsDiv = document.getElementById('sidebarStats');
             if (statsDiv && stats.total !== undefined) {
                 statsDiv.style.display = 'block';
-                document.getElementById('statTotal').textContent = stats.total || 0;
-                document.getElementById('statClassified').textContent = (stats.total - (stats.unclassified || 0)) || 0;
-                document.getElementById('statUnclassified').textContent = stats.unclassified || 0;
+                const total = parseInt(stats.total) || 0;
+                const unclassified = parseInt(stats.unclassified) || 0;
+                // 【修正】確保已分類不為負數
+                const classified = Math.max(0, total - unclassified);
+                
+                document.getElementById('statTotal').textContent = total;
+                document.getElementById('statClassified').textContent = classified;
+                document.getElementById('statUnclassified').textContent = unclassified;
             }
         }
 
