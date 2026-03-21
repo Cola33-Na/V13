@@ -1881,6 +1881,208 @@
             border-color: #11998e;
         }
 
+        /* 【新增】手機端裝箱功能懸浮操作按鈕（上傳/匯出/清空） */
+        .mobile-packing-actions-fab {
+            display: none;
+            position: fixed;
+            bottom: 30px;
+            right: 100px;
+            z-index: 996;
+        }
+
+        .mobile-packing-actions-main {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(238, 90, 111, 0.4);
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .mobile-packing-actions-main.active {
+            transform: rotate(45deg);
+            background: linear-gradient(135deg, #ee5a6f 0%, #ff6b6b 100%);
+        }
+
+        .mobile-packing-actions-menu {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px);
+            transition: all 0.3s;
+        }
+
+        .mobile-packing-actions-fab.active .mobile-packing-actions-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .mobile-packing-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            background: white;
+            border: none;
+            border-radius: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .mobile-packing-action-btn:hover {
+            transform: translateX(-5px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        }
+
+        .mobile-packing-action-btn.upload {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .mobile-packing-action-btn.export {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .mobile-packing-action-btn.clear {
+            background: linear-gradient(135deg, #ff9500 0%, #ff5e3a 100%);
+            color: white;
+        }
+
+        .spare-mode .mobile-packing-action-btn.upload {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        /* 【新增】手機端主導航懸浮選單 */
+        .mobile-nav-fab {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            z-index: 995;
+        }
+
+        .mobile-nav-main {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobile-nav-main.active {
+            transform: translateY(-50%) rotate(90deg);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+
+        .mobile-nav-panel {
+            position: absolute;
+            top: 50%;
+            left: 60px;
+            transform: translateY(-50%);
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            padding: 15px;
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .mobile-nav-fab.active .mobile-nav-panel {
+            opacity: 1;
+            visibility: visible;
+            left: 70px;
+        }
+
+        .mobile-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            background: #f8f9fa;
+        }
+
+        .mobile-nav-item:hover {
+            background: #e3f2fd;
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .mobile-nav-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #764ba2;
+        }
+
+        .mobile-nav-item.spare.active {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border-color: #11998e;
+        }
+
+        .mobile-nav-icon {
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 10px;
+        }
+
+        .mobile-nav-item.active .mobile-nav-icon {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .mobile-nav-text {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .mobile-nav-divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #dee2e6, transparent);
+            margin: 10px 0;
+        }
+
         /* 響應式設計 - 手機端優化 */
         @media (max-width: 968px) {
             .main-wrapper {
@@ -1889,16 +2091,7 @@
             }
 
             .left-toolbar {
-                flex-direction: row;
-                justify-content: flex-start;
-                padding: 10px;
-                gap: 8px;
-                overflow-x: auto;
-                overflow-y: hidden;
-                height: auto;
-                max-height: 100px;
-                border-right: none;
-                border-bottom: 1px solid #e9ecef;
+                display: none; /* 【修改】手機端隱藏桌面工具欄 */
             }
 
             .tool-btn {
@@ -1962,6 +2155,21 @@
             /* 【新增】手機端顯示懸浮按鈕 */
             .mobile-packing-float-btn {
                 display: flex;
+            }
+
+            /* 【新增】手機端顯示操作懸浮按鈕 */
+            .mobile-packing-actions-fab {
+                display: block;
+            }
+
+            /* 【新增】手機端顯示導航懸浮選單 */
+            .mobile-nav-fab {
+                display: block;
+            }
+
+            /* 【手機端】隱藏桌面端標題列按鈕 */
+            .packing-page .block-title-actions {
+                display: none;
             }
 
             .packing-main {
@@ -2049,6 +2257,45 @@
                 font-size: 20px;
             }
 
+            /* 【新增】手機端操作按鈕調整 */
+            .mobile-packing-actions-fab {
+                right: 90px;
+                bottom: 20px;
+            }
+
+            .mobile-packing-actions-main {
+                width: 56px;
+                height: 56px;
+                font-size: 20px;
+            }
+
+            /* 【新增】手機端導航按鈕調整 */
+            .mobile-nav-fab {
+                left: 15px;
+            }
+
+            .mobile-nav-main {
+                width: 45px;
+                height: 45px;
+                font-size: 18px;
+            }
+
+            .mobile-nav-panel {
+                min-width: 180px;
+                padding: 12px;
+            }
+
+            .mobile-nav-item {
+                padding: 10px;
+                margin-bottom: 6px;
+            }
+
+            .mobile-nav-icon {
+                font-size: 20px;
+                width: 36px;
+                height: 36px;
+            }
+
             .stats-table thead th.orange-header {
                 font-size: 11px;
             }
@@ -2104,99 +2351,6 @@
             position: absolute;
             width: 100%;
             left: 0;
-        }
-
-        /* 【新增】手機端底部操作懸浮欄 */
-        .mobile-actions-bar {
-            display: none;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            border-top: 1px solid #e9ecef;
-            padding: 10px 15px;
-            justify-content: space-around;
-            align-items: center;
-            z-index: 999;
-            box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
-        }
-
-        .mobile-action-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            padding: 8px 16px;
-            border: none;
-            background: transparent;
-            color: #667eea;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-            border-radius: 8px;
-            font-weight: 600;
-        }
-
-        .mobile-action-btn:active {
-            background: #f0f4ff;
-            transform: scale(0.95);
-        }
-
-        .mobile-action-btn .icon {
-            font-size: 20px;
-        }
-
-        .mobile-action-btn.danger {
-            color: #dc3545;
-        }
-
-        .mobile-action-btn.danger:active {
-            background: #ffebee;
-        }
-
-        .spare-mode .mobile-action-btn {
-            color: #11998e;
-        }
-
-        .spare-mode .mobile-action-btn.danger {
-            color: #dc3545;
-        }
-
-        @media (max-width: 968px) {
-            .mobile-actions-bar {
-                display: flex;
-            }
-            
-            /* 隱藏桌面端的標題操作按鈕 */
-            #panel-packing .block-title-actions {
-                display: none;
-            }
-            
-            /* 調整packing-layout底部padding，避免被懸浮欄遮擋 */
-            .packing-layout {
-                padding-bottom: 80px;
-            }
-
-            /* 調整手機端懸浮按鈕位置，避免與底部欄重疊 */
-            .mobile-packing-float-btn {
-                bottom: 90px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .mobile-actions-bar {
-                padding: 8px 10px;
-            }
-            
-            .mobile-action-btn {
-                padding: 6px 12px;
-                font-size: 11px;
-            }
-            
-            .mobile-action-btn .icon {
-                font-size: 18px;
-            }
         }
     </style>
     <!-- 引入 SheetJS 函式庫 -->
@@ -2449,7 +2603,7 @@
 
                 <!-- 6. 裝箱功能 (PACKBOX) -->
                 <div id="panel-packing" class="function-block">
-                    <div class="panel-content" id="packingPanelContent">
+                    <div class="panel-content packing-page" id="packingPanelContent">
                         <div class="block-title" id="packingBlockTitle">
                             <div class="block-title-left">
                                 📦 裝箱管理
@@ -2579,22 +2733,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- 【新增】手機端操作懸浮欄 -->
-                    <div class="mobile-actions-bar" id="mobileActionsBar">
-                        <button class="mobile-action-btn" onclick="showUploadModal()">
-                            <span class="icon">📤</span>
-                            <span class="label">上傳Excel</span>
-                        </button>
-                        <button class="mobile-action-btn" onclick="exportPackingExcel()">
-                            <span class="icon">📥</span>
-                            <span class="label">匯出Excel</span>
-                        </button>
-                        <button class="mobile-action-btn danger" onclick="clearPackingAll()">
-                            <span class="icon">🗑️</span>
-                            <span class="label">清空</span>
-                        </button>
-                    </div>
                 </div>
 
             </div>
@@ -2684,6 +2822,65 @@
                     <button class="btn-success btn-sm" onclick="showAddZoneModal()">➕ 新增位置</button>
                     <button class="btn-warning btn-sm" onclick="clearPackingLocations()">🗑️ 清理位置</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 【新增】手機端裝箱功能懸浮操作按鈕（上傳/匯出/清空） -->
+    <div class="mobile-packing-actions-fab" id="mobilePackingActionsFab">
+        <button class="mobile-packing-actions-main" id="mobilePackingActionsMain" onclick="toggleMobilePackingActions()">
+            ⚙️
+        </button>
+        <div class="mobile-packing-actions-menu" id="mobilePackingActionsMenu">
+            <button class="mobile-packing-action-btn upload" onclick="showUploadModal(); toggleMobilePackingActions();">
+                <span>📤</span>
+                <span>上傳Excel</span>
+            </button>
+            <button class="mobile-packing-action-btn export" onclick="exportPackingExcel(); toggleMobilePackingActions();">
+                <span>📥</span>
+                <span>匯出Excel</span>
+            </button>
+            <button class="mobile-packing-action-btn clear" onclick="clearPackingAll(); toggleMobilePackingActions();">
+                <span>🗑️</span>
+                <span>清空</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 【新增】手機端主導航懸浮選單 -->
+    <div class="mobile-nav-fab" id="mobileNavFab">
+        <button class="mobile-nav-main" id="mobileNavMain" onclick="toggleMobileNav()">
+            📱
+        </button>
+        <div class="mobile-nav-panel" id="mobileNavPanel">
+            <div class="mobile-nav-item active" data-panel="search" onclick="mobileSwitchPanel('search')">
+                <div class="mobile-nav-icon">🔍</div>
+                <div class="mobile-nav-text">圖書查詢</div>
+            </div>
+            <div class="mobile-nav-item" data-panel="location" onclick="mobileSwitchPanel('location')">
+                <div class="mobile-nav-icon">📍</div>
+                <div class="mobile-nav-text">查詢位置</div>
+            </div>
+            <div class="mobile-nav-item" data-panel="display" onclick="mobileSwitchPanel('display')">
+                <div class="mobile-nav-icon">⚙️</div>
+                <div class="mobile-nav-text">顯示設定</div>
+            </div>
+            <div class="mobile-nav-item" data-panel="single" onclick="mobileSwitchPanel('single')">
+                <div class="mobile-nav-icon">📝</div>
+                <div class="mobile-nav-text">單一更新</div>
+            </div>
+            <div class="mobile-nav-item" data-panel="batch" onclick="mobileSwitchPanel('batch')">
+                <div class="mobile-nav-icon">📋</div>
+                <div class="mobile-nav-text">批量更新</div>
+            </div>
+            <div class="mobile-nav-divider"></div>
+            <div class="mobile-nav-item" onclick="mobileSwitchPacking('PACKBOX')">
+                <div class="mobile-nav-icon">📦</div>
+                <div class="mobile-nav-text">裝箱管理</div>
+            </div>
+            <div class="mobile-nav-item spare" onclick="mobileSwitchPacking('PACKBOXSPARE')">
+                <div class="mobile-nav-icon">🗄️</div>
+                <div class="mobile-nav-text">SPARE 裝箱管理</div>
             </div>
         </div>
     </div>
@@ -2914,6 +3111,7 @@
             currentPanel = panelName;
             closeMobileManualModal();
             closeMobilePackingPanel(); // 【新增】關閉裝箱懸浮面板
+            closeMobileNav(); // 【新增】關閉手機端導航
 
             if (panelName === 'search') {
                 setTimeout(() => document.getElementById('searchInput')?.focus(), 100);
@@ -2928,17 +3126,29 @@
             // 【新增】控制手機端按鈕顯示/隱藏
             const mobileManualBtn = document.getElementById('mobileManualBtn');
             const mobilePackingBtn = document.getElementById('mobilePackingBtn');
+            const mobilePackingActionsFab = document.getElementById('mobilePackingActionsFab');
             
             if (panelName === 'search') {
                 if (mobileManualBtn) mobileManualBtn.style.display = 'flex';
                 if (mobilePackingBtn) mobilePackingBtn.style.display = 'none';
+                if (mobilePackingActionsFab) mobilePackingActionsFab.style.display = 'none';
             } else if (panelName === 'packing') {
                 if (mobileManualBtn) mobileManualBtn.style.display = 'none';
                 if (mobilePackingBtn) mobilePackingBtn.style.display = 'flex';
+                if (mobilePackingActionsFab) mobilePackingActionsFab.style.display = 'block';
             } else {
                 if (mobileManualBtn) mobileManualBtn.style.display = 'none';
                 if (mobilePackingBtn) mobilePackingBtn.style.display = 'none';
+                if (mobilePackingActionsFab) mobilePackingActionsFab.style.display = 'none';
             }
+
+            // 【新增】更新手機端導航選中狀態
+            document.querySelectorAll('.mobile-nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.panel === panelName) {
+                    item.classList.add('active');
+                }
+            });
         }
 
         function switchPackingSheet(sheetName) {
@@ -2969,10 +3179,13 @@
             // 【新增】切換到裝箱功能時隱藏 Manual Select 按鈕，顯示裝箱懸浮按鈕
             const mobileManualBtn = document.getElementById('mobileManualBtn');
             const mobilePackingBtn = document.getElementById('mobilePackingBtn');
+            const mobilePackingActionsFab = document.getElementById('mobilePackingActionsFab');
             if (mobileManualBtn) mobileManualBtn.style.display = 'none';
             if (mobilePackingBtn) mobilePackingBtn.style.display = 'flex';
+            if (mobilePackingActionsFab) mobilePackingActionsFab.style.display = 'block';
             
             closeMobileManualModal();
+            closeMobileNav(); // 【新增】關閉手機端導航
             
             loadHeaders().then(() => {
                 loadPackingDataOptimized(); // 【優化】使用新的合併載入函數
@@ -3000,6 +3213,7 @@
                 document.getElementById('packingPanelContent').classList.add('spare-mode');
                 document.getElementById('mobileManualBtn').style.background = 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)';
                 document.getElementById('mobilePackingBtn').classList.add('spare-mode'); // 【新增】
+                document.getElementById('mobilePackingActionsFab').classList.add('spare-mode'); // 【新增】
             } else {
                 title.className = 'block-title';
                 title.querySelector('.block-title-left').innerHTML = `
@@ -3015,6 +3229,7 @@
                 document.getElementById('packingPanelContent').classList.remove('spare-mode');
                 document.getElementById('mobileManualBtn').style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
                 document.getElementById('mobilePackingBtn').classList.remove('spare-mode'); // 【新增】
+                document.getElementById('mobilePackingActionsFab').classList.remove('spare-mode'); // 【新增】
             }
         }
 
@@ -3066,13 +3281,18 @@
             const headerRow = document.getElementById('statsTableHeaderRow');
             if (!headerRow) return;
             
+            // 【修正】使用後端返回的分類資料，而非本地 customCategories
+            const cacheKey = `${currentPackingSheet}_1_all`;
+            const cached = dashboardCache[cacheKey];
+            const categories = (cached && cached.summary && cached.summary.categories) ? cached.summary.categories : customCategories;
+            
             let html = `
                 <th>A欄 (位置)</th>
                 <th>Quantity<br><span class="stats-table-header-note">總數量</span></th>
             `;
             
-            customCategories.forEach((cat, index) => {
-                if (cat.enabled && cat.label) {
+            categories.forEach((cat, index) => {
+                if (cat && (cat.enabled !== false) && cat.label) {
                     html += `
                         <th class="orange-header">
                             ${escapeHtml(cat.label)}<br>
@@ -3226,6 +3446,50 @@
 
             document.getElementById('mobilePackingPanel').classList.remove('active');
             document.getElementById('mobilePackingBtn').classList.remove('active');
+        }
+
+        // 【新增】手機端裝箱功能懸浮操作按鈕控制
+        function toggleMobilePackingActions() {
+            const fab = document.getElementById('mobilePackingActionsFab');
+            const btn = document.getElementById('mobilePackingActionsMain');
+            
+            if (fab.classList.contains('active')) {
+                fab.classList.remove('active');
+                btn.classList.remove('active');
+            } else {
+                fab.classList.add('active');
+                btn.classList.add('active');
+            }
+        }
+
+        // 【新增】手機端主導航控制
+        function toggleMobileNav() {
+            const fab = document.getElementById('mobileNavFab');
+            const btn = document.getElementById('mobileNavMain');
+            
+            if (fab.classList.contains('active')) {
+                closeMobileNav();
+            } else {
+                fab.classList.add('active');
+                btn.classList.add('active');
+            }
+        }
+
+        function closeMobileNav() {
+            const fab = document.getElementById('mobileNavFab');
+            const btn = document.getElementById('mobileNavMain');
+            fab.classList.remove('active');
+            btn.classList.remove('active');
+        }
+
+        // 【新增】手機端切換面板
+        function mobileSwitchPanel(panelName) {
+            switchPanel(panelName);
+        }
+
+        // 【新增】手機端切換裝箱
+        function mobileSwitchPacking(sheetName) {
+            switchPackingSheet(sheetName);
         }
 
         // 【新增】更新手機端懸浮面板資料
@@ -4149,14 +4413,9 @@
             const statsDiv = document.getElementById('sidebarStats');
             if (statsDiv && stats.total !== undefined) {
                 statsDiv.style.display = 'block';
-                const total = parseInt(stats.total) || 0;
-                const unclassified = parseInt(stats.unclassified) || 0;
-                // 【修正】確保已分類不為負數
-                const classified = Math.max(0, total - unclassified);
-                
-                document.getElementById('statTotal').textContent = total;
-                document.getElementById('statClassified').textContent = classified;
-                document.getElementById('statUnclassified').textContent = unclassified;
+                document.getElementById('statTotal').textContent = stats.total || 0;
+                document.getElementById('statClassified').textContent = (stats.total - (stats.unclassified || 0)) || 0;
+                document.getElementById('statUnclassified').textContent = stats.unclassified || 0;
             }
         }
 
@@ -5394,6 +5653,7 @@
                 closeUploadModal();
                 closeMobileManualModal();
                 closeMobilePackingPanel(); // 【新增】關閉手機端裝箱面板
+                closeMobileNav(); // 【新增】關閉手機端導航
                 // 【移除】closeHeaderEditModal 呼叫已刪除
             }
         });
