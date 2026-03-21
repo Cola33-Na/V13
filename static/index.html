@@ -2360,7 +2360,7 @@
     </div>
 
     <!-- 手機端 Manual Select 懸浮按鈕 -->
-    <button class="mobile-manual-float-btn" id="mobileManualBtn" onclick="toggleMobileManualModal()" title="Manual Select">
+    <button class="mobile-manual-float-btn" id="mobileManualBtn" onclick="toggleMobileManualModal()" title="Manual Select" style="display: none;">
         📋
     </button>
 
@@ -2536,7 +2536,8 @@
             { id: 5, column: 'E', value: 'Other', label: 'Other', enabled: true }
         ];
         
-        let recentlyAddedKeys = [];
+        // 【修改】改為只保留最新一筆的 NEW 標記
+        let lastAddedKey = null;
         
         const MAX_LOGS = 50;
         const UPLOAD_BATCH_SIZE = 200; // 【優化】從50增至200，配合後端1000筆批次
@@ -2572,13 +2573,13 @@
                 }
             });
 
-            // 【修改1】初始化手機端 Manual Select 按鈕狀態（只在圖書查詢顯示）
-            const mobileBtn = document.getElementById('mobileManualBtn');
-            if (mobileBtn) {
-                mobileBtn.style.display = (currentPanel === 'search') ? 'flex' : 'none';
-            }
-
             setTimeout(preloadAllData, 1000);
+            
+            // 【新增】初始化時顯示 Manual Select 按鈕（因為預設是 search 頁面）
+            const mobileManualBtn = document.getElementById('mobileManualBtn');
+            if (mobileManualBtn) {
+                mobileManualBtn.style.display = 'flex';
+            }
         });
 
         //================ API 呼叫函數（含重試機制） =================
@@ -2667,12 +2668,6 @@
             currentPanel = panelName;
             closeMobileManualModal();
 
-            // 【修改1】控制手機端 Manual Select 按鈕顯示（只在圖書查詢顯示）
-            const mobileBtn = document.getElementById('mobileManualBtn');
-            if (mobileBtn) {
-                mobileBtn.style.display = (panelName === 'search') ? 'flex' : 'none';
-            }
-
             if (panelName === 'search') {
                 setTimeout(() => document.getElementById('searchInput')?.focus(), 100);
             } else if (panelName === 'location') {
@@ -2682,13 +2677,25 @@
             } else if (panelName === 'batch') {
                 startStatusMonitoring();
             }
+            
+            // 【新增】控制手機端 Manual Select 按鈕顯示/隱藏 - 只在圖書查詢介面顯示
+            const mobileManualBtn = document.getElementById('mobileManualBtn');
+            if (mobileManualBtn) {
+                if (panelName === 'search') {
+                    mobileManualBtn.style.display = 'flex';
+                } else {
+                    mobileManualBtn.style.display = 'none';
+                    closeMobileManualModal();
+                }
+            }
         }
 
         function switchPackingSheet(sheetName) {
             currentPackingSheet = sheetName;
             currentZone = 'all';
             currentPage = 1;
-            recentlyAddedKeys = [];
+            // 【修改】重置 NEW 標記
+            lastAddedKey = null;
             // 【優化】清除該sheet的快取
             delete dashboardCache[sheetName];
 
@@ -2707,6 +2714,13 @@
             }
 
             updatePanelStyle();
+            
+            // 【新增】切換到裝箱功能時隱藏 Manual Select 按鈕
+            const mobileManualBtn = document.getElementById('mobileManualBtn');
+            if (mobileManualBtn) {
+                mobileManualBtn.style.display = 'none';
+            }
+            closeMobileManualModal();
             
             loadHeaders().then(() => {
                 loadPackingDataOptimized(); // 【優化】使用新的合併載入函數
@@ -3640,7 +3654,7 @@
             }
         }
 
-        //================ 裝箱功能 - 速度優化版 =================
+        //================ 裝箱功能函數 - 速度優化版 =================
 
         /**
          * 【優化】載入標題列（第1列）
@@ -3825,6 +3839,9 @@
             }
         }
 
+        /**
+         * 【修改】點選位置時顯示 Loading 提示
+         */
         function filterZone(zone, element) {
             currentZone = zone ? String(zone).trim() : '';
             currentPage = 1;
@@ -3841,6 +3858,10 @@
                 document.getElementById('paginationControls').style.display = 'none';
                 loadPackingSummary();
             } else {
+                // 【新增】顯示 Loading 提示
+                const tbody = document.getElementById('excelTableBody');
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;"><div class="spinner" style="margin: 0 auto 15px;"></div><p>Loading...</p></td></tr>';
+                
                 document.getElementById('packingSummary').style.display = 'none';
                 document.getElementById('packingDataList').style.display = 'block';
                 document.getElementById('quickInputArea').style.display = 'block';
@@ -3850,6 +3871,9 @@
             }
         }
 
+        /**
+         * 【修改】進入各區數量統計時，先更新一次確保為最新數據
+         */
         function backToSummary() {
             currentZone = 'all';
             currentPage = 1;
@@ -3861,6 +3885,9 @@
             document.getElementById('packingDataList').style.display = 'none';
             document.getElementById('quickInputArea').style.display = 'none';
             document.getElementById('paginationControls').style.display = 'none';
+            
+            // 【新增】進入各區數量統計時，先更新一次確保為最新數據
+            loadPackingSummary();
         }
 
         /**
@@ -3884,14 +3911,13 @@
                 return;
             }
 
-            // 排序：將最近加入的資料排在最前面
+            // 【修改】排序：將最近加入的資料排在最前面（如果有的話）
             const sortedData = [...packingDataCache].sort((a, b) => {
-                const aIndex = recentlyAddedKeys.indexOf(a.A);
-                const bIndex = recentlyAddedKeys.indexOf(b.A);
-                
-                if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
-                if (aIndex !== -1 && bIndex === -1) return -1;
-                if (aIndex === -1 && bIndex !== -1) return 1;
+                // 最新加入的key排在最前
+                if (lastAddedKey) {
+                    if (a.A === lastAddedKey && b.A !== lastAddedKey) return -1;
+                    if (a.A !== lastAddedKey && b.A === lastAddedKey) return 1;
+                }
                 return 0;
             });
 
@@ -3899,7 +3925,8 @@
             const fragment = document.createDocumentFragment();
             
             sortedData.forEach(item => {
-                const isNew = recentlyAddedKeys.includes(item.A);
+                // 【修改】只有最新加入的key顯示NEW標記
+                const isNew = lastAddedKey && item.A === lastAddedKey;
                 const tr = document.createElement('tr');
                 if (isNew) tr.classList.add('new-row');
                 
@@ -3909,6 +3936,7 @@
                     const colKey = ['A', 'B', 'C', 'D', 'E', 'F'][index];
                     const value = item[colKey] || '-';
                     const colClass = index === 0 ? 'col-a' : (index === 5 ? 'col-f' : '');
+                    // 【修改】只有A欄且是最新加入的才顯示NEW標記
                     const newBadge = (isNew && index === 0) ? '<span class="new-badge">NEW</span>' : '';
                     html += `<td class="${colClass}">${escapeHtml(value)}${newBadge}</td>`;
                 });
@@ -3931,6 +3959,58 @@
             tbody.appendChild(fragment);
         }
 
+        /**
+         * 【新增】極速單行插入（約 30-80ms）
+         * 不重新渲染整個表格，只在頂部插入單行
+         */
+        function insertSingleRowFast(item) {
+            const tbody = document.getElementById('excelTableBody');
+            
+            // 【修改】先移除所有現有的 new-row 標記（確保只有最新加入的有 NEW）
+            const existingNewRows = tbody.querySelectorAll('tr.new-row');
+            existingNewRows.forEach(row => {
+                row.classList.remove('new-row');
+                const badge = row.querySelector('.new-badge');
+                if (badge) badge.remove();
+            });
+            
+            const tr = document.createElement('tr');
+            tr.className = 'new-row';
+            tr.style.animation = 'highlightNew 2s ease';
+            
+            // 直接構建單行HTML，不遍歷全部資料
+            let html = '';
+            columnHeaders.forEach((header, index) => {
+                const colKey = ['A', 'B', 'C', 'D', 'E', 'F'][index];
+                const value = item[colKey] || '-';
+                const colClass = index === 0 ? 'col-a' : (index === 5 ? 'col-f' : '');
+                // 【修改】只在A欄顯示NEW標記
+                const newBadge = index === 0 ? '<span class="new-badge">NEW</span>' : '';
+                html += `<td class="${colClass}">${escapeHtml(value)}${newBadge}</td>`;
+            });
+            
+            html += `
+                <td>
+                    <div class="excel-actions">
+                        <button class="btn-sm btn-secondary" onclick="showEditModal('${escapeHtml(item.A)}')" title="編輯">✏️</button>
+                        <button class="btn-sm btn-warning" onclick="deleteLocation('${escapeHtml(item.A)}')" title="清除位置">🧹</button>
+                        <button class="btn-sm btn-danger" onclick="deleteRow(${item.rowIndex}, '${escapeHtml(item.A)}')" title="刪除整列">🗑️</button>
+                    </div>
+                </td>
+            `;
+            
+            tr.innerHTML = html;
+            tbody.insertBefore(tr, tbody.firstChild); // 頂部插入
+            
+            // 如果超過PAGE_SIZE行，刪除最後一行保持分頁限制
+            if (tbody.children.length > PAGE_SIZE) {
+                tbody.removeChild(tbody.lastChild);
+            }
+            
+            // 滾動到頂部顯示新加入的資料
+            document.getElementById('excelTableContainer').scrollTop = 0;
+        }
+
         async function deleteRow(rowIndex, key) {
             if (!confirm(`確定要刪除整列資料嗎？\n\nKey: ${key}\n行號: ${rowIndex}\n\n⚠️ 此操作無法復原！`)) {
                 return;
@@ -3944,7 +4024,10 @@
 
                 if (result.success) {
                     showToast('✅ ' + result.message, 'success');
-                    recentlyAddedKeys = recentlyAddedKeys.filter(k => k !== key);
+                    // 【修改】如果刪除的是最後加入的key，重置標記
+                    if (lastAddedKey === key) {
+                        lastAddedKey = null;
+                    }
                     // 【優化】清除快取並重新載入
                     delete dashboardCache[`${currentPackingSheet}_${currentPage}_${currentZone}`];
                     loadPackingDataOptimized();
@@ -3986,7 +4069,8 @@
             const fragment = document.createDocumentFragment();
             
             filtered.forEach(item => {
-                const isNew = recentlyAddedKeys.includes(item.A);
+                // 【修改】搜尋結果也遵從只顯示最新NEW標記的規則
+                const isNew = lastAddedKey && item.A === lastAddedKey;
                 const tr = document.createElement('tr');
                 if (isNew) tr.classList.add('new-row');
                 
@@ -4109,53 +4193,8 @@
         }
 
         /**
-         * 【修改2.1】新函數：極速單行插入（約 30-80ms）
-         * 避免全表重繪，直接在首行插入單行資料
+         * 【優化】單行插入 + 避免全表重繪 + 完全非同步背景同步
          */
-        function insertSingleRowFast(item) {
-            const tbody = document.getElementById('excelTableBody');
-            if (!tbody) return;
-            
-            const tr = document.createElement('tr');
-            tr.className = 'new-row';
-            tr.style.animation = 'highlightNew 2s ease';
-            
-            // 直接構建單行HTML，不遍歷全部資料
-            let html = '';
-            columnHeaders.forEach((header, index) => {
-                const colKey = ['A', 'B', 'C', 'D', 'E', 'F'][index];
-                const value = item[colKey] || '-';
-                const colClass = index === 0 ? 'col-a' : (index === 5 ? 'col-f' : '');
-                const newBadge = index === 0 ? '<span class="new-badge">NEW</span>' : '';
-                html += `<td class="${colClass}">${escapeHtml(value)}${newBadge}</td>`;
-            });
-            
-            // 操作按鈕
-            html += `
-                <td>
-                    <div class="excel-actions">
-                        <button class="btn-sm btn-secondary" onclick="showEditModal('${escapeHtml(item.A)}')" title="編輯">✏️</button>
-                        <button class="btn-sm btn-warning" onclick="deleteLocation('${escapeHtml(item.A)}')" title="清除位置">🧹</button>
-                        <button class="btn-sm btn-danger" onclick="deleteRow(${item.rowIndex}, '${escapeHtml(item.A)}')" title="刪除整列">🗑️</button>
-                    </div>
-                </td>
-            `;
-            
-            tr.innerHTML = html;
-            
-            // 頂部插入
-            if (tbody.firstChild) {
-                tbody.insertBefore(tr, tbody.firstChild);
-            } else {
-                tbody.appendChild(tr);
-            }
-            
-            // 如果超過200行，刪除最後一行保持分頁限制
-            if (tbody.children.length > PAGE_SIZE) {
-                tbody.removeChild(tbody.lastChild);
-            }
-        }
-
         async function quickAddSearch() {
             if (isProcessingQuickAdd) return;
 
@@ -4180,17 +4219,31 @@
                 });
 
                 if (result.found) {
-                    if (!recentlyAddedKeys.includes(key)) {
-                        recentlyAddedKeys.unshift(key);
-                        if (recentlyAddedKeys.length > 10) recentlyAddedKeys.pop();
+                    // 【修改】只保留最新加入的key，確保只有最新一筆顯示NEW標記
+                    lastAddedKey = key;
+                    
+                    const newItem = {
+                        ...result.data,
+                        F: currentZone || '',
+                        rowIndex: result.data.rowIndex // 保持原有rowIndex
+                    };
+                    
+                    // 【優化】使用極速單行插入，避免全表重繪（約省85-90%時間）
+                    insertSingleRowFast(newItem);
+                    
+                    // 【優化】更新快取資料（在背景）
+                    packingDataCache.unshift(newItem);
+                    if (packingDataCache.length > PAGE_SIZE) {
+                        packingDataCache.pop();
                     }
+                    totalRecords++;
                     
                     const quickResultHtml = `
                         <div class="quick-result-display">
                             <div class="quick-result-grid">
                                 ${columnHeaders.map((h, i) => {
                                     const k = ['A','B','C','D','E','F'][i];
-                                    return `<div class="quick-result-item"><label>${h}</label><value>${escapeHtml(result.data[k]) || '-'}</value></div>`;
+                                    return `<div class="quick-result-item"><label>${h}</label><value>${escapeHtml(newItem[k]) || '-'}</value></div>`;
                                 }).join('')}
                             </div>
                             <div class="quick-result-status">✅ 已成功加入 ${escapeHtml(currentZone)}，顯示於列表最頂部</div>
@@ -4200,23 +4253,12 @@
                     
                     document.getElementById('quickKeyInput').value = '';
                     document.getElementById('quickKeyInput').focus();
-                    
-                    const newItem = {
-                        ...result.data,
-                        F: currentZone || '',
-                        rowIndex: result.data.rowIndex || (packingDataCache.length > 0 ? Math.max(...packingDataCache.map(i => i.rowIndex)) + 1 : 2)
-                    };
-                    packingDataCache.unshift(newItem);
-                    totalRecords++;
-                    
-                    // 【修改2.1】使用單行插入，避免全表重繪（約省85-90%時間）
-                    insertSingleRowFast(newItem);
-                    
-                    document.getElementById('excelTableContainer').scrollTop = 0;
 
+                    // 【優化】完全非同步背景同步（約省40-50%時間）
+                    // 使用 setTimeout 確保不阻塞UI，立即返回
                     setTimeout(() => {
                         performQuickAddBackground(key, result.data);
-                    }, 100);
+                    }, 10);
 
                 } else {
                     resultDiv.innerHTML = '<div style="color: #c62828; padding: 15px; background: #ffebee; border-radius: 8px; margin-top: 10px;">❌ 找不到該 Key 值</div>';
@@ -4237,8 +4279,8 @@
         }
 
         /**
-         * 【修改2.2】完全非同步背景同步（約省40-50%時間）
-         * 延遲執行確保100%不阻塞UI主線程
+         * 【優化】完全非同步背景同步（約省40-50%時間）
+         * 使用真正的非同步，確保不阻塞UI
          */
         async function performQuickAddBackground(key, data) {
             // 【優化】立即返回，延遲執行，確保不阻塞UI
@@ -4253,14 +4295,13 @@
                     sheet: currentPackingSheet
                 });
                 
-                // 【優化】清除相關快取
+                // 清除該sheet的快取
                 delete dashboardCache[`${currentPackingSheet}_${currentPage}_${currentZone}`];
-
+                
             } catch (e) {
                 console.error('背景同步失敗:', e);
-                // 【優化】可選：顯示「同步失敗」提示，但不影響已顯示的資料
-                // 如需顯示警告，可取消下面註解：
-                // showToast('⚠️ 背景同步失敗，請手動重新整理', 'warning');
+                // 顯示「同步失敗」提示，但不影響已顯示的資料
+                showToast('⚠️ 背景同步失敗，請手動重新整理', 'warning');
             }
         }
 
@@ -4501,7 +4542,8 @@
                 const result = await packingApiCall('packingClearLocations', { sheet: currentPackingSheet });
                 if (result.success) {
                     showToast('✅ ' + result.message, 'success');
-                    recentlyAddedKeys = [];
+                    // 【修改】重置 NEW 標記
+                    lastAddedKey = null;
                     // 【優化】清除所有快取
                     Object.keys(dashboardCache).forEach(key => {
                         if (key.startsWith(currentPackingSheet)) {
@@ -4533,7 +4575,8 @@
                 
                 if (result.success) {
                     showToast(result.message, 'success');
-                    recentlyAddedKeys = [];
+                    // 【修改】重置 NEW 標記
+                    lastAddedKey = null;
                     // 【優化】清除所有快取
                     Object.keys(dashboardCache).forEach(key => {
                         if (key.startsWith(currentPackingSheet)) {
