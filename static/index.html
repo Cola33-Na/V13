@@ -2616,6 +2616,10 @@
                                 <button class="title-btn title-btn-secondary" onclick="exportPackingExcel()">
                                     📥 匯出Excel
                                 </button>
+                                <!-- 【新增】新功能鍵，置於"清空"功能鍵前 -->
+                                <button class="title-btn title-btn-secondary" onclick="handleNewFeature()" title="新功能">
+                                    🆕 新功能
+                                </button>
                                 <!-- 【移除】編輯欄位標題與統計分類按鈕已刪除 -->
                                 <button class="title-btn title-btn-secondary" onclick="clearPackingAll()">
                                     🗑️ 清空
@@ -3123,19 +3127,20 @@
                 startStatusMonitoring();
             }
             
-            // 【新增】控制手機端按鈕顯示/隱藏
+            // 【修正】右下角功能鍵重覆顯示問題：只在手機版顯示懸浮按鈕
+            const isMobile = window.innerWidth <= 968;
             const mobileManualBtn = document.getElementById('mobileManualBtn');
             const mobilePackingBtn = document.getElementById('mobilePackingBtn');
             const mobilePackingActionsFab = document.getElementById('mobilePackingActionsFab');
             
             if (panelName === 'search') {
-                if (mobileManualBtn) mobileManualBtn.style.display = 'flex';
+                if (mobileManualBtn) mobileManualBtn.style.display = isMobile ? 'flex' : 'none';
                 if (mobilePackingBtn) mobilePackingBtn.style.display = 'none';
                 if (mobilePackingActionsFab) mobilePackingActionsFab.style.display = 'none';
             } else if (panelName === 'packing') {
                 if (mobileManualBtn) mobileManualBtn.style.display = 'none';
-                if (mobilePackingBtn) mobilePackingBtn.style.display = 'flex';
-                if (mobilePackingActionsFab) mobilePackingActionsFab.style.display = 'block';
+                if (mobilePackingBtn) mobilePackingBtn.style.display = isMobile ? 'flex' : 'none';
+                if (mobilePackingActionsFab) mobilePackingActionsFab.style.display = isMobile ? 'block' : 'none';
             } else {
                 if (mobileManualBtn) mobileManualBtn.style.display = 'none';
                 if (mobilePackingBtn) mobilePackingBtn.style.display = 'none';
@@ -3176,13 +3181,14 @@
 
             updatePanelStyle();
             
-            // 【新增】切換到裝箱功能時隱藏 Manual Select 按鈕，顯示裝箱懸浮按鈕
+            // 【修正】右下角功能鍵重覆顯示問題：只在手機版顯示懸浮按鈕
+            const isMobile = window.innerWidth <= 968;
             const mobileManualBtn = document.getElementById('mobileManualBtn');
             const mobilePackingBtn = document.getElementById('mobilePackingBtn');
             const mobilePackingActionsFab = document.getElementById('mobilePackingActionsFab');
             if (mobileManualBtn) mobileManualBtn.style.display = 'none';
-            if (mobilePackingBtn) mobilePackingBtn.style.display = 'flex';
-            if (mobilePackingActionsFab) mobilePackingActionsFab.style.display = 'block';
+            if (mobilePackingBtn) mobilePackingBtn.style.display = isMobile ? 'flex' : 'none';
+            if (mobilePackingActionsFab) mobilePackingActionsFab.style.display = isMobile ? 'block' : 'none';
             
             closeMobileManualModal();
             closeMobileNav(); // 【新增】關閉手機端導航
@@ -5637,6 +5643,12 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        // 【新增】新功能鍵處理函數
+        function handleNewFeature() {
+            showToast('這是新功能按鈕', 'info');
+            // 在此處添加新功能的具體邏輯
         }
 
         // 【移除】showEditHeadersModal、closeHeaderEditModal、saveHeadersAndCategories 函數已刪除
