@@ -938,7 +938,6 @@
             background: white;
             margin-top: 15px;
             contain: layout; /* 【優化】CSS containment提升效能 */
-            -webkit-overflow-scrolling: touch; /* 手機端平滑滾動 */
         }
 
         .stats-table {
@@ -947,7 +946,6 @@
             border-spacing: 0;
             font-size: 14px;
             table-layout: fixed; /* 【優化】固定表格布局提升渲染速度 */
-            min-width: 600px; /* 確保表格撐開，手機端可橫向滾動 */
         }
 
         .stats-table thead th {
@@ -1983,18 +1981,18 @@
             background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
         }
 
-        /* 【新增】手機端主導航懸浮選單 - 左上角 - 調整位置至標題左側 */
+        /* 【新增】手機端主導航懸浮選單 - 左上角 */
         .mobile-nav-fab {
             display: none;
             position: fixed;
-            top: 65px; /* 調整為 65px，與標題列對齊 */
-            left: 15px; /* 稍微靠左 */
+            top: 80px;
+            left: 20px;
             z-index: 995;
         }
 
         .mobile-nav-main {
-            width: 45px;
-            height: 45px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -2015,7 +2013,7 @@
 
         .mobile-nav-panel {
             position: absolute;
-            top: 55px; /* 調整下拉選單位置 */
+            top: 60px;
             left: 0;
             background: white;
             border-radius: 16px;
@@ -2209,7 +2207,6 @@
 
             .stats-table thead th.orange-header {
                 font-size: 12px;
-                padding: 8px 4px;
             }
 
             /* 手機端快速輸入區域優化 */
@@ -2223,6 +2220,56 @@
 
             .quick-add-btn {
                 width: 100%;
+            }
+
+            /* 【修改1】手機端導航移至左上角標題左側 */
+            .mobile-nav-fab {
+                display: block;
+                position: fixed;
+                top: 12px;
+                left: 15px;
+                z-index: 1001;
+            }
+
+            .mobile-nav-main {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+
+            .header {
+                position: relative;
+                padding-left: 55px;
+                padding-right: 15px;
+            }
+
+            .header h1 {
+                font-size: 16px;
+                text-align: center;
+            }
+
+            .mobile-nav-panel {
+                top: 50px;
+                left: 0;
+                min-width: 200px;
+                max-height: 80vh;
+            }
+
+            /* 【修改2】手機端統計表格確保可橫向滾動 */
+            .stats-table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                width: 100%;
+            }
+
+            .stats-table {
+                min-width: 600px;
+                table-layout: auto;
+            }
+
+            .stats-table thead th,
+            .stats-table tbody td {
+                white-space: nowrap;
             }
         }
 
@@ -2285,22 +2332,22 @@
                 font-size: 13px;
             }
 
-            /* 【新增】手機端導航按鈕調整 - 與標題對齊 */
+            /* 【新增】手機端導航按鈕調整 */
             .mobile-nav-fab {
                 left: 10px;
-                top: 62px; /* 微調至與標題列高度對齊 */
+                top: 10px;
             }
 
             .mobile-nav-main {
-                width: 40px;
-                height: 40px;
-                font-size: 18px;
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
             }
 
             .mobile-nav-panel {
-                min-width: 200px;
-                padding: 12px;
-                top: 50px;
+                min-width: 180px;
+                padding: 10px;
+                top: 45px;
             }
 
             .mobile-nav-item {
@@ -2309,9 +2356,9 @@
             }
 
             .mobile-nav-icon {
-                font-size: 20px;
-                width: 36px;
-                height: 36px;
+                font-size: 18px;
+                width: 32px;
+                height: 32px;
             }
 
             .stats-table thead th.orange-header {
@@ -2331,6 +2378,30 @@
             .mobile-packing-panel-content {
                 padding: 15px;
                 max-height: 90vh;
+            }
+
+            /* 【修改1】小螢幕標題調整 */
+            .header {
+                padding-left: 50px;
+                padding-top: 12px;
+                padding-bottom: 12px;
+            }
+
+            .header h1 {
+                font-size: 15px;
+            }
+
+            /* 【修改2】小螢幕統計表格滾動優化 */
+            .stats-table-container {
+                margin-left: -15px;
+                margin-right: -15px;
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+            }
+
+            .stats-table {
+                min-width: 500px;
             }
         }
 
@@ -2955,7 +3026,7 @@
         </div>
     </div>
 
-    <!-- 【新增】手機端主導航懸浮選單 - 左上角 - 位置調整至標題左側 -->
+    <!-- 【新增】手機端主導航懸浮選單 - 左上角 -->
     <div class="mobile-nav-fab" id="mobileNavFab">
         <button class="mobile-nav-main" id="mobileNavMain" onclick="toggleMobileNav()">
             📱
@@ -3722,7 +3793,7 @@
             }
         }
 
-        // 【新增】手機端主導航控制 - 左上角 - 與標題對齊
+        // 【新增】手機端主導航控制 - 左上角
         function toggleMobileNav() {
             const fab = document.getElementById('mobileNavFab');
             const btn = document.getElementById('mobileNavMain');
