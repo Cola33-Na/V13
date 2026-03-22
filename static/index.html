@@ -947,7 +947,7 @@
             border-collapse: separate;
             border-spacing: 0;
             font-size: 14px;
-            table-layout: fixed; /* 【優化】固定表格布局提升渲染速度 */
+            table-layout: auto; /* 【修改】改為auto以適應內容 */
         }
 
         .stats-table thead th {
@@ -1996,23 +1996,24 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); /* 【修改】金黃色漸層 */
             color: white;
             border: none;
-            box-shadow: 0 3px 10px rgba(255, 193, 7, 0.5);
+            box-shadow: 0 3px 10px rgba(255, 215, 0, 0.6); /* 【修改】金色陰影 */
             font-size: 20px;
             cursor: pointer;
             transition: all 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 2px solid rgba(255,255,255,0.3);
+            border: 2px solid rgba(255,255,255,0.5); /* 【修改】更明顯的白色邊框 */
+            font-weight: bold; /* 【新增】加粗 */
         }
 
         .mobile-nav-main.active {
             transform: rotate(90deg);
-            background: linear-gradient(135deg, #ff9800 0%, #ffc107 100%);
-            box-shadow: 0 3px 12px rgba(255, 152, 0, 0.6);
+            background: linear-gradient(135deg, #FFA500 0%, #FFD700 100%); /* 【修改】反轉漸層 */
+            box-shadow: 0 3px 12px rgba(255, 165, 0, 0.8); /* 【修改】更深的陰影 */
         }
 
         .mobile-nav-panel {
@@ -2216,18 +2217,18 @@
             }
 
             .stats-table {
-                min-width: 700px; /* 確保表格足夠寬以觸發橫向滾動 */
+                min-width: 800px; /* 【修改】增加最小寬度確保橫向滾動 */
                 font-size: 12px;
             }
 
             .stats-table th, .stats-table td {
-                padding: 6px 4px;
-                font-size: 11px;
+                padding: 8px 6px; /* 【修改】調整padding */
+                font-size: 12px;
             }
 
             .stats-table thead th.orange-header {
                 font-size: 11px;
-                padding: 6px 4px;
+                padding: 8px 6px;
             }
 
             .stats-table-header-note {
@@ -2328,7 +2329,7 @@
                 width: 36px;
                 height: 36px;
                 font-size: 16px;
-                box-shadow: 0 2px 8px rgba(255, 193, 7, 0.5);
+                box-shadow: 0 2px 8px rgba(255, 215, 0, 0.6); /* 【修改】金色陰影 */
             }
 
             .mobile-nav-panel {
@@ -2369,13 +2370,13 @@
 
             /* 【修改】更小屏幕的統計表格優化 */
             .stats-table {
-                min-width: 600px;
-                font-size: 10px;
+                min-width: 700px; /* 【修改】確保最小寬度觸發滾動 */
+                font-size: 11px;
             }
 
             .stats-table th, .stats-table td {
-                padding: 4px 3px;
-                font-size: 10px;
+                padding: 6px 4px;
+                font-size: 11px;
             }
 
             .stats-table .zone-name-cell {
@@ -3017,7 +3018,7 @@
         </div>
     </div>
 
-    <!-- 【修改】手機端主導航懸浮選單 - 左上角標題左邊，黃色底色 -->
+    <!-- 【修改】手機端主導航懸浮選單 - 左上角標題左邊，黃色/金色底色 -->
     <div class="mobile-nav-fab" id="mobileNavFab">
         <button class="mobile-nav-main" id="mobileNavMain" onclick="toggleMobileNav()">
             ☰
