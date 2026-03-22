@@ -2205,49 +2205,49 @@
                 gap: 10px;
             }
 
-            /* 【修改】手機端統計表格優化 - 減小最小寬度、壓縮字體、減小間距、允許表頭換行、固定列寬 */
+            /* 【優化】各區數量統計表格手機端適配 - 確保可左右拉動查看全部資料 */
             .stats-table-container {
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
-                margin-left: -15px;
-                margin-right: -15px;
-                border-radius: 0;
-                border-left: none;
-                border-right: none;
+                width: 100%;
+                margin-left: 0;
+                margin-right: 0;
+                border-radius: 8px;
+                border-left: 1px solid #e0e0e0;
+                border-right: 1px solid #e0e0e0;
+                /* 確保在手機端可以正常滾動 */
+                position: relative;
+                z-index: 1;
             }
 
             .stats-table {
-                min-width: 600px; /* 【修改】減小最小寬度從800px至600px */
-                font-size: 11px; /* 【修改】壓縮字體從12px至11px */
+                min-width: max-content; /* 【修改】根據內容自動調整寬度，不強制壓縮 */
+                width: auto; /* 【修改】不強制100%寬度，允許自然展開 */
+                font-size: 13px; /* 【修改】稍微大一點確保可讀性 */
             }
 
             .stats-table th, .stats-table td {
-                padding: 6px 4px; /* 【修改】減小間距從8px至6px */
-                font-size: 11px; /* 【修改】壓縮字體 */
+                padding: 10px 8px; /* 【修改】調整padding確保內容可讀 */
+                font-size: 13px;
+                white-space: nowrap; /* 【新增】不換行，確保可以橫向滾動查看 */
             }
 
             .stats-table thead th {
-                white-space: normal; /* 【修改】允許表頭換行 */
-                line-height: 1.3;
+                position: sticky;
+                top: 0;
+                z-index: 10;
             }
 
             .stats-table thead th.orange-header {
-                font-size: 10px; /* 【修改】壓縮橙色標題字體 */
-                padding: 6px 4px; /* 【修改】減小padding */
-                white-space: normal; /* 【修改】允許換行 */
-                min-width: 70px; /* 【新增】固定最小寬度避免過窄 */
+                font-size: 12px;
+                padding: 10px 8px;
             }
 
-            .stats-table-header-note {
-                font-size: 9px;
-            }
-
-            /* 【新增】固定位置名稱欄位寬度，避免過長 */
             .stats-table .zone-name-cell {
-                max-width: 120px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
+                min-width: 120px; /* 【新增】確保位置名稱有足夠空間顯示 */
+                max-width: none; /* 【移除】最大寬度限制，允許自然顯示 */
+                overflow: visible;
+                text-overflow: clip;
             }
 
             /* 手機端快速輸入區域優化 */
@@ -2364,25 +2364,39 @@
                 height: 36px;
             }
 
-            /* 【修改】更小屏幕的統計表格優化 - 進一步壓縮 */
+            /* 【優化】小屏幕手機統計表格適配 */
             .stats-table {
-                min-width: 550px; /* 【修改】減小至550px */
-                font-size: 10px; /* 【修改】壓縮至10px */
+                min-width: max-content; /* 【修改】根據內容自動調整 */
+                font-size: 12px;
             }
 
             .stats-table th, .stats-table td {
-                padding: 5px 3px; /* 【修改】進一步減小padding */
-                font-size: 10px;
-            }
-
-            .stats-table thead th.orange-header {
-                font-size: 9px; /* 【修改】壓縮至9px */
-                padding: 5px 3px;
-                min-width: 60px;
+                padding: 8px 6px; /* 【修改】更小的padding適配小屏幕 */
+                font-size: 12px;
             }
 
             .stats-table .zone-name-cell {
-                max-width: 100px; /* 【修改】更小屏幕限制更嚴格 */
+                min-width: 100px; /* 【修改】確保最小顯示空間 */
+            }
+            
+            .stats-table thead th.orange-header {
+                font-size: 11px;
+                padding: 8px 6px;
+            }
+
+            /* 【新增】手機端統計網格調整 */
+            .mobile-stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+
+            .mobile-stat-value {
+                font-size: 18px;
+            }
+
+            .mobile-packing-panel-content {
+                padding: 15px;
+                max-height: 90vh;
             }
 
             /* 調整標題padding */
