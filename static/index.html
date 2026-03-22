@@ -938,6 +938,7 @@
             background: white;
             margin-top: 15px;
             contain: layout; /* 【優化】CSS containment提升效能 */
+            -webkit-overflow-scrolling: touch; /* 手機端平滑滾動 */
         }
 
         .stats-table {
@@ -946,6 +947,7 @@
             border-spacing: 0;
             font-size: 14px;
             table-layout: fixed; /* 【優化】固定表格布局提升渲染速度 */
+            min-width: 600px; /* 確保表格撐開，手機端可橫向滾動 */
         }
 
         .stats-table thead th {
@@ -1981,18 +1983,18 @@
             background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
         }
 
-        /* 【新增】手機端主導航懸浮選單 - 左上角 */
+        /* 【新增】手機端主導航懸浮選單 - 左上角 - 調整位置至標題左側 */
         .mobile-nav-fab {
             display: none;
             position: fixed;
-            top: 80px;
-            left: 20px;
+            top: 65px; /* 調整為 65px，與標題列對齊 */
+            left: 15px; /* 稍微靠左 */
             z-index: 995;
         }
 
         .mobile-nav-main {
-            width: 50px;
-            height: 50px;
+            width: 45px;
+            height: 45px;
             border-radius: 50%;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -2013,7 +2015,7 @@
 
         .mobile-nav-panel {
             position: absolute;
-            top: 60px;
+            top: 55px; /* 調整下拉選單位置 */
             left: 0;
             background: white;
             border-radius: 16px;
@@ -2283,22 +2285,22 @@
                 font-size: 13px;
             }
 
-            /* 【新增】手機端導航按鈕調整 */
+            /* 【新增】手機端導航按鈕調整 - 與標題對齊 */
             .mobile-nav-fab {
-                left: 15px;
-                top: 70px;
+                left: 10px;
+                top: 62px; /* 微調至與標題列高度對齊 */
             }
 
             .mobile-nav-main {
-                width: 45px;
-                height: 45px;
+                width: 40px;
+                height: 40px;
                 font-size: 18px;
             }
 
             .mobile-nav-panel {
                 min-width: 200px;
                 padding: 12px;
-                top: 55px;
+                top: 50px;
             }
 
             .mobile-nav-item {
@@ -2953,7 +2955,7 @@
         </div>
     </div>
 
-    <!-- 【新增】手機端主導航懸浮選單 - 左上角 -->
+    <!-- 【新增】手機端主導航懸浮選單 - 左上角 - 位置調整至標題左側 -->
     <div class="mobile-nav-fab" id="mobileNavFab">
         <button class="mobile-nav-main" id="mobileNavMain" onclick="toggleMobileNav()">
             📱
@@ -3720,7 +3722,7 @@
             }
         }
 
-        // 【新增】手機端主導航控制 - 左上角
+        // 【新增】手機端主導航控制 - 左上角 - 與標題對齊
         function toggleMobileNav() {
             const fab = document.getElementById('mobileNavFab');
             const btn = document.getElementById('mobileNavMain');
