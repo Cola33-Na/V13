@@ -2205,7 +2205,7 @@
                 gap: 10px;
             }
 
-            /* 【修改】手機端統計表格優化 - 縮小字體和padding，確保橫向滾動 */
+            /* 【修改】手機端統計表格優化 - 減小最小寬度、壓縮字體、減小間距、允許表頭換行、固定列寬 */
             .stats-table-container {
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
@@ -2217,22 +2217,37 @@
             }
 
             .stats-table {
-                min-width: 800px; /* 【修改】增加最小寬度確保橫向滾動 */
-                font-size: 12px;
+                min-width: 600px; /* 【修改】減小最小寬度從800px至600px */
+                font-size: 11px; /* 【修改】壓縮字體從12px至11px */
             }
 
             .stats-table th, .stats-table td {
-                padding: 8px 6px; /* 【修改】調整padding */
-                font-size: 12px;
+                padding: 6px 4px; /* 【修改】減小間距從8px至6px */
+                font-size: 11px; /* 【修改】壓縮字體 */
+            }
+
+            .stats-table thead th {
+                white-space: normal; /* 【修改】允許表頭換行 */
+                line-height: 1.3;
             }
 
             .stats-table thead th.orange-header {
-                font-size: 11px;
-                padding: 8px 6px;
+                font-size: 10px; /* 【修改】壓縮橙色標題字體 */
+                padding: 6px 4px; /* 【修改】減小padding */
+                white-space: normal; /* 【修改】允許換行 */
+                min-width: 70px; /* 【新增】固定最小寬度避免過窄 */
             }
 
             .stats-table-header-note {
                 font-size: 9px;
+            }
+
+            /* 【新增】固定位置名稱欄位寬度，避免過長 */
+            .stats-table .zone-name-cell {
+                max-width: 120px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
 
             /* 手機端快速輸入區域優化 */
@@ -2349,40 +2364,25 @@
                 height: 36px;
             }
 
-            .stats-table thead th.orange-header {
-                font-size: 10px;
-            }
-
-            /* 【新增】手機端統計網格調整 */
-            .mobile-stats-grid {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 8px;
-            }
-
-            .mobile-stat-value {
-                font-size: 18px;
-            }
-
-            .mobile-packing-panel-content {
-                padding: 15px;
-                max-height: 90vh;
-            }
-
-            /* 【修改】更小屏幕的統計表格優化 */
+            /* 【修改】更小屏幕的統計表格優化 - 進一步壓縮 */
             .stats-table {
-                min-width: 700px; /* 【修改】確保最小寬度觸發滾動 */
-                font-size: 11px;
+                min-width: 550px; /* 【修改】減小至550px */
+                font-size: 10px; /* 【修改】壓縮至10px */
             }
 
             .stats-table th, .stats-table td {
-                padding: 6px 4px;
-                font-size: 11px;
+                padding: 5px 3px; /* 【修改】進一步減小padding */
+                font-size: 10px;
+            }
+
+            .stats-table thead th.orange-header {
+                font-size: 9px; /* 【修改】壓縮至9px */
+                padding: 5px 3px;
+                min-width: 60px;
             }
 
             .stats-table .zone-name-cell {
-                max-width: 100px;
-                overflow: hidden;
-                text-overflow: ellipsis;
+                max-width: 100px; /* 【修改】更小屏幕限制更嚴格 */
             }
 
             /* 調整標題padding */
