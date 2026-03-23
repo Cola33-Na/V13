@@ -1702,13 +1702,13 @@
             to { transform: translateX(-50%) translateY(0); opacity: 1; }
         }
 
-        /* 【修改】手機端裝箱功能懸浮按鈕（統計與位置）- 移至左下角 */
+        /* 【修改】手機端綠方格懸浮按鈕（統計與位置）- 左下角 */
         .mobile-packing-float-btn {
             display: none;
             position: fixed;
             bottom: 20px;
-            left: 20px; /* 修改：從 right 改為 left */
-            right: auto; /* 修改：確保 right 為 auto */
+            left: 20px;
+            right: auto;
             width: 56px;
             height: 56px;
             border-radius: 50%;
@@ -1743,7 +1743,7 @@
             background: linear-gradient(135deg, #38ef7d 0%, #11998e 100%);
         }
 
-        /* 【新增】手機端統計與位置懸浮面板 */
+        /* 【新增】手機端綠方格懸浮面板（統計與位置）- 直排顯示 */
         .mobile-packing-panel {
             display: none;
             position: fixed;
@@ -1825,7 +1825,7 @@
         /* 【修改】手機端統計改為直排（垂直排列） */
         .mobile-stats-grid {
             display: flex;
-            flex-direction: column; /* 修改：改為垂直排列 */
+            flex-direction: column;
             gap: 10px;
         }
 
@@ -1833,9 +1833,9 @@
             background: white;
             padding: 12px;
             border-radius: 8px;
-            text-align: center; /* 修改：改為置中對齊更適合直排 */
+            text-align: center;
             border: 1px solid #e9ecef;
-            display: flex; /* 修改：改為 flex 橫向排列標籤和數值 */
+            display: flex;
             justify-content: space-between;
             align-items: center;
         }
@@ -1847,7 +1847,7 @@
         }
 
         .mobile-stat-label {
-            font-size: 13px; /* 修改：稍微放大 */
+            font-size: 13px;
             color: #888;
         }
 
@@ -1887,13 +1887,13 @@
             border-color: #11998e;
         }
 
-        /* 【新增】手機端裝箱功能懸浮操作按鈕（上傳/匯出/調整寬度/清空）- 右下角 */
+        /* 【修改】手機端紅方格懸浮操作按鈕（上傳/匯出/調整寬度/清空）- 左下角偏上 */
         .mobile-packing-actions-fab {
             display: none;
             position: fixed;
-            bottom: 20px;
-            right: 20px; /* 保持右下角 */
-            left: auto;
+            bottom: 90px; /* 位於綠方格上方 (綠方格在 20px，間距 70px) */
+            left: 20px; /* 改為左側對齊 */
+            right: auto; /* 清除右側定位 */
             z-index: 996;
             flex-direction: column;
             gap: 10px;
@@ -1922,10 +1922,12 @@
             background: linear-gradient(135deg, #ee5a6f 0%, #ff6b6b 100%);
         }
 
+        /* 【修改】紅方格選單展開方向 - 向左對齊 */
         .mobile-packing-actions-menu {
             position: absolute;
             bottom: 70px;
-            right: 0;
+            left: 0; /* 改為左側對齊 */
+            right: auto;
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -2250,18 +2252,20 @@
                 display: block;
             }
 
-            /* 【關鍵修改 4】顯示綠方格懸浮按鈕（統計與位置）- 已移至左下角 */
+            /* 【修改】顯示綠方格懸浮按鈕（統計與位置）- 左下角 */
             .mobile-packing-float-btn {
                 display: flex;
                 left: 20px; /* 確保在左下角 */
                 right: auto;
+                bottom: 20px;
             }
 
-            /* 顯示紅方格懸浮操作按鈕（上傳/匯出/調整/清空）- 保持右下角 */
+            /* 【修改】顯示紅方格懸浮操作按鈕（上傳/匯出/調整/清空）- 左下角偏上 */
             .mobile-packing-actions-fab {
                 display: flex;
-                right: 20px;
-                left: auto;
+                left: 20px; /* 改為左側對齊 */
+                right: auto;
+                bottom: 90px; /* 位於綠方格上方 (20px + 70px 間距) */
             }
         }
 
@@ -2315,7 +2319,7 @@
                 font-size: 18px;
             }
 
-            /* 手機端懸浮按鈕大小調整 */
+            /* 手機端懸浮按鈕大小調整 - 左側佈局 */
             .mobile-packing-float-btn,
             .mobile-packing-actions-main {
                 width: 52px;
@@ -2323,18 +2327,18 @@
                 font-size: 20px;
             }
 
-            /* 左下角統計按鈕 */
+            /* 【修改】綠方格維持左下角 */
             .mobile-packing-float-btn {
                 bottom: 20px;
                 left: 15px;
                 right: auto;
             }
 
-            /* 右下角操作按鈕 */
+            /* 【修改】紅方格移至左下角偏上 */
             .mobile-packing-actions-fab {
-                bottom: 20px;
-                right: 15px;
-                left: auto;
+                bottom: 85px; /* 52px按鈕 + 15px間距 + 20px底部空間 */
+                left: 15px;
+                right: auto;
             }
         }
 
@@ -2880,7 +2884,7 @@
         </div>
     </div>
 
-    <!-- 【修改】手機端綠方格懸浮按鈕（統計與位置）- 移至左下角 -->
+    <!-- 【修改】手機端綠方格懸浮按鈕（統計與位置）- 左下角 -->
     <button class="mobile-packing-float-btn" id="mobilePackingBtn" onclick="toggleMobilePackingPanel()" title="統計與位置">
         📊
     </button>
@@ -2934,7 +2938,7 @@
         </div>
     </div>
 
-    <!-- 手機端紅方格懸浮操作按鈕（上傳/匯出/調整寬度/清空）- 右下角 -->
+    <!-- 【修改】手機端紅方格懸浮操作按鈕（上傳/匯出/調整寬度/清空）- 左下角偏上 -->
     <div class="mobile-packing-actions-fab" id="mobilePackingActionsFab">
         <button class="mobile-packing-actions-main" id="mobilePackingActionsMain" onclick="toggleMobilePackingActions()">
             ⚙️
@@ -3534,8 +3538,6 @@
             loadPackingSummary();
         }
         
-        // 【移除】renderCustomCategories 函數已刪除（因為編輯功能已移除）
-        
         function updateCustomCategory(index, field, value) {
             customCategories[index][field] = value;
             customCategories[index].enabled = value.trim() !== '';
@@ -3712,7 +3714,7 @@
             document.getElementById('mobilePackingBtn').classList.remove('active');
         }
 
-        // 【新增】手機端紅方格懸浮操作按鈕控制（右下角）
+        // 【新增】手機端紅方格懸浮操作按鈕控制（左下角偏上）
         function toggleMobilePackingActions() {
             const fab = document.getElementById('mobilePackingActionsFab');
             const btn = document.getElementById('mobilePackingActionsMain');
