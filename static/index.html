@@ -2098,12 +2098,15 @@
         /* 響應式設計 - 手機端優化 */
         @media (max-width: 968px) {
             .main-wrapper {
-                grid-template-columns: 1fr;
+                grid-template-columns: 85px 1fr;
                 grid-template-rows: auto 1fr;
             }
 
             .left-toolbar {
-                display: none; /* 【修改】手機端隱藏桌面工具欄 */
+                display: flex;
+                width: 85px;
+                min-width: 85px;
+                max-height: calc(100vh - 60px);
             }
 
             .tool-btn {
@@ -2152,47 +2155,55 @@
                 flex-wrap: wrap;
             }
 
-            /* 【手機端優化】裝箱功能介面改為懸浮面板模式 */
+            /* 【手機端優化】裝箱功能介面改為桌面端樣式，支援橫向滾動 */
             .packing-layout {
-                flex-direction: column;
-                gap: 10px;
-                position: relative;
+                flex-direction: row; /* 改為橫向排列 */
+                overflow-x: auto; /* 允許橫向滾動 */
+                gap: 15px;
+                padding-bottom: 10px;
+                -webkit-overflow-scrolling: touch; /* 平滑滾動 */
             }
 
-            /* 【修改】桌面端側邊欄在手機端隱藏，改為懸浮面板 */
+            /* 【修改】顯示桌面端側邊欄 */
             .packing-sidebar {
-                display: none; /* 手機端隱藏桌面側邊欄 */
+                display: flex; /* 改為顯示 */
+                width: 220px;
+                min-width: 220px; /* 防止壓縮 */
+                flex-shrink: 0; /* 不壓縮 */
+                position: sticky;
+                left: 0; /* 滾動時固定在左側 */
+                background: #f8f9fa;
+                z-index: 10;
+                max-height: calc(100vh - 140px);
+                border: 1px solid #e9ecef;
+                border-radius: 12px;
             }
 
-            /* 【新增】手機端顯示懸浮按鈕 */
-            .mobile-packing-float-btn {
-                display: flex;
-            }
-
-            /* 【新增】手機端顯示操作懸浮按鈕 - 改為垂直排列 */
-            .mobile-packing-actions-fab {
-                display: flex;
-                flex-direction: column;
-            }
-
-            /* 【新增】手機端顯示導航懸浮選單 */
+            /* 【修改】隱藏手機端懸浮按鈕與面板 */
+            .mobile-packing-float-btn,
+            .mobile-packing-panel,
+            .mobile-packing-actions-fab,
             .mobile-nav-fab {
-                display: block;
+                display: none !important;
             }
 
-            /* 【手機端】隱藏桌面端標題列按鈕 */
+            /* 【修改】顯示標題列按鈕（與桌面端一致） */
             .packing-page .block-title-actions {
-                display: none;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
             }
 
             .packing-main {
-                max-height: none;
-                overflow-y: visible;
-                width: 100%;
+                min-width: 600px; /* 確保最小寬度產生滾動 */
+                flex-shrink: 0; /* 防止壓縮 */
+                max-height: calc(100vh - 140px);
+                overflow-y: auto;
             }
 
             .panel-content {
                 padding: 15px;
+                min-width: 850px; /* 確保整個內容區域足夠寬 */
             }
 
             .excel-table th, .excel-table td {
@@ -2205,34 +2216,33 @@
                 gap: 10px;
             }
 
-            /* 【修改】手機端統計表格優化 - 縮小字體和padding，確保橫向滾動 */
+            /* 【修改】手機端統計表格支援左右滑動 */
             .stats-table-container {
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
-                margin-left: -15px;
-                margin-right: -15px;
-                border-radius: 0;
-                border-left: none;
-                border-right: none;
+                margin-left: 0;
+                margin-right: 0;
+                border-radius: 8px;
+                border: 1px solid #e0e0e0;
             }
 
             .stats-table {
-                min-width: 800px; /* 【修改】增加最小寬度確保橫向滾動 */
-                font-size: 12px;
+                min-width: 800px; /* 確保表格寬度觸發滾動 */
+                font-size: 13px;
             }
 
             .stats-table th, .stats-table td {
-                padding: 8px 6px; /* 【修改】調整padding */
-                font-size: 12px;
+                padding: 10px 8px;
+                font-size: 13px;
             }
 
             .stats-table thead th.orange-header {
-                font-size: 11px;
-                padding: 8px 6px;
+                font-size: 12px;
+                padding: 10px 8px;
             }
 
             .stats-table-header-note {
-                font-size: 9px;
+                font-size: 10px;
             }
 
             /* 手機端快速輸入區域優化 */
@@ -2248,153 +2258,15 @@
                 width: 100%;
             }
 
-            /* 調整標題位置，為左上角按鈕留出空間 */
+            /* 調整標題位置（移除為手機導航留出的空間） */
             .header {
-                padding-left: 60px;
+                padding-left: 15px;
                 padding-right: 15px;
             }
 
             .header h1 {
                 font-size: 18px;
-                text-align: left;
-            }
-
-            /* 【優化】手機端各區數量統計卡片式布局 - 快速新增到列表方式 */
-            .stats-table-container {
-                overflow-x: visible;
-                margin-left: 0;
-                margin-right: 0;
-                border: none;
-                background: transparent;
-            }
-            
-            .stats-table,
-            .stats-table thead,
-            .stats-table tbody,
-            .stats-table th,
-            .stats-table td,
-            .stats-table tr {
-                display: block;
-                width: 100%;
-            }
-            
-            /* 隱藏表頭 */
-            .stats-table thead {
-                display: none;
-            }
-            
-            .stats-table tbody {
-                display: flex;
-                flex-direction: column;
-                gap: 15px;
-            }
-            
-            /* 每個位置卡片 */
-            .stats-table tr {
-                background: white;
-                border-radius: 12px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                overflow: hidden;
-                border: 1px solid #e0e0e0;
-                margin-bottom: 0;
-            }
-            
-            .stats-table tr:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                transition: all 0.3s ease;
-            }
-            
-            .stats-table td {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 12px 15px;
-                border: none;
-                border-bottom: 1px solid #f0f0f0;
-                text-align: right;
-                font-size: 14px;
-                background: white;
-            }
-            
-            .stats-table td:last-child {
-                border-bottom: none;
-            }
-            
-            /* 位置名稱特殊樣式 - 漸層背景 */
-            .stats-table td.zone-name-cell {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                font-weight: 700;
-                font-size: 16px;
-                justify-content: center;
                 text-align: center;
-                border-bottom: 2px solid rgba(255,255,255,0.2);
-            }
-            
-            .spare-mode .stats-table td.zone-name-cell {
-                background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            }
-            
-            /* 數量欄位特殊樣式 */
-            .stats-table td.quantity-col {
-                background: #f0f4ff;
-                color: #667eea;
-                font-weight: 700;
-                font-size: 18px;
-            }
-            
-            .spare-mode .stats-table td.quantity-col {
-                background: #e8f5e9;
-                color: #11998e;
-            }
-            
-            /* 使用 data-label 顯示標籤 */
-            .stats-table td::before {
-                content: attr(data-label);
-                font-weight: 600;
-                color: #666;
-                text-align: left;
-                flex: 1;
-                margin-right: 10px;
-            }
-            
-            /* 總計行特殊樣式 */
-            .stats-table tbody tr:last-child {
-                background: #f8f9fa;
-                border: 2px solid #667eea;
-                font-weight: 700;
-                margin-top: 10px;
-            }
-            
-            .stats-table tbody tr:last-child td.zone-name-cell {
-                background: #667eea;
-                color: white;
-                border-radius: 12px 12px 0 0;
-            }
-            
-            .spare-mode .stats-table tbody tr:last-child {
-                border-color: #11998e;
-            }
-            
-            .spare-mode .stats-table tbody tr:last-child td.zone-name-cell {
-                background: #11998e;
-            }
-            
-            /* 零值淡化 */
-            .stats-table td.zero-value {
-                color: #ccc;
-                font-weight: normal;
-            }
-            
-            /* 分類欄位背景色 */
-            .stats-table td.orange-bg {
-                background: #fff8e1;
-            }
-            
-            .stats-table td.orange-bg::before {
-                color: #e65100;
-                font-size: 12px;
             }
         }
 
@@ -2430,108 +2302,45 @@
                 font-size: 20px;
             }
 
-            /* 【新增】手機端懸浮按鈕位置調整 */
-            .mobile-packing-float-btn {
-                width: 56px;
-                height: 56px;
-                bottom: 20px;
-                right: 20px;
-                font-size: 20px;
-            }
-
-            /* 【新增】手機端操作按鈕調整 - 垂直排列在右下方 */
-            .mobile-packing-actions-fab {
-                right: 20px;
-                bottom: 90px;
-                gap: 8px;
-            }
-
-            .mobile-packing-actions-main {
-                width: 56px;
-                height: 56px;
-                font-size: 20px;
-            }
-
-            .mobile-packing-action-btn {
-                padding: 10px 16px;
-                font-size: 13px;
-            }
-
-            /* 【修改】手機端導航按鈕調整 - 更靠近左上角 */
-            .mobile-nav-fab {
-                left: 10px;
-                top: 10px;
-            }
-
-            .mobile-nav-main {
-                width: 36px;
-                height: 36px;
-                font-size: 16px;
-                box-shadow: 0 2px 8px rgba(255, 215, 0, 0.6); /* 【修改】金色陰影 */
-            }
-
-            .mobile-nav-panel {
-                min-width: 200px;
-                padding: 12px;
-                top: 48px;
-            }
-
-            .mobile-nav-item {
-                padding: 10px;
-                margin-bottom: 6px;
-            }
-
-            .mobile-nav-icon {
-                font-size: 20px;
-                width: 36px;
-                height: 36px;
-            }
-
-            .stats-table thead th.orange-header {
-                font-size: 10px;
-            }
-
-            /* 【新增】手機端統計網格調整 */
-            .mobile-stats-grid {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 8px;
-            }
-
-            .mobile-stat-value {
-                font-size: 18px;
-            }
-
-            .mobile-packing-panel-content {
-                padding: 15px;
-                max-height: 90vh;
-            }
-
-            /* 【修改】更小屏幕的統計表格優化 */
-            .stats-table {
-                min-width: 700px; /* 【修改】確保最小寬度觸發滾動 */
-                font-size: 11px;
-            }
-
-            .stats-table th, .stats-table td {
-                padding: 6px 4px;
-                font-size: 11px;
-            }
-
-            .stats-table .zone-name-cell {
-                max-width: 100px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-
             /* 調整標題padding */
             .header {
-                padding-left: 55px;
+                padding-left: 15px;
                 padding-top: 12px;
                 padding-bottom: 12px;
             }
 
             .header h1 {
                 font-size: 16px;
+            }
+
+            /* 小螢幕裝箱布局調整 */
+            .packing-sidebar {
+                width: 180px;
+                min-width: 180px;
+                padding: 10px;
+            }
+
+            .packing-main {
+                min-width: 550px;
+                padding: 15px;
+            }
+
+            .stats-table {
+                min-width: 700px;
+                font-size: 12px;
+            }
+
+            .stats-table th, .stats-table td {
+                padding: 8px 6px;
+                font-size: 12px;
+            }
+
+            .zone-item {
+                padding: 10px;
+            }
+
+            .zone-name {
+                font-size: 13px;
             }
         }
 
@@ -2929,7 +2738,7 @@
                         </div>
 
                         <div class="packing-layout">
-                            <!-- 【修改】桌面端側邊欄（手機端隱藏） -->
+                            <!-- 桌面端側邊欄（手機端也顯示） -->
                             <div class="packing-sidebar" id="packingSidebar">
                                 <div class="sidebar-stats" id="sidebarStats" style="display: none;">
                                     <div><span>總資料筆數：</span><span id="statTotal">0</span></div>
@@ -3077,12 +2886,12 @@
         </div>
     </div>
 
-    <!-- 【新增】手機端裝箱功能懸浮按鈕（統計與位置） -->
+    <!-- 手機端裝箱功能懸浮按鈕（統計與位置）- 已隱藏 -->
     <button class="mobile-packing-float-btn" id="mobilePackingBtn" onclick="toggleMobilePackingPanel()" title="統計與位置" style="display: none;">
         📊
     </button>
 
-    <!-- 【新增】手機端裝箱功能懸浮面板 -->
+    <!-- 手機端裝箱功能懸浮面板 - 已隱藏 -->
     <div class="mobile-packing-panel" id="mobilePackingPanel" onclick="closeMobilePackingPanel(event)">
         <div class="mobile-packing-panel-content" onclick="event.stopPropagation()">
             <div class="mobile-packing-panel-header">
@@ -3131,7 +2940,7 @@
         </div>
     </div>
 
-    <!-- 【新增】手機端裝箱功能懸浮操作按鈕（上傳/匯出/調整寬度/清空）- 垂直排列 -->
+    <!-- 手機端裝箱功能懸浮操作按鈕（上傳/匯出/調整寬度/清空）- 已隱藏 -->
     <div class="mobile-packing-actions-fab" id="mobilePackingActionsFab">
         <button class="mobile-packing-actions-main" id="mobilePackingActionsMain" onclick="toggleMobilePackingActions()">
             ⚙️
@@ -3156,7 +2965,7 @@
         </div>
     </div>
 
-    <!-- 【修改】手機端主導航懸浮選單 - 左上角標題左邊，黃色/金色底色 -->
+    <!-- 手機端主導航懸浮選單 - 已隱藏 -->
     <div class="mobile-nav-fab" id="mobileNavFab">
         <button class="mobile-nav-main" id="mobileNavMain" onclick="toggleMobileNav()">
             ☰
@@ -5233,9 +5042,6 @@
 
             const fragment = document.createDocumentFragment();
 
-            // 【優化】準備分類標籤供手機端data-label使用
-            const categoryLabels = customCategories.map(cat => cat.label || '');
-
             sortedZones.forEach(([zoneName, stats]) => {
                 const quantityClass = stats.quantity > 0 ? 'quantity-col' : '';
                 
@@ -5245,15 +5051,13 @@
                     const key = keyMap[index];
                     const value = stats[key] || 0;
                     const zeroClass = value === 0 ? 'zero-value' : '';
-                    // 【新增】添加 data-label 屬性供手機端顯示
-                    const dataLabel = categoryLabels[index] ? `data-label="${escapeHtml(categoryLabels[index])}"` : '';
-                    categoryCells += `<td class="${zeroClass} orange-bg" ${dataLabel}>${value}</td>`;
+                    categoryCells += `<td class="${zeroClass}">${value}</td>`;
                 });
                 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td class="zone-name-cell" data-label="位置">${escapeHtml(zoneName)}</td>
-                    <td class="${quantityClass}" data-label="總數量">${stats.quantity}</td>
+                    <td class="zone-name-cell">${escapeHtml(zoneName)}</td>
+                    <td class="${quantityClass}">${stats.quantity}</td>
                     ${categoryCells}
                 `;
                 fragment.appendChild(tr);
@@ -5274,15 +5078,14 @@
             customCategories.forEach((cat, index) => {
                 const keyMap = ['cat1', 'cat2', 'cat3', 'cat4', 'cat5'];
                 const key = keyMap[index];
-                const dataLabel = categoryLabels[index] ? `data-label="${escapeHtml(categoryLabels[index])}"` : '';
-                totalCategoryCells += `<td ${dataLabel}>${totals[key] || 0}</td>`;
+                totalCategoryCells += `<td>${totals[key] || 0}</td>`;
             });
 
             const totalTr = document.createElement('tr');
             totalTr.style.cssText = 'background: #f0f4ff; font-weight: 700; border-top: 2px solid #667eea;';
             totalTr.innerHTML = `
-                <td class="zone-name-cell" data-label="位置">總計</td>
-                <td class="quantity-col" data-label="總數量">${totals.quantity}</td>
+                <td class="zone-name-cell">總計</td>
+                <td class="quantity-col">${totals.quantity}</td>
                 ${totalCategoryCells}
             `;
             fragment.appendChild(totalTr);
