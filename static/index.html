@@ -2205,49 +2205,34 @@
                 gap: 10px;
             }
 
-            /* 【優化】各區數量統計表格手機端適配 - 確保可左右拉動查看全部資料 */
+            /* 【修改】手機端統計表格優化 - 縮小字體和padding，確保橫向滾動 */
             .stats-table-container {
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
-                width: 100%;
-                margin-left: 0;
-                margin-right: 0;
-                border-radius: 8px;
-                border-left: 1px solid #e0e0e0;
-                border-right: 1px solid #e0e0e0;
-                /* 確保在手機端可以正常滾動 */
-                position: relative;
-                z-index: 1;
+                margin-left: -15px;
+                margin-right: -15px;
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
             }
 
             .stats-table {
-                min-width: max-content; /* 【修改】根據內容自動調整寬度，不強制壓縮 */
-                width: auto; /* 【修改】不強制100%寬度，允許自然展開 */
-                font-size: 13px; /* 【修改】稍微大一點確保可讀性 */
+                min-width: 800px; /* 【修改】增加最小寬度確保橫向滾動 */
+                font-size: 12px;
             }
 
             .stats-table th, .stats-table td {
-                padding: 10px 8px; /* 【修改】調整padding確保內容可讀 */
-                font-size: 13px;
-                white-space: nowrap; /* 【新增】不換行，確保可以橫向滾動查看 */
-            }
-
-            .stats-table thead th {
-                position: sticky;
-                top: 0;
-                z-index: 10;
+                padding: 8px 6px; /* 【修改】調整padding */
+                font-size: 12px;
             }
 
             .stats-table thead th.orange-header {
-                font-size: 12px;
-                padding: 10px 8px;
+                font-size: 11px;
+                padding: 8px 6px;
             }
 
-            .stats-table .zone-name-cell {
-                min-width: 120px; /* 【新增】確保位置名稱有足夠空間顯示 */
-                max-width: none; /* 【移除】最大寬度限制，允許自然顯示 */
-                overflow: visible;
-                text-overflow: clip;
+            .stats-table-header-note {
+                font-size: 9px;
             }
 
             /* 手機端快速輸入區域優化 */
@@ -2272,6 +2257,144 @@
             .header h1 {
                 font-size: 18px;
                 text-align: left;
+            }
+
+            /* 【優化】手機端各區數量統計卡片式布局 - 快速新增到列表方式 */
+            .stats-table-container {
+                overflow-x: visible;
+                margin-left: 0;
+                margin-right: 0;
+                border: none;
+                background: transparent;
+            }
+            
+            .stats-table,
+            .stats-table thead,
+            .stats-table tbody,
+            .stats-table th,
+            .stats-table td,
+            .stats-table tr {
+                display: block;
+                width: 100%;
+            }
+            
+            /* 隱藏表頭 */
+            .stats-table thead {
+                display: none;
+            }
+            
+            .stats-table tbody {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            /* 每個位置卡片 */
+            .stats-table tr {
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                overflow: hidden;
+                border: 1px solid #e0e0e0;
+                margin-bottom: 0;
+            }
+            
+            .stats-table tr:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                transition: all 0.3s ease;
+            }
+            
+            .stats-table td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 12px 15px;
+                border: none;
+                border-bottom: 1px solid #f0f0f0;
+                text-align: right;
+                font-size: 14px;
+                background: white;
+            }
+            
+            .stats-table td:last-child {
+                border-bottom: none;
+            }
+            
+            /* 位置名稱特殊樣式 - 漸層背景 */
+            .stats-table td.zone-name-cell {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                font-weight: 700;
+                font-size: 16px;
+                justify-content: center;
+                text-align: center;
+                border-bottom: 2px solid rgba(255,255,255,0.2);
+            }
+            
+            .spare-mode .stats-table td.zone-name-cell {
+                background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            }
+            
+            /* 數量欄位特殊樣式 */
+            .stats-table td.quantity-col {
+                background: #f0f4ff;
+                color: #667eea;
+                font-weight: 700;
+                font-size: 18px;
+            }
+            
+            .spare-mode .stats-table td.quantity-col {
+                background: #e8f5e9;
+                color: #11998e;
+            }
+            
+            /* 使用 data-label 顯示標籤 */
+            .stats-table td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: #666;
+                text-align: left;
+                flex: 1;
+                margin-right: 10px;
+            }
+            
+            /* 總計行特殊樣式 */
+            .stats-table tbody tr:last-child {
+                background: #f8f9fa;
+                border: 2px solid #667eea;
+                font-weight: 700;
+                margin-top: 10px;
+            }
+            
+            .stats-table tbody tr:last-child td.zone-name-cell {
+                background: #667eea;
+                color: white;
+                border-radius: 12px 12px 0 0;
+            }
+            
+            .spare-mode .stats-table tbody tr:last-child {
+                border-color: #11998e;
+            }
+            
+            .spare-mode .stats-table tbody tr:last-child td.zone-name-cell {
+                background: #11998e;
+            }
+            
+            /* 零值淡化 */
+            .stats-table td.zero-value {
+                color: #ccc;
+                font-weight: normal;
+            }
+            
+            /* 分類欄位背景色 */
+            .stats-table td.orange-bg {
+                background: #fff8e1;
+            }
+            
+            .stats-table td.orange-bg::before {
+                color: #e65100;
+                font-size: 12px;
             }
         }
 
@@ -2364,24 +2487,8 @@
                 height: 36px;
             }
 
-            /* 【優化】小屏幕手機統計表格適配 */
-            .stats-table {
-                min-width: max-content; /* 【修改】根據內容自動調整 */
-                font-size: 12px;
-            }
-
-            .stats-table th, .stats-table td {
-                padding: 8px 6px; /* 【修改】更小的padding適配小屏幕 */
-                font-size: 12px;
-            }
-
-            .stats-table .zone-name-cell {
-                min-width: 100px; /* 【修改】確保最小顯示空間 */
-            }
-            
             .stats-table thead th.orange-header {
-                font-size: 11px;
-                padding: 8px 6px;
+                font-size: 10px;
             }
 
             /* 【新增】手機端統計網格調整 */
@@ -2397,6 +2504,23 @@
             .mobile-packing-panel-content {
                 padding: 15px;
                 max-height: 90vh;
+            }
+
+            /* 【修改】更小屏幕的統計表格優化 */
+            .stats-table {
+                min-width: 700px; /* 【修改】確保最小寬度觸發滾動 */
+                font-size: 11px;
+            }
+
+            .stats-table th, .stats-table td {
+                padding: 6px 4px;
+                font-size: 11px;
+            }
+
+            .stats-table .zone-name-cell {
+                max-width: 100px;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
 
             /* 調整標題padding */
@@ -5109,6 +5233,9 @@
 
             const fragment = document.createDocumentFragment();
 
+            // 【優化】準備分類標籤供手機端data-label使用
+            const categoryLabels = customCategories.map(cat => cat.label || '');
+
             sortedZones.forEach(([zoneName, stats]) => {
                 const quantityClass = stats.quantity > 0 ? 'quantity-col' : '';
                 
@@ -5118,13 +5245,15 @@
                     const key = keyMap[index];
                     const value = stats[key] || 0;
                     const zeroClass = value === 0 ? 'zero-value' : '';
-                    categoryCells += `<td class="${zeroClass}">${value}</td>`;
+                    // 【新增】添加 data-label 屬性供手機端顯示
+                    const dataLabel = categoryLabels[index] ? `data-label="${escapeHtml(categoryLabels[index])}"` : '';
+                    categoryCells += `<td class="${zeroClass} orange-bg" ${dataLabel}>${value}</td>`;
                 });
                 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td class="zone-name-cell">${escapeHtml(zoneName)}</td>
-                    <td class="${quantityClass}">${stats.quantity}</td>
+                    <td class="zone-name-cell" data-label="位置">${escapeHtml(zoneName)}</td>
+                    <td class="${quantityClass}" data-label="總數量">${stats.quantity}</td>
                     ${categoryCells}
                 `;
                 fragment.appendChild(tr);
@@ -5145,14 +5274,15 @@
             customCategories.forEach((cat, index) => {
                 const keyMap = ['cat1', 'cat2', 'cat3', 'cat4', 'cat5'];
                 const key = keyMap[index];
-                totalCategoryCells += `<td>${totals[key] || 0}</td>`;
+                const dataLabel = categoryLabels[index] ? `data-label="${escapeHtml(categoryLabels[index])}"` : '';
+                totalCategoryCells += `<td ${dataLabel}>${totals[key] || 0}</td>`;
             });
 
             const totalTr = document.createElement('tr');
             totalTr.style.cssText = 'background: #f0f4ff; font-weight: 700; border-top: 2px solid #667eea;';
             totalTr.innerHTML = `
-                <td class="zone-name-cell">總計</td>
-                <td class="quantity-col">${totals.quantity}</td>
+                <td class="zone-name-cell" data-label="位置">總計</td>
+                <td class="quantity-col" data-label="總數量">${totals.quantity}</td>
                 ${totalCategoryCells}
             `;
             fragment.appendChild(totalTr);
