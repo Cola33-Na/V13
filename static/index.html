@@ -640,8 +640,8 @@
         .mobile-manual-float-btn {
             display: none;
             position: fixed;
-            bottom: 30px;
-            right: 30px;
+            bottom: 20px;
+            right: 20px;
             width: 60px;
             height: 60px;
             border-radius: 50%;
@@ -1702,13 +1702,12 @@
             to { transform: translateX(-50%) translateY(0); opacity: 1; }
         }
 
-        /* 【修改】手機端綠方格懸浮按鈕（統計與位置）- 左下角 */
+        /* 【修改】手機端綠方格懸浮按鈕（統計與位置）- 右下角 */
         .mobile-packing-float-btn {
             display: none;
             position: fixed;
             bottom: 20px;
             right: 20px;
-            right: auto;
             width: 56px;
             height: 56px;
             border-radius: 50%;
@@ -1748,7 +1747,7 @@
             display: none;
             position: fixed;
             top: 0;
-            right: 0;
+            left: 0;
             right: 0;
             bottom: 0;
             background: rgba(0,0,0,0.5);
@@ -1887,13 +1886,12 @@
             border-color: #11998e;
         }
 
-        /* 【修改】手機端紅方格懸浮操作按鈕（上傳/匯出/調整寬度/清空）- 左下角偏上 */
+        /* 【修改】手機端紅方格懸浮操作按鈕（上傳/匯出/調整寬度/清空）- 右下角偏上 */
         .mobile-packing-actions-fab {
             display: none;
             position: fixed;
-            bottom: 90px; /* 位於綠方格上方 (綠方格在 20px，間距 70px) */
-            right: 20px; /* 改為左側對齊 */
-            right: auto; /* 清除右側定位 */
+            bottom: 90px; /* 56px(綠方格高度) + 20px(綠方格bottom) + 14px(間距) = 90px */
+            right: 20px;
             z-index: 996;
             flex-direction: column;
             gap: 10px;
@@ -1922,12 +1920,11 @@
             background: linear-gradient(135deg, #ee5a6f 0%, #ff6b6b 100%);
         }
 
-        /* 【修改】紅方格選單展開方向 - 向左對齊 */
+        /* 【修改】紅方格選單展開方向 - 向上展開 */
         .mobile-packing-actions-menu {
             position: absolute;
             bottom: 70px;
-            right: 0; /* 改為左側對齊 */
-            right: auto;
+            right: 0;
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -2158,7 +2155,7 @@
                 display: flex;
             }
 
-            /* 【關鍵修改 2】手機端隱藏綠方格（原有側邊欄），功能已收納到左下角懸浮面板 */
+            /* 【關鍵修改 2】手機端隱藏綠方格（原有側邊欄），功能已收納到右下角懸浮面板 */
             .packing-sidebar {
                 display: none !important;
             }
@@ -2252,20 +2249,20 @@
                 display: block;
             }
 
-            /* 【修改】顯示綠方格懸浮按鈕（統計與位置）- 左下角 */
+            /* 【修改】顯示綠方格懸浮按鈕（統計與位置）- 右下角 */
             .mobile-packing-float-btn {
                 display: flex;
-                left: 20px; /* 確保在左下角 */
-                right: auto;
+                right: 20px; /* 確保在右下角 */
+                left: auto;
                 bottom: 20px;
             }
 
-            /* 【修改】顯示紅方格懸浮操作按鈕（上傳/匯出/調整/清空）- 左下角偏上 */
+            /* 【修改】顯示紅方格懸浮操作按鈕（上傳/匯出/調整寬度/清空）- 右下角偏上 */
             .mobile-packing-actions-fab {
                 display: flex;
-                left: 20px; /* 改為左側對齊 */
-                right: auto;
-                bottom: 90px; /* 位於綠方格上方 (20px + 70px 間距) */
+                right: 20px; /* 改為右側對齊 */
+                left: auto;
+                bottom: 90px; /* 56px(綠方格) + 20px(底部間距) + 14px(間距) = 90px */
             }
         }
 
@@ -2319,7 +2316,7 @@
                 font-size: 18px;
             }
 
-            /* 手機端懸浮按鈕大小調整 - 左側佈局 */
+            /* 手機端懸浮按鈕大小調整 - 右側佈局 */
             .mobile-packing-float-btn,
             .mobile-packing-actions-main {
                 width: 52px;
@@ -2327,18 +2324,18 @@
                 font-size: 20px;
             }
 
-            /* 【修改】綠方格維持左下角 */
+            /* 【修改】綠方格維持右下角 */
             .mobile-packing-float-btn {
                 bottom: 20px;
-                left: 15px;
-                right: auto;
+                right: 15px;
+                left: auto;
             }
 
-            /* 【修改】紅方格移至左下角偏上 */
+            /* 【修改】紅方格移至右下角偏上 */
             .mobile-packing-actions-fab {
-                bottom: 85px; /* 52px按鈕 + 15px間距 + 20px底部空間 */
-                left: 15px;
-                right: auto;
+                bottom: 86px; /* 52px按鈕 + 14px間距 + 20px底部空間 */
+                right: 15px;
+                left: auto;
             }
         }
 
@@ -2736,7 +2733,7 @@
                         </div>
 
                         <div class="packing-layout">
-                            <!-- 桌面端側邊欄（手機端已隱藏，功能收納至左下角懸浮面板） -->
+                            <!-- 桌面端側邊欄（手機端已隱藏，功能收納至右下角懸浮面板） -->
                             <div class="packing-sidebar" id="packingSidebar">
                                 <div class="sidebar-stats" id="sidebarStats" style="display: none;">
                                     <div><span>總資料筆數：</span><span id="statTotal">0</span></div>
@@ -2884,7 +2881,7 @@
         </div>
     </div>
 
-    <!-- 【修改】手機端綠方格懸浮按鈕（統計與位置）- 左下角 -->
+    <!-- 【修改】手機端綠方格懸浮按鈕（統計與位置）- 右下角 -->
     <button class="mobile-packing-float-btn" id="mobilePackingBtn" onclick="toggleMobilePackingPanel()" title="統計與位置">
         📊
     </button>
@@ -2938,7 +2935,7 @@
         </div>
     </div>
 
-    <!-- 【修改】手機端紅方格懸浮操作按鈕（上傳/匯出/調整寬度/清空）- 左下角偏上 -->
+    <!-- 【修改】手機端紅方格懸浮操作按鈕（上傳/匯出/調整寬度/清空）- 右下角偏上，與綠方格垂直排列，間距14px -->
     <div class="mobile-packing-actions-fab" id="mobilePackingActionsFab">
         <button class="mobile-packing-actions-main" id="mobilePackingActionsMain" onclick="toggleMobilePackingActions()">
             ⚙️
@@ -3692,7 +3689,7 @@
             exportManualSelect();
         }
 
-        // 【新增】手機端綠方格懸浮面板控制（左下角）
+        // 【新增】手機端綠方格懸浮面板控制（右下角）
         function toggleMobilePackingPanel() {
             const panel = document.getElementById('mobilePackingPanel');
             const btn = document.getElementById('mobilePackingBtn');
@@ -3714,7 +3711,7 @@
             document.getElementById('mobilePackingBtn').classList.remove('active');
         }
 
-        // 【新增】手機端紅方格懸浮操作按鈕控制（左下角偏上）
+        // 【新增】手機端紅方格懸浮操作按鈕控制（右下角偏上）
         function toggleMobilePackingActions() {
             const fab = document.getElementById('mobilePackingActionsFab');
             const btn = document.getElementById('mobilePackingActionsMain');
