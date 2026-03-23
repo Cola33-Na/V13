@@ -37,6 +37,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 15px;
+            padding-left: 70px; /* 【新增】為左上角懸浮按鈕留出空間 */
             text-align: center;
             flex-shrink: 0;
             z-index: 100;
@@ -1706,7 +1707,7 @@
         .mobile-packing-float-btn {
             display: none;
             position: fixed;
-            bottom: 30px;
+            bottom: 100px; /* 【修改】放在右下角上方，與操作按鈕上下排列 */
             right: 30px;
             width: 60px;
             height: 60px;
@@ -1887,8 +1888,8 @@
         .mobile-packing-actions-fab {
             display: none;
             position: fixed;
-            bottom: 100px;
-            right: 20px;
+            bottom: 30px; /* 【修改】放在右下角下方 */
+            right: 30px;
             z-index: 996;
             flex-direction: column;
             gap: 10px;
@@ -2012,8 +2013,8 @@
 
         .mobile-nav-main.active {
             transform: rotate(90deg);
-            background: linear-gradient(135deg, #FFA500 0%, #FFD700 100%); /* 【修改】反轉漸層 */
-            box-shadow: 0 3px 12px rgba(255, 165, 0, 0.8); /* 【修改】更深的陰影 */
+            background: linear-gradient(135deg, #FF7F00 0%, #FF8C00 100%);
+            box-shadow: 0 3px 12px rgba(255, 140, 0, 0.8);
         }
 
         .mobile-nav-panel {
@@ -2304,13 +2305,25 @@
 
             /* 調整標題padding */
             .header {
-                padding-left: 15px;
+                padding-left: 60px; /* 【修改】為左上角懸浮按鈕留出空間 */
                 padding-top: 12px;
                 padding-bottom: 12px;
             }
 
             .header h1 {
                 font-size: 16px;
+                text-align: center;
+            }
+
+            /* 【新增】手機端右下角懸浮按鈕優化 - 考慮安全區域 */
+            .mobile-packing-float-btn,
+            .mobile-packing-actions-fab {
+                right: max(20px, env(safe-area-inset-right, 20px));
+                bottom: max(20px, env(safe-area-inset-bottom, 20px));
+            }
+
+            .mobile-packing-float-btn {
+                bottom: max(90px, calc(env(safe-area-inset-bottom, 20px) + 70px)); /* 上方位置 */
             }
 
             /* 小螢幕裝箱布局調整 */
@@ -2463,10 +2476,103 @@
             background: #11998e;
             color: white;
         }
-    </style>
+    /* 【新增】虛擬鍵盤適配 - 使用 VirtualKeyboard API 環境變數 */
+        .mobile-packing-float-btn,
+        .mobile-packing-actions-fab {
+            /* 支援 VirtualKeyboard API 的瀏覽器會自動調整位置 */
+            bottom: max(20px, env(keyboard-inset-bottom, 0px) + 20px);
+        }
+
+        .mobile-packing-float-btn {
+            /* 統計按鈕位於操作按鈕上方，間距 70px */
+            bottom: max(90px, env(keyboard-inset-bottom, 0px) + 90px);
+        }
+
+        /* 當鍵盤彈出時，降低懸浮按鈕的 z-index 避免遮擋輸入框 */
+        body:has(input:focus-visible) .mobile-packing-float-btn,
+        body:has(input:focus-visible) .mobile-packing-actions-fab,
+        body:has(textarea:focus-visible) .mobile-packing-float-btn,
+        body:has(textarea:focus-visible) .mobile-packing-actions-fab {
+            z-index: 1;
+        }
+
+        /* iOS Safari 特定修復：當鍵盤彈出時隱藏懸浮按鈕 */
+        @supports (-webkit-touch-callout: none) {
+            body.keyboard-open .mobile-packing-float-btn,
+            body.keyboard-open .mobile-packing-actions-fab {
+                opacity: 0;
+                pointer-events: none;
+                transform: scale(0.8);
+                transition: all 0.3s ease;
+            }
+        }
+</style>
     <!-- 引入 SheetJS 函式庫 -->
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js">
+        // 【新增】虛擬鍵盤檢測函數
+        function initVirtualKeyboardDetection() {
+            // 方法1: 使用 Visual Viewport API (iOS Safari 支援)
+            if (window.visualViewport) {
+                let initialHeight = window.visualViewport.height;
+
+                window.visualViewport.addEventListener('resize', function() {
+                    const currentHeight = window.visualViewport.height;
+                    const heightDiff = initialHeight - currentHeight;
+
+                    // 如果高度減少超過 150px，認為鍵盤彈出
+                    if (heightDiff > 150) {
+                        document.body.classList.add('keyboard-open');
+                    } else {
+                        document.body.classList.remove('keyboard-open');
+                    }
+                });
+            }
+
+            // 方法2: 使用 focusin/focusout 事件監聽
+            const isKeyboardInput = (elem) => {
+                if (!elem) return false;
+                const tagName = elem.tagName;
+                const inputType = elem.type;
+
+                return (tagName === 'INPUT' && 
+                        !['button', 'submit', 'checkbox', 'file', 'image', 'radio'].includes(inputType)) ||
+                       tagName === 'TEXTAREA' || 
+                       elem.hasAttribute('contenteditable');
+            };
+
+            document.addEventListener('focusin', function(e) {
+                if (isKeyboardInput(e.target)) {
+                    document.body.classList.add('keyboard-open');
+                }
+            });
+
+            document.addEventListener('focusout', function(e) {
+                // 延遲移除，避免切換輸入框時閃爍
+                setTimeout(() => {
+                    const activeElement = document.activeElement;
+                    if (!isKeyboardInput(activeElement)) {
+                        document.body.classList.remove('keyboard-open');
+                    }
+                }, 100);
+            });
+
+            // 方法3: 傳統 window resize 事件 (Android 支援)
+            let windowHeight = window.innerHeight;
+            window.addEventListener('resize', function() {
+                const currentHeight = window.innerHeight;
+                const heightDiff = windowHeight - currentHeight;
+
+                if (heightDiff > 150) {
+                    document.body.classList.add('keyboard-open');
+                } else if (currentHeight >= windowHeight * 0.95) {
+                    document.body.classList.remove('keyboard-open');
+                }
+            });
+        }
+
+</script>
     <base target="_blank">
+<base target="_blank">
 </head>
 
 <body>
@@ -3136,6 +3242,9 @@
             loadCustomCategories();
             loadColumnWidths(); // 【新增】載入欄位寬度設定
 
+            // 【新增】初始化虛擬鍵盤檢測
+            initVirtualKeyboardDetection();
+
             document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') searchBook();
             });
@@ -3450,9 +3559,15 @@
             const mobileManualBtn = document.getElementById('mobileManualBtn');
             const mobilePackingBtn = document.getElementById('mobilePackingBtn');
             const mobilePackingActionsFab = document.getElementById('mobilePackingActionsFab');
+            const mobileNavFab = document.getElementById('mobileNavFab');
+            const isMobile = window.matchMedia('(max-width: 968px)').matches;
+
             if (mobileManualBtn) mobileManualBtn.style.display = 'none';
-            if (mobilePackingBtn) mobilePackingBtn.style.display = 'flex';
-            if (mobilePackingActionsFab) mobilePackingActionsFab.style.display = 'flex';
+            // 在手機端顯示右下角兩個懸浮按鈕（統計在上，操作在下）
+            if (mobilePackingBtn) mobilePackingBtn.style.display = isMobile ? 'flex' : 'none';
+            if (mobilePackingActionsFab) mobilePackingActionsFab.style.display = isMobile ? 'flex' : 'none';
+            // 手機端主導航始終顯示（左上角橙色）
+            if (mobileNavFab && isMobile) mobileNavFab.style.display = 'block';
             
             closeMobileManualModal();
             closeMobileNav(); // 【新增】關閉手機端導航
@@ -5931,6 +6046,68 @@
                 // 【移除】closeHeaderEditModal 呼叫已刪除
             }
         });
-    </script>
+    
+        // 【新增】虛擬鍵盤檢測函數
+        function initVirtualKeyboardDetection() {
+            // 方法1: 使用 Visual Viewport API (iOS Safari 支援)
+            if (window.visualViewport) {
+                let initialHeight = window.visualViewport.height;
+
+                window.visualViewport.addEventListener('resize', function() {
+                    const currentHeight = window.visualViewport.height;
+                    const heightDiff = initialHeight - currentHeight;
+
+                    // 如果高度減少超過 150px，認為鍵盤彈出
+                    if (heightDiff > 150) {
+                        document.body.classList.add('keyboard-open');
+                    } else {
+                        document.body.classList.remove('keyboard-open');
+                    }
+                });
+            }
+
+            // 方法2: 使用 focusin/focusout 事件監聽
+            const isKeyboardInput = (elem) => {
+                if (!elem) return false;
+                const tagName = elem.tagName;
+                const inputType = elem.type;
+
+                return (tagName === 'INPUT' && 
+                        !['button', 'submit', 'checkbox', 'file', 'image', 'radio'].includes(inputType)) ||
+                       tagName === 'TEXTAREA' || 
+                       elem.hasAttribute('contenteditable');
+            };
+
+            document.addEventListener('focusin', function(e) {
+                if (isKeyboardInput(e.target)) {
+                    document.body.classList.add('keyboard-open');
+                }
+            });
+
+            document.addEventListener('focusout', function(e) {
+                // 延遲移除，避免切換輸入框時閃爍
+                setTimeout(() => {
+                    const activeElement = document.activeElement;
+                    if (!isKeyboardInput(activeElement)) {
+                        document.body.classList.remove('keyboard-open');
+                    }
+                }, 100);
+            });
+
+            // 方法3: 傳統 window resize 事件 (Android 支援)
+            let windowHeight = window.innerHeight;
+            window.addEventListener('resize', function() {
+                const currentHeight = window.innerHeight;
+                const heightDiff = windowHeight - currentHeight;
+
+                if (heightDiff > 150) {
+                    document.body.classList.add('keyboard-open');
+                } else if (currentHeight >= windowHeight * 0.95) {
+                    document.body.classList.remove('keyboard-open');
+                }
+            });
+        }
+
+</script>
 </body>
 </html>
