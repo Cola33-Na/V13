@@ -825,24 +825,23 @@
             margin-left: 8px;
         }
 
+        /* 【修改】位置按鈕常時顯示 - 改為 opacity: 1 */
         .zone-actions {
             display: flex;
             gap: 4px;
-            opacity: 0;
+            opacity: 1; /* 改為常時顯示 */
             transition: opacity 0.3s;
         }
 
-        .zone-item:hover .zone-actions {
-            opacity: 1;
-        }
-
+        /* 【修改】調整按鈕樣式，使其在常時顯示時更美觀 */
         .zone-edit, .zone-delete {
             cursor: pointer;
-            padding: 4px;
+            padding: 6px;
             margin-left: 4px;
             font-size: 14px;
-            border-radius: 4px;
+            border-radius: 6px;
             transition: all 0.2s;
+            background: rgba(0,0,0,0.05);
         }
 
         .zone-edit:hover {
@@ -1122,7 +1121,7 @@
         }
 
         .excel-table .col-a { min-width: 120px; font-weight: 600; color: #667eea; }
-        .excel-table .col-f { background: #fff3cd; font-weight: 600; color: #856404; }
+        .col-f { background: #fff3cd; font-weight: 600; color: #856404; }
         .excel-table tr:hover .col-f { background: #ffeaa7; }
 
         .spare-mode .excel-table .col-a { color: #11998e; }
@@ -2458,6 +2457,41 @@
             background: #11998e;
             color: white;
         }
+
+        /* 【新增】手機端載入指示器樣式 */
+        .mobile-loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.8);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .mobile-loading-overlay.active {
+            display: flex;
+        }
+
+        .mobile-loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .mobile-loading-text {
+            margin-top: 15px;
+            color: #667eea;
+            font-weight: 600;
+            font-size: 16px;
+        }
     </style>
     <!-- 引入 SheetJS 函式庫 -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
@@ -2895,8 +2929,14 @@
             </div>
             
             <div class="mobile-packing-panel-body">
+                <!-- 【新增】載入指示器 -->
+                <div id="mobilePanelLoading" style="display: none; text-align: center; padding: 20px;">
+                    <div class="spinner" style="margin: 0 auto 10px;"></div>
+                    <div style="color: #666; font-size: 14px;">載入中...</div>
+                </div>
+
                 <!-- 統計摘要 - 直排（垂直排列） -->
-                <div class="mobile-stats-section">
+                <div class="mobile-stats-section" id="mobileStatsSection">
                     <h4>📈 資料統計</h4>
                     <div class="mobile-stats-grid">
                         <div class="mobile-stat-item">
@@ -2996,6 +3036,12 @@
                 <div class="mobile-nav-text">SPARE 裝箱管理</div>
             </div>
         </div>
+    </div>
+
+    <!-- 【新增】手機端全螢幕載入指示器 -->
+    <div class="mobile-loading-overlay" id="mobileLoadingOverlay">
+        <div class="mobile-loading-spinner"></div>
+        <div class="mobile-loading-text">載入中...</div>
     </div>
 
     <!-- Modal -->
@@ -3121,8 +3167,11 @@
             'F': 120
         };
         
+        // 【修改】上傳批次大小改為10，並設定重試次數
         const MAX_LOGS = 50;
-        const UPLOAD_BATCH_SIZE = 200; // 【優化】從50增至200，配合後端1000筆批次
+        const UPLOAD_BATCH_SIZE = 10; // 【修改】從200改為10
+        const MAX_RETRIES = 3; // 【新增】重試次數
+        const RETRY_DELAY = 2000; // 【新增】重試延遲2秒
         const PAGE_SIZE = 200;
 
         //================ 初始化 =================
@@ -3756,43 +3805,57 @@
         }
 
         // 【新增】更新手機端綠方格懸浮面板資料（統計與位置）
-        function updateMobilePackingPanel() {
-            // 更新統計數字
-            document.getElementById('mobileStatTotal').textContent = totalRecords || 0;
+        async function updateMobilePackingPanel() {
+            const loadingDiv = document.getElementById('mobilePanelLoading');
+            const statsSection = document.getElementById('mobileStatsSection');
+            const zoneListDiv = document.getElementById('mobileZoneList');
             
-            // 計算已分類和未分類
-            let classified = 0;
-            let unclassified = 0;
-            if (packingDataCache && packingDataCache.length > 0) {
-                packingDataCache.forEach(item => {
-                    if (item.F && item.F.trim() !== '') {
-                        classified++;
-                    } else {
-                        unclassified++;
-                    }
-                });
-            }
-            // 如果沒有資料，使用dashboardCache的數據
-            const cacheKey = `${currentPackingSheet}_${currentPage}_${currentZone}`;
-            if (dashboardCache[cacheKey] && dashboardCache[cacheKey].summary) {
-                const summary = dashboardCache[cacheKey].summary;
-                document.getElementById('mobileStatClassified').textContent = summary.classified || 0;
-                document.getElementById('mobileStatUnclassified').textContent = summary.unclassified || 0;
+            // 檢查快取是否有效
+            const cacheKey = `${currentPackingSheet}_1_all`;
+            const now = Date.now();
+            const cached = dashboardCache[cacheKey];
+            
+            if (cached && (now - cacheTimestamp[cacheKey] < CACHE_TTL)) {
+                // 使用快取資料
+                updateMobilePanelUI(cached);
             } else {
-                document.getElementById('mobileStatClassified').textContent = classified;
-                document.getElementById('mobileStatUnclassified').textContent = unclassified;
+                // 顯示載入指示器
+                loadingDiv.style.display = 'block';
+                statsSection.style.display = 'none';
+                zoneListDiv.style.display = 'none';
+                
+                try {
+                    // 重新載入資料
+                    await loadPackingDataOptimized();
+                    // 載入後更新UI
+                    const newCached = dashboardCache[cacheKey];
+                    if (newCached) {
+                        updateMobilePanelUI(newCached);
+                    }
+                } catch (e) {
+                    console.error('載入手機端面板資料失敗:', e);
+                } finally {
+                    loadingDiv.style.display = 'none';
+                    statsSection.style.display = 'block';
+                    zoneListDiv.style.display = 'flex';
+                }
             }
+        }
+
+        // 【新增】更新手機端面板UI
+        function updateMobilePanelUI(data) {
+            // 更新統計數字
+            document.getElementById('mobileStatTotal').textContent = data.totalRecords || 0;
+            document.getElementById('mobileStatClassified').textContent = data.summary?.classified || 0;
+            document.getElementById('mobileStatUnclassified').textContent = data.summary?.unclassified || 0;
             
             // 更新位置列表
-            updateMobileZoneList();
+            updateMobileZoneList(data.zones || [], data.unclassified || 0);
         }
 
         // 【新增】更新手機端位置列表
-        function updateMobileZoneList() {
+        function updateMobileZoneList(zones, unclassified) {
             const zoneListDiv = document.getElementById('mobileZoneList');
-            const zonesResult = dashboardCache[`${currentPackingSheet}_1_all`] || {};
-            const zones = zonesResult.zones || [];
-            const unclassified = zonesResult.unclassified || 0;
             
             let html = '';
             
@@ -3859,12 +3922,20 @@
                 }
             });
             
+            // 【新增】顯示全螢幕載入指示器（手機端）
+            const mobileLoading = document.getElementById('mobileLoadingOverlay');
+            if (mobileLoading && window.innerWidth <= 968) {
+                mobileLoading.classList.add('active');
+            }
+            
             if (normalizedZone === 'all') {
                 document.getElementById('packingSummary').style.display = 'block';
                 document.getElementById('packingDataList').style.display = 'none';
                 document.getElementById('quickInputArea').style.display = 'none';
                 document.getElementById('paginationControls').style.display = 'none';
-                loadPackingSummary();
+                loadPackingSummary().then(() => {
+                    if (mobileLoading) mobileLoading.classList.remove('active');
+                });
             } else {
                 document.getElementById('packingSummary').style.display = 'none';
                 document.getElementById('packingDataList').style.display = 'block';
@@ -3876,7 +3947,9 @@
                 const tbody = document.getElementById('excelTableBody');
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;"><div class="spinner" style="margin: 0 auto 15px;"></div><p>Loading...</p></td></tr>';
                 
-                loadPackingDataOptimized();
+                loadPackingDataOptimized().then(() => {
+                    if (mobileLoading) mobileLoading.classList.remove('active');
+                });
             }
         }
 
@@ -4619,7 +4692,6 @@
                         renderDataListOptimized(); // 【優化】使用優化渲染
                     } else {
                         backToSummary();
-                    }
                     return;
                 }
 
@@ -5654,7 +5726,7 @@
         }
 
         /**
-         * 【優化】分批上傳核心函數 - 增大批次至200筆
+         * 【優化】分批上傳核心函數 - 改為10筆一批並加入重試機制
          */
         async function confirmModalUpload() {
             if (!selectedModalFile || isUploading) return;
@@ -5698,8 +5770,8 @@
 
                 const totalRecords = normalizedData.length;
                 
-                // 【優化】增大批次至200筆，配合後端1000筆處理能力
-                const BATCH_SIZE = UPLOAD_BATCH_SIZE;
+                // 【修改】批次大小改為10筆
+                const BATCH_SIZE = UPLOAD_BATCH_SIZE; // 10
                 const totalBatches = Math.ceil(totalRecords / BATCH_SIZE);
                 let totalUpdated = 0;
                 let totalInserted = 0;
@@ -5719,27 +5791,44 @@
                     updateProgress(progressPercent, `上傳第 ${currentBatch}/${totalBatches} 批 (${batchData.length} 筆)...`);
                     btn.innerHTML = `<span style="display: inline-block; width: 18px; height: 18px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 6px;"></span>第 ${currentBatch}/${totalBatches} 批...`;
 
-                    try {
-                        // 【優化】呼叫優化後的上傳API
-                        const result = await packingApiCall('packingUploadData', {
-                            data: JSON.stringify(batchData),
-                            sheet: currentPackingSheet
-                        }, 120000); // 增加超時至2分鐘
+                    // 【新增】重試機制
+                    let batchSuccess = false;
+                    let batchRetries = 0;
+                    let lastError = null;
 
-                        if (result.success) {
-                            totalUpdated += (result.updated || 0);
-                            totalInserted += (result.inserted || 0);
-                            totalProcessed += (result.processed || batchData.length);
-                        } else {
-                            failedBatches.push({ batch: currentBatch, error: result.error || '未知錯誤' });
-                            console.error(`批次 ${currentBatch} 失敗:`, result.error);
+                    while (!batchSuccess && batchRetries < MAX_RETRIES) {
+                        try {
+                            const result = await packingApiCall('packingUploadData', {
+                                data: JSON.stringify(batchData),
+                                sheet: currentPackingSheet
+                            }, 120000); // 2分鐘超時
+
+                            if (result.success) {
+                                totalUpdated += (result.updated || 0);
+                                totalInserted += (result.inserted || 0);
+                                totalProcessed += (result.processed || batchData.length);
+                                batchSuccess = true;
+                            } else {
+                                throw new Error(result.error || '批次處理失敗');
+                            }
+                        } catch (e) {
+                            batchRetries++;
+                            lastError = e;
+                            console.error(`批次 ${currentBatch} 失敗 (嘗試 ${batchRetries}/${MAX_RETRIES}):`, e);
+                            
+                            if (batchRetries < MAX_RETRIES) {
+                                updateProgress(progressPercent, `第 ${currentBatch} 批失敗，${RETRY_DELAY/1000}秒後重試 (${batchRetries}/${MAX_RETRIES})...`);
+                                await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+                            }
                         }
-                    } catch (e) {
-                        failedBatches.push({ batch: currentBatch, error: e.message });
-                        console.error(`批次 ${currentBatch} 錯誤:`, e);
                     }
 
-                    // 【優化】批次間延遲縮短至200ms
+                    if (!batchSuccess) {
+                        failedBatches.push({ batch: currentBatch, error: lastError?.message || '未知錯誤' });
+                        console.error(`批次 ${currentBatch} 最終失敗:`, lastError);
+                    }
+
+                    // 批次間延遲縮短至200ms
                     if (i + BATCH_SIZE < totalRecords) {
                         await new Promise(resolve => setTimeout(resolve, 200));
                     }
