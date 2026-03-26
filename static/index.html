@@ -903,6 +903,24 @@
             border: 1px solid #e9ecef;
         }
 
+        /* 【優化】虛擬滾動容器樣式 */
+        .virtual-scroll-container {
+            position: relative;
+            overflow-y: auto;
+            max-height: 600px;
+            contain: strict;
+        }
+        
+        .virtual-scroll-content {
+            position: relative;
+        }
+        
+        .virtual-scroll-item {
+            position: absolute;
+            width: 100%;
+            left: 0;
+        }
+
         /* 【優化】統計表格樣式 - 提升渲染效能 */
         .summary-grid {
             display: grid;
@@ -2264,6 +2282,20 @@
                 left: auto;
                 bottom: 90px; /* 56px(綠方格) + 20px(底部間距) + 14px(間距) = 90px */
             }
+
+            /* 【新增】手機端位置按鈕常時顯示 - 強制覆蓋hover規則 */
+            .zone-actions {
+                opacity: 1 !important;
+            }
+            
+            .zone-item .zone-actions {
+                opacity: 1 !important;
+            }
+            
+            /* 調整手機端位置項目樣式，確保按鈕有足夠空間 */
+            .zone-item {
+                padding: 12px 8px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -2457,6 +2489,52 @@
         .spare-mode .width-preset-btn:hover {
             background: #11998e;
             color: white;
+        }
+
+        /* 【新增】調整篩選項目 Modal 樣式 */
+        .category-edit-row {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #ff9800;
+        }
+
+        .category-edit-row h4 {
+            margin: 0 0 5px 0;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .category-input-group {
+            display: grid;
+            grid-template-columns: 80px 1fr 1fr;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .category-input-group label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .category-input-group select,
+        .category-input-group input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .category-header-note {
+            font-size: 11px;
+            color: #888;
+            margin-top: 5px;
+            font-style: italic;
         }
     </style>
     <!-- 引入 SheetJS 函式庫 -->
@@ -2722,6 +2800,10 @@
                                 <button class="title-btn title-btn-secondary" onclick="exportPackingExcel()">
                                     📥 匯出Excel
                                 </button>
+                                <!-- 【新增】調整篩選項目按鈕 -->
+                                <button class="title-btn title-btn-secondary" onclick="showCategoryEditModal()">
+                                    🏷️ 調整篩選項目
+                                </button>
                                 <!-- 【新增】調整標題寬度按鈕，置於清空之前 -->
                                 <button class="title-btn title-btn-secondary" onclick="showAdjustWidthModal()">
                                     📐 調整標題寬度
@@ -2949,6 +3031,11 @@
                 <span>📥</span>
                 <span>匯出Excel</span>
             </button>
+            <!-- 【新增】手機端調整篩選項目按鈕 -->
+            <button class="mobile-packing-action-btn adjust" onclick="showCategoryEditModal(); toggleMobilePackingActions();">
+                <span>🏷️</span>
+                <span>調整篩選項目</span>
+            </button>
             <button class="mobile-packing-action-btn adjust" onclick="showAdjustWidthModal(); toggleMobilePackingActions();">
                 <span>📐</span>
                 <span>調整標題寬度</span>
@@ -3006,6 +3093,23 @@
             <div class="modal-actions" id="modalActions">
                 <button class="btn-secondary" onclick="closeModal()">取消</button>
                 <button class="btn-primary" id="modalConfirmBtn" onclick="modalConfirm()">確認</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 【新增】調整篩選項目 Modal -->
+    <div class="modal-overlay" id="categoryEditModalOverlay" onclick="closeCategoryEditModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <h3>🏷️ 調整篩選項目</h3>
+            <div id="categoryEditContent">
+                <!-- 動態生成5個分類編輯項 -->
+            </div>
+            <div style="margin-top: 15px; padding: 10px; background: #fff3cd; border-radius: 6px; font-size: 13px; color: #856404;">
+                💡 設定統計表格中5個篩選項目的欄位與值，例如「C欄=中文」會統計C欄內容為「中文」的數量
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeCategoryEditModal()">取消</button>
+                <button class="btn-primary" onclick="saveCategoryEdit()">儲存設定</button>
             </div>
         </div>
     </div>
@@ -3356,6 +3460,143 @@
             showToast('✅ A欄已設定為 +30% (' + newWidth + 'px)', 'success');
         }
 
+        //================ 【新增】調整篩選項目功能 =================
+        
+        // 載入儲存的分類設定
+        function loadCustomCategories() {
+            const saved = localStorage.getItem('customCategories_' + currentPackingSheet);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (parsed.length === 5) {
+                        customCategories = parsed;
+                    } else {
+                        resetCustomCategories();
+                    }
+                } catch (e) {
+                    console.error('載入自定義分類失敗:', e);
+                    resetCustomCategories();
+                }
+            } else {
+                resetCustomCategories();
+            }
+        }
+        
+        // 重置為預設分類
+        function resetCustomCategories() {
+            customCategories = [
+                { id: 1, column: 'B', value: '中文', label: '中文', enabled: true },
+                { id: 2, column: 'B', value: 'English', label: 'English', enabled: true },
+                { id: 3, column: 'C', value: 'LastCopy', label: 'LastCopy', enabled: true },
+                { id: 4, column: 'D', value: 'Donation', label: 'Donation', enabled: true },
+                { id: 5, column: 'E', value: 'Other', label: 'Other', enabled: true }
+            ];
+        }
+        
+        // 儲存分類設定
+        function saveCustomCategories() {
+            localStorage.setItem('customCategories_' + currentPackingSheet, JSON.stringify(customCategories));
+            showToast('✅ 篩選項目設定已儲存', 'success');
+            updateStatsTableHeaders();
+            // 清除快取並重新載入統計
+            delete dashboardCache[`${currentPackingSheet}_1_all`];
+            loadPackingSummary();
+        }
+        
+        // 顯示調整篩選項目 Modal
+        function showCategoryEditModal() {
+            const content = document.getElementById('categoryEditContent');
+            const colOptions = ['A', 'B', 'C', 'D', 'E', 'F'];
+            
+            let html = '';
+            customCategories.forEach((cat, index) => {
+                const colSelect = colOptions.map(col => 
+                    `<option value="${col}" ${cat.column === col ? 'selected' : ''}>${col}欄</option>`
+                ).join('');
+                
+                html += `
+                    <div class="category-edit-row">
+                        <h4>篩選項目 ${index + 1}</h4>
+                        <div class="category-input-group">
+                            <label>欄位：</label>
+                            <select id="cat_col_${index}">
+                                ${colSelect}
+                            </select>
+                            <input type="text" id="cat_val_${index}" value="${escapeHtml(cat.value)}" placeholder="值（如：中文）">
+                        </div>
+                        <div class="category-input-group" style="margin-top: 8px;">
+                            <label>標籤：</label>
+                            <input type="text" id="cat_label_${index}" value="${escapeHtml(cat.label)}" placeholder="顯示名稱（如：中文書）" style="grid-column: span 2;">
+                        </div>
+                        <div class="category-header-note">
+                            此設定將顯示為統計表格標題：${cat.column}欄="${cat.value || '?'}" → ${cat.label || '?'}</div>
+                    </div>
+                `;
+            });
+            
+            content.innerHTML = html;
+            document.getElementById('categoryEditModalOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        // 關閉調整篩選項目 Modal
+        function closeCategoryEditModal(e) {
+            if (e && e.target !== document.getElementById('categoryEditModalOverlay')) return;
+            document.getElementById('categoryEditModalOverlay').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        // 儲存篩選項目編輯
+        function saveCategoryEdit() {
+            for (let i = 0; i < 5; i++) {
+                const col = document.getElementById(`cat_col_${i}`).value;
+                const val = document.getElementById(`cat_val_${i}`).value.trim();
+                const label = document.getElementById(`cat_label_${i}`).value.trim();
+                
+                customCategories[i] = {
+                    id: i + 1,
+                    column: col,
+                    value: val,
+                    label: label || `項目${i + 1}`,
+                    enabled: val !== ''
+                };
+            }
+            
+            saveCustomCategories();
+            closeCategoryEditModal();
+        }
+        
+        // 更新統計表格標題
+        function updateStatsTableHeaders() {
+            const headerRow = document.getElementById('statsTableHeaderRow');
+            if (!headerRow) return;
+            
+            // 【修正】使用後端返回的分類資料，而非本地 customCategories
+            const cacheKey = `${currentPackingSheet}_1_all`;
+            const cached = dashboardCache[cacheKey];
+            const categories = (cached && cached.summary && cached.summary.categories) ? cached.summary.categories : customCategories;
+            
+            let html = `
+                <th>A欄 (位置)</th>
+                <th>Quantity<br><span class="stats-table-header-note">總數量</span></th>
+            `;
+            
+            categories.forEach((cat, index) => {
+                if (cat && (cat.enabled !== false) && cat.label) {
+                    html += `
+                        <th class="orange-header">
+                            ${escapeHtml(cat.label)}<br>
+                            <span class="stats-table-header-note">${cat.column}欄="${escapeHtml(cat.value)}"</span>
+                        </th>
+                    `;
+                } else {
+                    html += `<th class="orange-header">分類${index + 1}</th>`;
+                }
+            });
+            
+            headerRow.innerHTML = html;
+        }
+
         //================ 面板切換 =================
         function switchPanel(panelName) {
             stopStatusMonitoring();
@@ -3375,6 +3616,7 @@
             closeMobilePackingPanel(); // 【新增】關閉裝箱懸浮面板
             closeMobileNav(); // 【新增】關閉手機端導航
             closeWidthAdjustModal(); // 【新增】關閉寬度調整視窗
+            closeCategoryEditModal(); // 【新增】關閉篩選項目調整視窗
 
             if (panelName === 'search') {
                 setTimeout(() => document.getElementById('searchInput')?.focus(), 100);
@@ -3496,78 +3738,6 @@
                 document.getElementById('mobilePackingBtn').classList.remove('spare-mode'); // 【新增】
                 document.getElementById('mobilePackingActionsFab').classList.remove('spare-mode'); // 【新增】
             }
-        }
-
-        //================ 自定義分類功能 =================
-        function loadCustomCategories() {
-            const saved = localStorage.getItem('customCategories_' + currentPackingSheet);
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    if (parsed.length === 5) {
-                        customCategories = parsed;
-                    } else {
-                        resetCustomCategories();
-                    }
-                } catch (e) {
-                    console.error('載入自定義分類失敗:', e);
-                    resetCustomCategories();
-                }
-            } else {
-                resetCustomCategories();
-            }
-        }
-        
-        function resetCustomCategories() {
-            customCategories = [
-                { id: 1, column: 'B', value: '中文', label: '中文', enabled: true },
-                { id: 2, column: 'B', value: 'English', label: 'English', enabled: true },
-                { id: 3, column: 'C', value: 'LastCopy', label: 'LastCopy', enabled: true },
-                { id: 4, column: 'D', value: 'Donation', label: 'Donation', enabled: true },
-                { id: 5, column: 'E', value: 'Other', label: 'Other', enabled: true }
-            ];
-        }
-        
-        function saveCustomCategories() {
-            localStorage.setItem('customCategories_' + currentPackingSheet, JSON.stringify(customCategories));
-            showToast('✅ 分類設定已儲存', 'success');
-            updateStatsTableHeaders();
-            loadPackingSummary();
-        }
-        
-        function updateCustomCategory(index, field, value) {
-            customCategories[index][field] = value;
-            customCategories[index].enabled = value.trim() !== '';
-        }
-        
-        function updateStatsTableHeaders() {
-            const headerRow = document.getElementById('statsTableHeaderRow');
-            if (!headerRow) return;
-            
-            // 【修正】使用後端返回的分類資料，而非本地 customCategories
-            const cacheKey = `${currentPackingSheet}_1_all`;
-            const cached = dashboardCache[cacheKey];
-            const categories = (cached && cached.summary && cached.summary.categories) ? cached.summary.categories : customCategories;
-            
-            let html = `
-                <th>A欄 (位置)</th>
-                <th>Quantity<br><span class="stats-table-header-note">總數量</span></th>
-            `;
-            
-            categories.forEach((cat, index) => {
-                if (cat && (cat.enabled !== false) && cat.label) {
-                    html += `
-                        <th class="orange-header">
-                            ${escapeHtml(cat.label)}<br>
-                            <span class="stats-table-header-note">${cat.column}欄="${escapeHtml(cat.value)}"</span>
-                        </th>
-                    `;
-                } else {
-                    html += `<th class="orange-header">分類${index + 1}</th>`;
-                }
-            });
-            
-            headerRow.innerHTML = html;
         }
 
         //================ 手機端 Manual Select 功能 =================
@@ -5919,6 +6089,7 @@
                 closeMobilePackingPanel(); // 【新增】關閉手機端裝箱面板
                 closeMobileNav(); // 【新增】關閉手機端導航
                 closeWidthAdjustModal(); // 【新增】關閉寬度調整視窗
+                closeCategoryEditModal(); // 【新增】關閉篩選項目調整視窗
             }
         });
     </script>
