@@ -3856,8 +3856,33 @@
             closeMobileNav();
             
             loadHeaders().then(() => {
-                loadPackingDataOptimized();
-            });
+async function loadPackingSummary() {
+    try {
+        const categoriesParam = JSON.stringify(customCategories);
+        const summaryResult = await packingApiCall('packingGetSummary', {
+            sheet: currentPackingSheet,
+            categories: categoriesParam
+        });
+
+        if (summaryResult.success && summaryResult.summary) {
+            updateSummaryDisplay(summaryResult.summary);
+            
+            // 【新增】同時更新側邊欄的全局統計
+            if (summaryResult.summary && summaryResult.summary.total !== undefined) {
+                const allCache = dashboardCache[`${currentPackingSheet}_1_all`];
+                if (allCache) {
+                    // 更新緩存中的全局統計
+                    allCache.totalRecords = summaryResult.summary.total;
+                    allCache.unclassified = summaryResult.summary.unclassified || 0;
+                    // 重新渲染側邊欄
+                    updateSidebarAndZonesFromCache();
+                }
+            }
+        }
+    } catch (e) {
+        console.error('載入 Summary 失敗:', e);
+    }
+}
         }
 
         function updatePanelStyle() {
@@ -5367,22 +5392,7 @@
             tbody.appendChild(fragment);
         }
 
-        async function loadPackingSummary() {
-            try {
-                const categoriesParam = JSON.stringify(customCategories);
-                const summaryResult = await packingApiCall('packingGetSummary', {
-                    sheet: currentPackingSheet,
-                    categories: categoriesParam
-                });
-
-                if (summaryResult.success && summaryResult.summary) {
-                    updateSummaryDisplay(summaryResult.summary);
-                }
-            } catch (e) {
-                console.error('載入 Summary 失敗:', e);
-            }
-        }
-
+        
         async function quickAddSearch() {
             if (isProcessingQuickAdd) return;
 
