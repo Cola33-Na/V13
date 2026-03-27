@@ -903,7 +903,7 @@
             border: 1px solid #e9ecef;
         }
 
-        /* 【優化】虛擬滾動容器樣式 */
+        /* 虛擬滾動容器樣式 */
         .virtual-scroll-container {
             position: relative;
             overflow-y: auto;
@@ -921,7 +921,7 @@
             left: 0;
         }
 
-        /* 【優化】統計表格樣式 - 提升渲染效能 */
+        /* 統計表格樣式 - 提升渲染效能 */
         .summary-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -956,7 +956,7 @@
             border: 1px solid #e0e0e0;
             background: white;
             margin-top: 15px;
-            contain: layout; /* 【優化】CSS containment提升效能 */
+            contain: layout;
             -webkit-overflow-scrolling: touch;
         }
 
@@ -965,7 +965,7 @@
             border-collapse: separate;
             border-spacing: 0;
             font-size: 14px;
-            table-layout: auto; /* 【修改】改為auto以適應內容 */
+            table-layout: auto;
         }
 
         .stats-table thead th {
@@ -1037,20 +1037,20 @@
             margin-top: 2px;
         }
 
-        /* Excel 風格資料表格 - 【新增】可調節欄寛 */
+        /* Excel 風格資料表格 - 可調節欄寛 */
         .excel-table-container {
             overflow-x: auto;
             border-radius: 8px;
             border: 1px solid #e0e0e0;
             background: white;
-            contain: layout; /* 【優化】CSS containment */
+            contain: layout;
         }
 
         .excel-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 14px;
-            table-layout: fixed; /* 【優化】固定布局 */
+            table-layout: fixed;
         }
 
         .excel-table thead {
@@ -1070,7 +1070,6 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            /* 【新增】可調節欄寛 */
             resize: horizontal;
             min-width: 80px;
             max-width: 400px;
@@ -1082,10 +1081,9 @@
 
         .excel-table th:last-child {
             border-top-right-radius: 8px;
-            resize: none; /* 最後一欄不調整 */
+            resize: none;
         }
 
-        /* 【新增】調整大小的handle優化 */
         .excel-table th::-webkit-resizer {
             background: rgba(255,255,255,0.5);
             border-radius: 2px;
@@ -1720,7 +1718,7 @@
             to { transform: translateX(-50%) translateY(0); opacity: 1; }
         }
 
-        /* 【修改】手機端綠方格懸浮按鈕（統計與位置）- 右下角 */
+        /* 手機端綠方格懸浮按鈕（統計與位置）- 右下角 */
         .mobile-packing-float-btn {
             display: none;
             position: fixed;
@@ -1760,7 +1758,7 @@
             background: linear-gradient(135deg, #38ef7d 0%, #11998e 100%);
         }
 
-        /* 【新增】手機端綠方格懸浮面板（統計與位置）- 直排顯示 */
+        /* 手機端綠方格懸浮面板（統計與位置）- 直排顯示 */
         .mobile-packing-panel {
             display: none;
             position: fixed;
@@ -1839,7 +1837,7 @@
             font-weight: 600;
         }
 
-        /* 【修改】手機端統計改為直排（垂直排列） */
+        /* 手機端統計改為直排（垂直排列） */
         .mobile-stats-grid {
             display: flex;
             flex-direction: column;
@@ -1904,11 +1902,31 @@
             border-color: #11998e;
         }
 
-        /* 【修改】手機端紅方格懸浮操作按鈕（上傳/匯出/調整寬度/清空）- 右下角偏上 */
+        /* 【新增】手機端位置操作按鈕樣式 */
+        .mobile-zone-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            opacity: 1;
+            margin-left: 8px;
+        }
+
+        .mobile-zone-actions button {
+            min-width: 32px;
+            height: 32px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            border-radius: 6px;
+        }
+
+        /* 手機端紅方格懸浮操作按鈕（上傳/匯出/調整寬度/清空）- 右下角偏上 */
         .mobile-packing-actions-fab {
             display: none;
             position: fixed;
-            bottom: 90px; /* 56px(綠方格高度) + 20px(綠方格bottom) + 14px(間距) = 90px */
+            bottom: 90px;
             right: 20px;
             z-index: 996;
             flex-direction: column;
@@ -1938,7 +1956,7 @@
             background: linear-gradient(135deg, #ee5a6f 0%, #ff6b6b 100%);
         }
 
-        /* 【修改】紅方格選單展開方向 - 向上展開 */
+        /* 紅方格選單展開方向 - 向上展開 */
         .mobile-packing-actions-menu {
             position: absolute;
             bottom: 70px;
@@ -2005,7 +2023,7 @@
             background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
         }
 
-        /* 【修改】手機端主導航懸浮選單 - 左上角橙色 */
+        /* 手機端主導航懸浮選單 - 左上角橙色 */
         .mobile-nav-fab {
             display: none;
             position: fixed;
@@ -2018,7 +2036,7 @@
             width: 44px;
             height: 44px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #ff8c00 0%, #ff6347 100%); /* 橙色漸層 */
+            background: linear-gradient(135deg, #ff8c00 0%, #ff6347 100%);
             color: white;
             border: none;
             box-shadow: 0 3px 10px rgba(255, 140, 0, 0.5);
@@ -2120,12 +2138,12 @@
         /* 響應式設計 - 手機端優化 */
         @media (max-width: 968px) {
             .main-wrapper {
-                grid-template-columns: 1fr; /* 隱藏左側欄後改為單列 */
+                grid-template-columns: 1fr;
                 grid-template-rows: auto 1fr;
             }
 
             .left-toolbar {
-                display: none !important; /* 【關鍵】手機端隱藏左側工具欄 */
+                display: none !important;
             }
 
             .tool-btn {
@@ -2156,7 +2174,7 @@
                 gap: 10px;
             }
 
-            /* 【關鍵修改 1】手機端隱藏紅方格（標題列操作按鈕），因為已有懸浮功能 */
+            /* 手機端隱藏紅方格（標題列操作按鈕），因為已有懸浮功能 */
             .block-title-actions {
                 display: none !important;
             }
@@ -2173,17 +2191,17 @@
                 display: flex;
             }
 
-            /* 【關鍵修改 2】手機端隱藏綠方格（原有側邊欄），功能已收納到右下角懸浮面板 */
+            /* 手機端隱藏綠方格（原有側邊欄），功能已收納到右下角懸浮面板 */
             .packing-sidebar {
                 display: none !important;
             }
 
-            /* 【關鍵修改 3】手機端調整裝箱版面布局 */
+            /* 手機端調整裝箱版面布局 */
             .packing-layout {
                 flex-direction: column;
                 overflow-x: hidden;
                 gap: 15px;
-                padding-bottom: 100px; /* 減少 padding，因為只有底部按鈕 */
+                padding-bottom: 100px;
             }
 
             .packing-main {
@@ -2195,7 +2213,7 @@
 
             .panel-content {
                 padding: 15px;
-                padding-bottom: 120px; /* 調整底部空間 */
+                padding-bottom: 120px;
             }
 
             .excel-table th, .excel-table td {
@@ -2267,23 +2285,23 @@
                 display: block;
             }
 
-            /* 【修改】顯示綠方格懸浮按鈕（統計與位置）- 右下角 */
+            /* 顯示綠方格懸浮按鈕（統計與位置）- 右下角 */
             .mobile-packing-float-btn {
                 display: flex;
-                right: 20px; /* 確保在右下角 */
+                right: 20px;
                 left: auto;
                 bottom: 20px;
             }
 
-            /* 【修改】顯示紅方格懸浮操作按鈕（上傳/匯出/調整寬度/清空）- 右下角偏上 */
+            /* 顯示紅方格懸浮操作按鈕（上傳/匯出/調整寬度/清空）- 右下角偏上 */
             .mobile-packing-actions-fab {
                 display: flex;
-                right: 20px; /* 改為右側對齊 */
+                right: 20px;
                 left: auto;
-                bottom: 90px; /* 56px(綠方格) + 20px(底部間距) + 14px(間距) = 90px */
+                bottom: 90px;
             }
 
-            /* 【新增】手機端位置按鈕常時顯示 - 強制覆蓋hover規則 */
+            /* 【關鍵】手機端位置按鈕常時顯示 - 強制覆蓋hover規則 */
             .zone-actions {
                 opacity: 1 !important;
             }
@@ -2296,25 +2314,39 @@
             .zone-item {
                 padding: 12px 8px;
             }
+
+            /* 【新增】手機端位置列表操作按鈕樣式強化 */
+            .mobile-zone-item {
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                padding: 10px 12px !important;
+                min-height: 44px;
+            }
+            
+            .mobile-zone-actions {
+                display: flex !important;
+                align-items: center !important;
+                gap: 4px !important;
+                opacity: 1 !important;
+                margin-left: 8px !important;
+                flex-shrink: 0;
+            }
+            
+            .mobile-zone-actions button {
+                min-width: 36px !important;
+                height: 36px !important;
+                padding: 0 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                font-size: 14px !important;
+                border-radius: 6px !important;
+                border: none !important;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+            }
         }
-    /* 【新增】手機端位置按鈕樣式 */
-    .mobile-zone-item {
-        padding: 12px 8px !important;
-    }
-    
-    .mobile-zone-actions {
-        display: flex !important;
-        opacity: 1 !important;
-    }
-    
-    .mobile-zone-actions button {
-        min-width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-}
+
         @media (max-width: 480px) {
             .tool-btn {
                 width: 65px;
@@ -2373,16 +2405,16 @@
                 font-size: 20px;
             }
 
-            /* 【修改】綠方格維持右下角 */
+            /* 綠方格維持右下角 */
             .mobile-packing-float-btn {
                 bottom: 20px;
                 right: 15px;
                 left: auto;
             }
 
-            /* 【修改】紅方格移至右下角偏上 */
+            /* 紅方格移至右下角偏上 */
             .mobile-packing-actions-fab {
-                bottom: 86px; /* 52px按鈕 + 14px間距 + 20px底部空間 */
+                bottom: 86px;
                 right: 15px;
                 left: auto;
             }
@@ -2407,7 +2439,7 @@
             background: #a8a8a8;
         }
         
-        /* 【優化】虛擬滾動容器樣式 */
+        /* 虛擬滾動容器樣式 */
         .virtual-scroll-container {
             position: relative;
             overflow-y: auto;
@@ -2425,7 +2457,7 @@
             left: 0;
         }
 
-        /* 【新增】調整標題寬度 Modal 樣式 */
+        /* 調整標題寬度 Modal 樣式 */
         .width-adjust-row {
             display: flex;
             align-items: center;
@@ -2508,7 +2540,7 @@
             color: white;
         }
 
-        /* 【新增】調整篩選項目 Modal 樣式 */
+        /* 調整篩選項目 Modal 樣式 */
         .category-edit-row {
             display: flex;
             flex-direction: column;
@@ -2817,11 +2849,9 @@
                                 <button class="title-btn title-btn-secondary" onclick="exportPackingExcel()">
                                     📥 匯出Excel
                                 </button>
-                                <!-- 【新增】調整篩選項目按鈕 -->
                                 <button class="title-btn title-btn-secondary" onclick="showCategoryEditModal()">
                                     🏷️ 調整篩選項目
                                 </button>
-                                <!-- 【新增】調整標題寬度按鈕，置於清空之前 -->
                                 <button class="title-btn title-btn-secondary" onclick="showAdjustWidthModal()">
                                     📐 調整標題寬度
                                 </button>
@@ -2980,7 +3010,7 @@
         </div>
     </div>
 
-    <!-- 【修改】手機端綠方格懸浮按鈕（統計與位置）- 右下角 -->
+    <!-- 手機端綠方格懸浮按鈕（統計與位置）- 右下角 -->
     <button class="mobile-packing-float-btn" id="mobilePackingBtn" onclick="toggleMobilePackingPanel()" title="統計與位置">
         📊
     </button>
@@ -3034,7 +3064,7 @@
         </div>
     </div>
 
-    <!-- 【修改】手機端紅方格懸浮操作按鈕（上傳/匯出/調整寬度/清空）- 右下角偏上，與綠方格垂直排列，間距14px -->
+    <!-- 手機端紅方格懸浮操作按鈕（上傳/匯出/調整寬度/清空）- 右下角偏上，與綠方格垂直排列，間距14px -->
     <div class="mobile-packing-actions-fab" id="mobilePackingActionsFab">
         <button class="mobile-packing-actions-main" id="mobilePackingActionsMain" onclick="toggleMobilePackingActions()">
             ⚙️
@@ -3048,7 +3078,6 @@
                 <span>📥</span>
                 <span>匯出Excel</span>
             </button>
-            <!-- 【新增】手機端調整篩選項目按鈕 -->
             <button class="mobile-packing-action-btn adjust" onclick="showCategoryEditModal(); toggleMobilePackingActions();">
                 <span>🏷️</span>
                 <span>調整篩選項目</span>
@@ -3114,7 +3143,7 @@
         </div>
     </div>
 
-    <!-- 【新增】調整篩選項目 Modal -->
+    <!-- 調整篩選項目 Modal -->
     <div class="modal-overlay" id="categoryEditModalOverlay" onclick="closeCategoryEditModal(event)">
         <div class="modal" onclick="event.stopPropagation()">
             <h3>🏷️ 調整篩選項目</h3>
@@ -3131,7 +3160,7 @@
         </div>
     </div>
 
-    <!-- 【新增】調整標題寬度 Modal -->
+    <!-- 調整標題寬度 Modal -->
     <div class="modal-overlay" id="widthAdjustModalOverlay" onclick="closeWidthAdjustModal(event)">
         <div class="modal" onclick="event.stopPropagation()">
             <h3>📐 調整標題寬度</h3>
@@ -3216,9 +3245,9 @@
         let totalRecords = 0;
         let columnHeaders = ['A', 'B', 'C', 'D', 'E', 'F'];
         
-        // 【優化】新增資料快取機制
-        let dashboardCache = {}; // 儀表板資料快取
-        let cacheTimestamp = {}; // 快取時間戳
+        // 新增資料快取機制
+        let dashboardCache = {};
+        let cacheTimestamp = {};
         let CACHE_TTL = 5 * 60 * 1000; // 5分鐘快取有效期
         
         let customCategories = [
@@ -3229,12 +3258,12 @@
             { id: 5, column: 'E', value: 'Other', label: 'Other', enabled: true }
         ];
         
-        // 【修改】改為只保留最新一筆的 NEW 標記
+        // 改為只保留最新一筆的 NEW 標記
         let lastAddedKey = null;
         
-        // 【新增】欄位寬度設定
+        // 欄位寬度設定
         let columnWidths = {
-            'A': 156, // 預設 120px + 30% = 156px
+            'A': 156,
             'B': 120,
             'C': 120,
             'D': 120,
@@ -3243,14 +3272,14 @@
         };
         
         const MAX_LOGS = 50;
-        const UPLOAD_BATCH_SIZE = 10; // 【優化】從50增至200，配合後端1000筆批次
+        const UPLOAD_BATCH_SIZE = 10;
         const PAGE_SIZE = 200;
 
         //================ 初始化 =================
         document.addEventListener('DOMContentLoaded', function() {
             loadManualSelect();
             loadCustomCategories();
-            loadColumnWidths(); // 【新增】載入欄位寬度設定
+            loadColumnWidths();
 
             document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') searchBook();
@@ -3279,7 +3308,6 @@
 
             setTimeout(preloadAllData, 1000);
             
-            // 【新增】初始化時顯示 Manual Select 按鈕（因為預設是 search 頁面）
             const mobileManualBtn = document.getElementById('mobileManualBtn');
             if (mobileManualBtn) {
                 mobileManualBtn.style.display = window.innerWidth <= 968 ? 'flex' : 'none';
@@ -3355,9 +3383,8 @@
             });
         }
 
-        //================ 【新增】欄位寬度調整功能 =================
+        //================ 欄位寬度調整功能 =================
         
-        // 載入儲存的欄位寬度
         function loadColumnWidths() {
             const saved = localStorage.getItem('columnWidths_' + currentPackingSheet);
             if (saved) {
@@ -3371,12 +3398,10 @@
             applyColumnWidthsToTable();
         }
 
-        // 儲存欄位寬度
         function saveColumnWidths() {
             localStorage.setItem('columnWidths_' + currentPackingSheet, JSON.stringify(columnWidths));
         }
 
-        // 套用寬度到表格
         function applyColumnWidthsToTable() {
             const ths = document.querySelectorAll('#tableHeaderRow th');
             const colKeys = ['A', 'B', 'C', 'D', 'E', 'F', 'action'];
@@ -3389,7 +3414,6 @@
             });
         }
 
-        // 顯示調整寬度 Modal
         function showAdjustWidthModal() {
             const content = document.getElementById('widthAdjustContent');
             const colKeys = ['A', 'B', 'C', 'D', 'E', 'F'];
@@ -3415,14 +3439,12 @@
             document.body.style.overflow = 'hidden';
         }
 
-        // 關閉調整寬度 Modal
         function closeWidthAdjustModal(e) {
             if (e && e.target !== document.getElementById('widthAdjustModalOverlay')) return;
             document.getElementById('widthAdjustModalOverlay').classList.remove('active');
             document.body.style.overflow = '';
         }
 
-        // 套用欄位寬度
         function applyColumnWidths() {
             const colKeys = ['A', 'B', 'C', 'D', 'E', 'F'];
             colKeys.forEach(key => {
@@ -3438,7 +3460,6 @@
             showToast('✅ 標題寬度已套用', 'success');
         }
 
-        // 恢復預設寬度
         function resetColumnWidths() {
             columnWidths = {
                 'A': 120,
@@ -3460,10 +3481,9 @@
             });
         }
 
-        // A欄加寬30%
         function applyA30Percent() {
             const baseWidth = 120;
-            const newWidth = Math.round(baseWidth * 1.3); // 156px
+            const newWidth = Math.round(baseWidth * 1.3);
             
             columnWidths['A'] = newWidth;
             
@@ -3477,9 +3497,8 @@
             showToast('✅ A欄已設定為 +30% (' + newWidth + 'px)', 'success');
         }
 
-        //================ 【新增】調整篩選項目功能 =================
+        //================ 調整篩選項目功能 =================
         
-        // 載入儲存的分類設定
         function loadCustomCategories() {
             const saved = localStorage.getItem('customCategories_' + currentPackingSheet);
             if (saved) {
@@ -3499,7 +3518,6 @@
             }
         }
         
-        // 重置為預設分類
         function resetCustomCategories() {
             customCategories = [
                 { id: 1, column: 'B', value: '中文', label: '中文', enabled: true },
@@ -3510,17 +3528,14 @@
             ];
         }
         
-        // 儲存分類設定
         function saveCustomCategories() {
             localStorage.setItem('customCategories_' + currentPackingSheet, JSON.stringify(customCategories));
             showToast('✅ 篩選項目設定已儲存', 'success');
             updateStatsTableHeaders();
-            // 清除快取並重新載入統計
             delete dashboardCache[`${currentPackingSheet}_1_all`];
             loadPackingSummary();
         }
         
-        // 顯示調整篩選項目 Modal
         function showCategoryEditModal() {
             const content = document.getElementById('categoryEditContent');
             const colOptions = ['A', 'B', 'C', 'D', 'E', 'F'];
@@ -3556,14 +3571,12 @@
             document.body.style.overflow = 'hidden';
         }
         
-        // 關閉調整篩選項目 Modal
         function closeCategoryEditModal(e) {
             if (e && e.target !== document.getElementById('categoryEditModalOverlay')) return;
             document.getElementById('categoryEditModalOverlay').classList.remove('active');
             document.body.style.overflow = '';
         }
         
-        // 儲存篩選項目編輯
         function saveCategoryEdit() {
             for (let i = 0; i < 5; i++) {
                 const col = document.getElementById(`cat_col_${i}`).value;
@@ -3583,12 +3596,10 @@
             closeCategoryEditModal();
         }
         
-        // 更新統計表格標題
         function updateStatsTableHeaders() {
             const headerRow = document.getElementById('statsTableHeaderRow');
             if (!headerRow) return;
             
-            // 【修正】使用後端返回的分類資料，而非本地 customCategories
             const cacheKey = `${currentPackingSheet}_1_all`;
             const cached = dashboardCache[cacheKey];
             const categories = (cached && cached.summary && cached.summary.categories) ? cached.summary.categories : customCategories;
@@ -3630,10 +3641,10 @@
 
             currentPanel = panelName;
             closeMobileManualModal();
-            closeMobilePackingPanel(); // 【新增】關閉裝箱懸浮面板
-            closeMobileNav(); // 【新增】關閉手機端導航
-            closeWidthAdjustModal(); // 【新增】關閉寬度調整視窗
-            closeCategoryEditModal(); // 【新增】關閉篩選項目調整視窗
+            closeMobilePackingPanel();
+            closeMobileNav();
+            closeWidthAdjustModal();
+            closeCategoryEditModal();
 
             if (panelName === 'search') {
                 setTimeout(() => document.getElementById('searchInput')?.focus(), 100);
@@ -3645,7 +3656,6 @@
                 startStatusMonitoring();
             }
             
-            // 【新增】控制手機端按鈕顯示/隱藏
             const mobileManualBtn = document.getElementById('mobileManualBtn');
             const mobilePackingBtn = document.getElementById('mobilePackingBtn');
             const mobilePackingActionsFab = document.getElementById('mobilePackingActionsFab');
@@ -3664,7 +3674,6 @@
                 if (mobilePackingActionsFab) mobilePackingActionsFab.style.display = 'none';
             }
 
-            // 【新增】更新手機端導航選中狀態
             document.querySelectorAll('.mobile-nav-item').forEach(item => {
                 item.classList.remove('active');
                 if (item.dataset.panel === panelName) {
@@ -3677,11 +3686,8 @@
             currentPackingSheet = sheetName;
             currentZone = 'all';
             currentPage = 1;
-            // 【修改】重置 NEW 標記
             lastAddedKey = null;
-            // 【優化】清除該sheet的快取
             delete dashboardCache[sheetName];
-            // 【新增】重新載入欄位寬度設定
             loadColumnWidths();
 
             document.querySelectorAll('.function-block').forEach(block => {
@@ -3700,7 +3706,6 @@
 
             updatePanelStyle();
             
-            // 【新增】切換到裝箱功能時隱藏 Manual Select 按鈕，顯示裝箱懸浮按鈕
             const mobileManualBtn = document.getElementById('mobileManualBtn');
             const mobilePackingBtn = document.getElementById('mobilePackingBtn');
             const mobilePackingActionsFab = document.getElementById('mobilePackingActionsFab');
@@ -3709,10 +3714,10 @@
             if (mobilePackingActionsFab) mobilePackingActionsFab.style.display = window.innerWidth <= 968 ? 'flex' : 'none';
             
             closeMobileManualModal();
-            closeMobileNav(); // 【新增】關閉手機端導航
+            closeMobileNav();
             
             loadHeaders().then(() => {
-                loadPackingDataOptimized(); // 【優化】使用新的合併載入函數
+                loadPackingDataOptimized();
             });
         }
 
@@ -3736,8 +3741,8 @@
                 document.getElementById('quickInputArea').classList.add('spare-mode');
                 document.getElementById('packingPanelContent').classList.add('spare-mode');
                 document.getElementById('mobileManualBtn').style.background = 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)';
-                document.getElementById('mobilePackingBtn').classList.add('spare-mode'); // 【新增】
-                document.getElementById('mobilePackingActionsFab').classList.add('spare-mode'); // 【新增】
+                document.getElementById('mobilePackingBtn').classList.add('spare-mode');
+                document.getElementById('mobilePackingActionsFab').classList.add('spare-mode');
             } else {
                 title.className = 'block-title';
                 title.querySelector('.block-title-left').innerHTML = `
@@ -3752,8 +3757,8 @@
                 document.getElementById('quickInputArea').classList.remove('spare-mode');
                 document.getElementById('packingPanelContent').classList.remove('spare-mode');
                 document.getElementById('mobileManualBtn').style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-                document.getElementById('mobilePackingBtn').classList.remove('spare-mode'); // 【新增】
-                document.getElementById('mobilePackingActionsFab').classList.remove('spare-mode'); // 【新增】
+                document.getElementById('mobilePackingBtn').classList.remove('spare-mode');
+                document.getElementById('mobilePackingActionsFab').classList.remove('spare-mode');
             }
         }
 
@@ -3876,7 +3881,7 @@
             exportManualSelect();
         }
 
-        // 【新增】手機端綠方格懸浮面板控制（右下角）
+        // 手機端綠方格懸浮面板控制（右下角）
         function toggleMobilePackingPanel() {
             const panel = document.getElementById('mobilePackingPanel');
             const btn = document.getElementById('mobilePackingBtn');
@@ -3886,7 +3891,7 @@
             } else {
                 panel.classList.add('active');
                 btn.classList.add('active');
-                updateMobilePackingPanel(); // 更新面板資料
+                updateMobilePackingPanel();
             }
         }
 
@@ -3898,7 +3903,7 @@
             document.getElementById('mobilePackingBtn').classList.remove('active');
         }
 
-        // 【新增】手機端紅方格懸浮操作按鈕控制（右下角偏上）
+        // 手機端紅方格懸浮操作按鈕控制（右下角偏上）
         function toggleMobilePackingActions() {
             const fab = document.getElementById('mobilePackingActionsFab');
             const btn = document.getElementById('mobilePackingActionsMain');
@@ -3912,7 +3917,7 @@
             }
         }
 
-        // 【修改】手機端主導航控制 - 左上角橙色按鈕
+        // 手機端主導航控制 - 左上角橙色按鈕
         function toggleMobileNav() {
             const fab = document.getElementById('mobileNavFab');
             const btn = document.getElementById('mobileNavMain');
@@ -3932,22 +3937,17 @@
             btn.classList.remove('active');
         }
 
-        // 【新增】手機端切換面板
         function mobileSwitchPanel(panelName) {
             switchPanel(panelName);
         }
 
-        // 【新增】手機端切換裝箱
         function mobileSwitchPacking(sheetName) {
             switchPackingSheet(sheetName);
         }
 
-        // 【新增】更新手機端綠方格懸浮面板資料（統計與位置）
         function updateMobilePackingPanel() {
-            // 更新統計數字
             document.getElementById('mobileStatTotal').textContent = totalRecords || 0;
             
-            // 計算已分類和未分類
             let classified = 0;
             let unclassified = 0;
             if (packingDataCache && packingDataCache.length > 0) {
@@ -3959,7 +3959,7 @@
                     }
                 });
             }
-            // 如果沒有資料，使用dashboardCache的數據
+            
             const cacheKey = `${currentPackingSheet}_${currentPage}_${currentZone}`;
             if (dashboardCache[cacheKey] && dashboardCache[cacheKey].summary) {
                 const summary = dashboardCache[cacheKey].summary;
@@ -3970,11 +3970,10 @@
                 document.getElementById('mobileStatUnclassified').textContent = unclassified;
             }
             
-            // 更新位置列表
             updateMobileZoneList();
         }
 
-        // 【新增】更新手機端位置列表
+        // 【關鍵修復】手機端位置列表 - 添加操作按鈕
         function updateMobileZoneList() {
             const zoneListDiv = document.getElementById('mobileZoneList');
             const zonesResult = dashboardCache[`${currentPackingSheet}_1_all`] || {};
@@ -3983,22 +3982,28 @@
             
             let html = '';
             
-            // 全部資料選項
+            // 全部資料選項（不需要操作按鈕）
             const isAllActive = currentZone === 'all';
             html += `
                 <div class="mobile-zone-item ${isAllActive ? 'active' : ''}" onclick="mobileFilterZone('all', this)">
-                    <span>🏠 全部資料</span>
-                    <span>${totalRecords || 0} 筆</span>
+                    <span style="flex: 1;">🏠 全部資料</span>
+                    <span style="font-size: 13px; color: #666;">${totalRecords || 0} 筆</span>
                 </div>
             `;
             
-            // 各個位置
+            // 各個位置（添加操作按鈕）
             zones.forEach(zone => {
                 const isActive = currentZone === zone.name;
                 html += `
                     <div class="mobile-zone-item ${isActive ? 'active' : ''}" onclick="mobileFilterZone('${escapeHtml(zone.name)}', this)">
-                        <span>📍 ${escapeHtml(zone.name)}</span>
-                        <span>${zone.count} 筆</span>
+                        <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 8px;">
+                            📍 ${escapeHtml(zone.name)}
+                        </span>
+                        <div class="mobile-zone-actions">
+                            <span style="font-size: 13px; color: #666; margin-right: 4px;">${zone.count} 筆</span>
+                            <button class="btn-sm btn-secondary" onclick="event.stopPropagation(); showRenameZoneModal('${escapeHtml(zone.name)}')" title="修改名稱" style="min-width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 6px; margin-right: 4px;">✏️</button>
+                            <button class="btn-sm btn-danger" onclick="event.stopPropagation(); deleteZone('${escapeHtml(zone.name)}')" title="刪除位置" style="min-width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 6px;">🗑️</button>
+                        </div>
                     </div>
                 `;
             });
@@ -4008,8 +4013,8 @@
                 const isUnclassifiedActive = currentZone === '';
                 html += `
                     <div class="mobile-zone-item ${isUnclassifiedActive ? 'active' : ''}" onclick="mobileFilterZone('', this)">
-                        <span>📍 未分類</span>
-                        <span>${unclassified} 筆</span>
+                        <span style="flex: 1;">📍 未分類</span>
+                        <span style="font-size: 13px; color: #666;">${unclassified} 筆</span>
                     </div>
                 `;
             }
@@ -4017,23 +4022,18 @@
             zoneListDiv.innerHTML = html;
         }
 
-        // 【新增】手機端篩選位置
         function mobileFilterZone(zone, element) {
-            // 更新UI
             document.querySelectorAll('.mobile-zone-item').forEach(item => {
                 item.classList.remove('active');
             });
             element.classList.add('active');
             
-            // 關閉面板
             closeMobilePackingPanel();
             
-            // 執行篩選（複用桌面端邏輯）
             const normalizedZone = zone === 'all' ? 'all' : (zone === '' ? '' : zone);
             currentZone = normalizedZone;
             currentPage = 1;
             
-            // 更新桌面端側邊欄的選中狀態（如果可見）
             document.querySelectorAll('.zone-item').forEach(item => {
                 item.classList.remove('active');
                 const zoneName = item.querySelector('.zone-name')?.textContent?.replace('📍 ', '').trim();
@@ -4059,7 +4059,6 @@
                 document.getElementById('currentZoneName').textContent = normalizedZone || '未分類';
                 document.getElementById('dataListTitle').textContent = (normalizedZone || '未分類') + ' 資料列表';
                 
-                // 顯示Loading
                 const tbody = document.getElementById('excelTableBody');
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;"><div class="spinner" style="margin: 0 auto 15px;"></div><p>Loading...</p></td></tr>';
                 
@@ -4744,9 +4743,6 @@
 
         //================ 裝箱功能函數 - 速度優化版 =================
 
-        /**
-         * 【優化】載入標題列（第1列）
-         */
         async function loadHeaders() {
             try {
                 const result = await packingApiCall('packingGetHeaders', { 
@@ -4765,7 +4761,6 @@
                     html += '<th>操作</th>';
                     headerRow.innerHTML = html;
                     
-                    // 【新增】套用儲存的欄位寬度
                     applyColumnWidthsToTable();
                 }
             } catch (e) {
@@ -4773,18 +4768,12 @@
             }
         }
 
-        /**
-         * 【新增】合併載入儀表板資料 - 使用新的合併API端點
-         * 將原本3個請求（資料、統計、區域）合併為1個
-         */
         async function loadPackingDataOptimized() {
             try {
-                // 檢查快取
                 const cacheKey = `${currentPackingSheet}_${currentPage}_${currentZone}`;
                 const now = Date.now();
                 
                 if (dashboardCache[cacheKey] && (now - cacheTimestamp[cacheKey] < CACHE_TTL)) {
-                    // 使用快取資料
                     const cached = dashboardCache[cacheKey];
                     packingDataCache = cached.data;
                     totalPages = cached.totalPages;
@@ -4799,18 +4788,16 @@
                     updateSummaryDisplay(cached.summary);
                     updatePaginationControls();
                     
-                    // 【新增】更新手機端面板
                     updateMobilePackingPanel();
                     
                     if (currentZone !== 'all') {
-                        renderDataListOptimized(); // 【優化】使用優化渲染
+                        renderDataListOptimized();
                     } else {
                         backToSummary();
                     }
                     return;
                 }
 
-                // 呼叫合併API
                 const categoriesParam = JSON.stringify(customCategories);
                 const result = await packingApiCall('packingGetDashboardData', {
                     sheet: currentPackingSheet,
@@ -4824,7 +4811,6 @@
                     totalPages = result.totalPages || 1;
                     totalRecords = result.total || 0;
                     
-                    // 存入快取
                     dashboardCache[cacheKey] = {
                         data: packingDataCache,
                         totalPages: totalPages,
@@ -4836,7 +4822,6 @@
                     };
                     cacheTimestamp[cacheKey] = now;
                     
-                    // 更新UI
                     updateSidebarStats({
                         total: result.totalRecords,
                         unclassified: result.unclassified,
@@ -4846,7 +4831,6 @@
                     updateSummaryDisplay(result.summary);
                     updatePaginationControls();
                     
-                    // 【新增】更新手機端面板
                     updateMobilePackingPanel();
                     
                     if (currentZone !== 'all') {
@@ -4936,9 +4920,6 @@
             }
         }
 
-        /**
-         * 【修改】點選位置時顯示 Loading 提示
-         */
         function filterZone(zone, element) {
             currentZone = zone ? String(zone).trim() : '';
             currentPage = 1;
@@ -4955,7 +4936,6 @@
                 document.getElementById('paginationControls').style.display = 'none';
                 loadPackingSummary();
             } else {
-                // 【新增】顯示 Loading 提示
                 const tbody = document.getElementById('excelTableBody');
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;"><div class="spinner" style="margin: 0 auto 15px;"></div><p>Loading...</p></td></tr>';
                 
@@ -4968,9 +4948,6 @@
             }
         }
 
-        /**
-         * 【修改】進入各區數量統計時，先更新一次確保為最新數據
-         */
         function backToSummary() {
             currentZone = 'all';
             currentPage = 1;
@@ -4983,14 +4960,9 @@
             document.getElementById('quickInputArea').style.display = 'none';
             document.getElementById('paginationControls').style.display = 'none';
             
-            // 【新增】進入各區數量統計時，先更新一次確保為最新數據
             loadPackingSummary();
         }
 
-        /**
-         * 【優化】渲染資料列表 - 使用DocumentFragment減少DOM操作
-         * 【新增】支援欄寬調節（通過CSS resize: horizontal）
-         */
         function renderDataListOptimized() {
             const tbody = document.getElementById('excelTableBody');
             
@@ -5009,9 +4981,7 @@
                 return;
             }
 
-            // 【修改】排序：將最近加入的資料排在最前面（如果有的話）
             const sortedData = [...packingDataCache].sort((a, b) => {
-                // 最新加入的key排在最前
                 if (lastAddedKey) {
                     if (a.A === lastAddedKey && b.A !== lastAddedKey) return -1;
                     if (a.A !== lastAddedKey && b.A === lastAddedKey) return 1;
@@ -5019,11 +4989,9 @@
                 return 0;
             });
 
-            // 【優化】使用DocumentFragment批量插入
             const fragment = document.createDocumentFragment();
             
             sortedData.forEach(item => {
-                // 【修改】只有最新加入的key顯示NEW標記
                 const isNew = lastAddedKey && item.A === lastAddedKey;
                 const tr = document.createElement('tr');
                 if (isNew) tr.classList.add('new-row');
@@ -5034,7 +5002,6 @@
                     const colKey = ['A', 'B', 'C', 'D', 'E', 'F'][index];
                     const value = item[colKey] || '-';
                     const colClass = index === 0 ? 'col-a' : (index === 5 ? 'col-f' : '');
-                    // 【修改】只有A欄且是最新加入的才顯示NEW標記
                     const newBadge = (isNew && index === 0) ? '<span class="new-badge">NEW</span>' : '';
                     html += `<td class="${colClass}">${escapeHtml(value)}${newBadge}</td>`;
                 });
@@ -5057,14 +5024,9 @@
             tbody.appendChild(fragment);
         }
 
-        /**
-         * 【新增】極速單行插入（約 30-80ms）
-         * 不重新渲染整個表格，只在頂部插入單行
-         */
         function insertSingleRowFast(item) {
             const tbody = document.getElementById('excelTableBody');
             
-            // 【修改】先移除所有現有的 new-row 標記（確保只有最新加入的有 NEW）
             const existingNewRows = tbody.querySelectorAll('tr.new-row');
             existingNewRows.forEach(row => {
                 row.classList.remove('new-row');
@@ -5076,13 +5038,11 @@
             tr.className = 'new-row';
             tr.style.animation = 'highlightNew 2s ease';
             
-            // 直接構建單行HTML，不遍歷全部資料
             let html = '';
             columnHeaders.forEach((header, index) => {
                 const colKey = ['A', 'B', 'C', 'D', 'E', 'F'][index];
                 const value = item[colKey] || '-';
                 const colClass = index === 0 ? 'col-a' : (index === 5 ? 'col-f' : '');
-                // 【修改】只在A欄顯示NEW標記
                 const newBadge = index === 0 ? '<span class="new-badge">NEW</span>' : '';
                 html += `<td class="${colClass}">${escapeHtml(value)}${newBadge}</td>`;
             });
@@ -5098,14 +5058,12 @@
             `;
             
             tr.innerHTML = html;
-            tbody.insertBefore(tr, tbody.firstChild); // 頂部插入
+            tbody.insertBefore(tr, tbody.firstChild);
             
-            // 如果超過PAGE_SIZE行，刪除最後一行保持分頁限制
             if (tbody.children.length > PAGE_SIZE) {
                 tbody.removeChild(tbody.lastChild);
             }
             
-            // 滾動到頂部顯示新加入的資料
             document.getElementById('excelTableContainer').scrollTop = 0;
         }
 
@@ -5122,11 +5080,9 @@
 
                 if (result.success) {
                     showToast('✅ ' + result.message, 'success');
-                    // 【修改】如果刪除的是最後加入的key，重置標記
                     if (lastAddedKey === key) {
                         lastAddedKey = null;
                     }
-                    // 【優化】清除快取並重新載入
                     delete dashboardCache[`${currentPackingSheet}_${currentPage}_${currentZone}`];
                     loadPackingDataOptimized();
                 } else {
@@ -5167,7 +5123,6 @@
             const fragment = document.createDocumentFragment();
             
             filtered.forEach(item => {
-                // 【修改】搜尋結果也遵從只顯示最新NEW標記的規則
                 const isNew = lastAddedKey && item.A === lastAddedKey;
                 const tr = document.createElement('tr');
                 if (isNew) tr.classList.add('new-row');
@@ -5243,7 +5198,6 @@
                 fragment.appendChild(tr);
             });
 
-            // 添加總計列
             const totals = sortedZones.reduce((acc, [_, stats]) => {
                 acc.quantity += stats.quantity;
                 customCategories.forEach((cat, index) => {
@@ -5290,9 +5244,6 @@
             }
         }
 
-        /**
-         * 【優化】單行插入 + 避免全表重繪 + 完全非同步背景同步
-         */
         async function quickAddSearch() {
             if (isProcessingQuickAdd) return;
 
@@ -5317,19 +5268,16 @@
                 });
 
                 if (result.found) {
-                    // 【修改】只保留最新加入的key，確保只有最新一筆顯示NEW標記
                     lastAddedKey = key;
                     
                     const newItem = {
                         ...result.data,
                         F: currentZone || '',
-                        rowIndex: result.data.rowIndex // 保持原有rowIndex
+                        rowIndex: result.data.rowIndex
                     };
                     
-                    // 【優化】使用極速單行插入，避免全表重繪（約省85-90%時間）
                     insertSingleRowFast(newItem);
                     
-                    // 【優化】更新快取資料（在背景）
                     packingDataCache.unshift(newItem);
                     if (packingDataCache.length > PAGE_SIZE) {
                         packingDataCache.pop();
@@ -5352,8 +5300,6 @@
                     document.getElementById('quickKeyInput').value = '';
                     document.getElementById('quickKeyInput').focus();
 
-                    // 【優化】完全非同步背景同步（約省40-50%時間）
-                    // 使用 setTimeout 確保不阻塞UI，立即返回
                     setTimeout(() => {
                         performQuickAddBackground(key, result.data);
                     }, 10);
@@ -5376,12 +5322,7 @@
             }
         }
 
-        /**
-         * 【優化】完全非同步背景同步（約省40-50%時間）
-         * 使用真正的非同步，確保不阻塞UI
-         */
         async function performQuickAddBackground(key, data) {
-            // 【優化】立即返回，延遲執行，確保不阻塞UI
             await new Promise(resolve => setTimeout(resolve, 100));
             
             try {
@@ -5393,12 +5334,10 @@
                     sheet: currentPackingSheet
                 });
                 
-                // 清除該sheet的快取
                 delete dashboardCache[`${currentPackingSheet}_${currentPage}_${currentZone}`];
                 
             } catch (e) {
                 console.error('背景同步失敗:', e);
-                // 顯示「同步失敗」提示，但不影響已顯示的資料
                 showToast('⚠️ 背景同步失敗，請手動重新整理', 'warning');
             }
         }
@@ -5440,7 +5379,6 @@
                 showToast(`✅ 位置「${zoneName}」已新增`, 'success');
                 closeModal();
                 
-                // 【優化】清除快取並重新載入
                 delete dashboardCache[`${currentPackingSheet}_1_all`];
                 await refreshZoneList();
             } catch (e) {
@@ -5458,7 +5396,6 @@
                     updateSidebarStats(zonesResult);
                     updateZoneList(zonesResult.zones || [], zonesResult.unclassified || 0);
                     
-                    // 【新增】更新手機端面板
                     updateMobilePackingPanel();
                     
                     if (currentZone === 'all') {
@@ -5496,7 +5433,6 @@
 
                     if (result.success) {
                         showToast('✅ ' + result.message, 'success');
-                        // 【優化】清除快取
                         delete dashboardCache[`${currentPackingSheet}_${currentPage}_${currentZone}`];
                         await loadPackingDataOptimized();
                         closeModal();
@@ -5543,7 +5479,6 @@
                 if (result.success) {
                     showToast(`✅ 位置「${trimmedZoneName}」已刪除，${result.clearedCount || count} 筆資料已清空位置標記`, 'success');
                     
-                    // 【優化】清除所有相關快取
                     Object.keys(dashboardCache).forEach(key => {
                         if (key.startsWith(currentPackingSheet)) {
                             delete dashboardCache[key];
@@ -5607,7 +5542,6 @@
                     });
 
                     showToast('✅ 資料已更新', 'success');
-                    // 【優化】清除快取
                     delete dashboardCache[`${currentPackingSheet}_${currentPage}_${currentZone}`];
                     await loadPackingDataOptimized();
                     closeModal();
@@ -5628,7 +5562,6 @@
                 });
 
                 showToast('✅ 已清除位置標記', 'success');
-                // 【優化】清除快取
                 delete dashboardCache[`${currentPackingSheet}_${currentPage}_${currentZone}`];
                 await loadPackingDataOptimized();
             } catch (e) {
@@ -5643,9 +5576,7 @@
                 const result = await packingApiCall('packingClearLocations', { sheet: currentPackingSheet });
                 if (result.success) {
                     showToast('✅ ' + result.message, 'success');
-                    // 【修改】重置 NEW 標記
                     lastAddedKey = null;
-                    // 【優化】清除所有快取
                     Object.keys(dashboardCache).forEach(key => {
                         if (key.startsWith(currentPackingSheet)) {
                             delete dashboardCache[key];
@@ -5676,9 +5607,7 @@
                 
                 if (result.success) {
                     showToast(result.message, 'success');
-                    // 【修改】重置 NEW 標記
                     lastAddedKey = null;
-                    // 【優化】清除所有快取
                     Object.keys(dashboardCache).forEach(key => {
                         if (key.startsWith(currentPackingSheet)) {
                             delete dashboardCache[key];
@@ -5840,9 +5769,6 @@
             showToast('上傳已中斷', 'info');
         }
 
-        /**
-         * 【優化】分批上傳核心函數 - 增大批次至200筆
-         */
         async function confirmModalUpload() {
             if (!selectedModalFile || isUploading) return;
 
@@ -5885,7 +5811,6 @@
 
                 const totalRecords = normalizedData.length;
                 
-                // 【優化】增大批次至200筆，配合後端1000筆處理能力
                 const BATCH_SIZE = UPLOAD_BATCH_SIZE;
                 const totalBatches = Math.ceil(totalRecords / BATCH_SIZE);
                 let totalUpdated = 0;
@@ -5907,11 +5832,10 @@
                     btn.innerHTML = `<span style="display: inline-block; width: 18px; height: 18px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 6px;"></span>第 ${currentBatch}/${totalBatches} 批...`;
 
                     try {
-                        // 【優化】呼叫優化後的上傳API
                         const result = await packingApiCall('packingUploadData', {
                             data: JSON.stringify(batchData),
                             sheet: currentPackingSheet
-                        }, 120000); // 增加超時至2分鐘
+                        }, 120000);
 
                         if (result.success) {
                             totalUpdated += (result.updated || 0);
@@ -5926,7 +5850,6 @@
                         console.error(`批次 ${currentBatch} 錯誤:`, e);
                     }
 
-                    // 【優化】批次間延遲縮短至200ms
                     if (i + BATCH_SIZE < totalRecords) {
                         await new Promise(resolve => setTimeout(resolve, 200));
                     }
@@ -5947,7 +5870,6 @@
                     );
                 }
 
-                // 【優化】清除快取並重新載入
                 Object.keys(dashboardCache).forEach(key => {
                     if (key.startsWith(currentPackingSheet)) {
                         delete dashboardCache[key];
@@ -6092,6 +6014,10 @@
             return div.innerHTML;
         }
 
+        function preloadAllData() {
+            console.log('系統初始化完成');
+        }
+
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 if (isUploading) {
@@ -6103,10 +6029,10 @@
                 closeModal();
                 closeUploadModal();
                 closeMobileManualModal();
-                closeMobilePackingPanel(); // 【新增】關閉手機端裝箱面板
-                closeMobileNav(); // 【新增】關閉手機端導航
-                closeWidthAdjustModal(); // 【新增】關閉寬度調整視窗
-                closeCategoryEditModal(); // 【新增】關閉篩選項目調整視窗
+                closeMobilePackingPanel();
+                closeMobileNav();
+                closeWidthAdjustModal();
+                closeCategoryEditModal();
             }
         });
     </script>
