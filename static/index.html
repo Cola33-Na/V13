@@ -1138,7 +1138,7 @@
             background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
         }
 
-        .excel-table .col-a { min-width: 60px; font-weight: 600; color: #667eea; }
+        .excel-table .col-a { min-width: 120px; font-weight: 600; color: #667eea; }
         .excel-table .col-f { background: #fff3cd; font-weight: 600; color: #856404; }
         .excel-table tr:hover .col-f { background: #ffeaa7; }
 
@@ -2364,7 +2364,7 @@
                 position: sticky;
                 right: 0;
                 z-index: 30;
-                min-width: 60px;
+                min-width: 120px;
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 box-shadow: -4px 0 12px rgba(0,0,0,0.25);
                 border-left: 2px solid rgba(255,255,255,0.3);
@@ -2375,7 +2375,7 @@
                 position: sticky;
                 right: 0;
                 z-index: 20;
-                min-width: 60px;
+                min-width: 120px;
                 background: white;
                 box-shadow: -4px 0 12px rgba(0,0,0,0.15);
                 border-left: 1px solid #e0e0e0;
@@ -2409,8 +2409,8 @@
             }
 
             .excel-table td:last-child .btn-sm {
-                min-width: 22px;
-                min-height: 22px;
+                min-width: 44px;
+                min-height: 44px;
                 padding: 8px;
                 font-size: 14px;
                 display: flex;
@@ -2562,8 +2562,13 @@
             border-radius: 8px;
         }
 
+        .width-adjust-row.highlight-row {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 2px solid #ffc107;
+        }
+
         .width-adjust-label {
-            width: 80px;
+            width: 100px;
             font-weight: 600;
             color: #555;
         }
@@ -2605,6 +2610,7 @@
             gap: 8px;
             margin-top: 20px;
             justify-content: center;
+            flex-wrap: wrap;
         }
 
         .width-preset-btn {
@@ -3259,11 +3265,12 @@
         <div class="modal" onclick="event.stopPropagation()">
             <h3>📐 調整標題寬度</h3>
             <div id="widthAdjustContent">
-                <!-- 動態生成寬度調整控件 -->
+                <!-- 動態生成寬度調整控件 - 現已包含操作欄 -->
             </div>
             <div class="width-preset-buttons">
                 <button class="width-preset-btn" onclick="resetColumnWidths()">恢復預設</button>
                 <button class="width-preset-btn" onclick="applyA30Percent()">A欄+30%</button>
+                <button class="width-preset-btn" onclick="expandActionColumn()">加寬操作欄</button>
             </div>
             <div class="modal-actions">
                 <button class="btn-secondary" onclick="closeWidthAdjustModal()">取消</button>
@@ -3355,14 +3362,15 @@
         // 改為只保留最新一筆的 NEW 標記
         let lastAddedKey = null;
         
-        // 欄位寬度設定
+        // 【修改】欄位寬度設定 - 加入操作欄(action)
         let columnWidths = {
             'A': 156,
             'B': 120,
             'C': 120,
             'D': 120,
             'E': 120,
-            'F': 120
+            'F': 120,
+            'action': 150  // 新增：操作欄預設寬度
         };
         
         const MAX_LOGS = 50;
@@ -3479,12 +3487,17 @@
 
         //================ 欄位寬度調整功能 =================
         
+        // 【修改】載入欄位寬度 - 確保向後相容（舊資料沒有action時給予預設值）
         function loadColumnWidths() {
             const saved = localStorage.getItem('columnWidths_' + currentPackingSheet);
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
                     columnWidths = { ...columnWidths, ...parsed };
+                    // 確保action欄位存在
+                    if (!columnWidths.action) {
+                        columnWidths.action = 150;
+                    }
                 } catch (e) {
                     console.error('載入欄位寬度失敗:', e);
                 }
@@ -3496,8 +3509,10 @@
             localStorage.setItem('columnWidths_' + currentPackingSheet, JSON.stringify(columnWidths));
         }
 
+        // 【修改】應用欄位寬度到表格 - 加入操作欄處理
         function applyColumnWidthsToTable() {
             const ths = document.querySelectorAll('#tableHeaderRow th');
+            // 【修改】加入 'action' 到陣列中
             const colKeys = ['A', 'B', 'C', 'D', 'E', 'F', 'action'];
             
             ths.forEach((th, index) => {
@@ -3508,19 +3523,27 @@
             });
         }
 
+        // 【修改】顯示調整寬度Modal - 加入操作欄調整列
         function showAdjustWidthModal() {
             const content = document.getElementById('widthAdjustContent');
-            const colKeys = ['A', 'B', 'C', 'D', 'E', 'F'];
-            const colNames = ['A欄 (Key/Barcode)', 'B欄', 'C欄', 'D欄', 'E欄', 'F欄 (位置)'];
+            // 【修改】加入操作欄到陣列
+            const colKeys = ['A', 'B', 'C', 'D', 'E', 'F', 'action'];
+            const colNames = ['A欄 (Key/Barcode)', 'B欄', 'C欄', 'D欄', 'E欄', 'F欄 (位置)', '操作欄 (按鈕)'];
             
             let html = '';
             colKeys.forEach((key, index) => {
                 const currentWidth = columnWidths[key] || 120;
+                // 【修改】為操作欄添加特殊樣式標記
+                const isAction = key === 'action';
+                const highlightClass = isAction ? 'highlight-row' : '';
+                const minWidth = isAction ? 100 : 80;
+                const maxWidth = isAction ? 300 : 400;
+                
                 html += `
-                    <div class="width-adjust-row">
+                    <div class="width-adjust-row ${highlightClass}">
                         <div class="width-adjust-label">${colNames[index]}</div>
                         <div class="width-adjust-input">
-                            <input type="range" id="width_${key}" min="80" max="400" value="${currentWidth}" 
+                            <input type="range" id="width_${key}" min="${minWidth}" max="${maxWidth}" value="${currentWidth}" 
                                 oninput="document.getElementById('val_${key}').textContent = this.value + 'px'">
                             <div class="width-adjust-value" id="val_${key}">${currentWidth}px</div>
                         </div>
@@ -3539,8 +3562,9 @@
             document.body.style.overflow = '';
         }
 
+        // 【修改】套用欄位寬度 - 包含操作欄
         function applyColumnWidths() {
-            const colKeys = ['A', 'B', 'C', 'D', 'E', 'F'];
+            const colKeys = ['A', 'B', 'C', 'D', 'E', 'F', 'action'];
             colKeys.forEach(key => {
                 const input = document.getElementById('width_' + key);
                 if (input) {
@@ -3551,9 +3575,10 @@
             saveColumnWidths();
             applyColumnWidthsToTable();
             closeWidthAdjustModal();
-            showToast('✅ 標題寬度已套用', 'success');
+            showToast('✅ 標題寬度已套用（含操作欄）', 'success');
         }
 
+        // 【修改】重置欄位寬度 - 包含操作欄
         function resetColumnWidths() {
             columnWidths = {
                 'A': 120,
@@ -3561,10 +3586,12 @@
                 'C': 120,
                 'D': 120,
                 'E': 120,
-                'F': 120
+                'F': 120,
+                'action': 150  // 操作欄預設值
             };
             
-            const colKeys = ['A', 'B', 'C', 'D', 'E', 'F'];
+            // 【修改】更新所有滑塊顯示
+            const colKeys = ['A', 'B', 'C', 'D', 'E', 'F', 'action'];
             colKeys.forEach(key => {
                 const input = document.getElementById('width_' + key);
                 const val = document.getElementById('val_' + key);
@@ -3573,6 +3600,24 @@
                     val.textContent = columnWidths[key] + 'px';
                 }
             });
+            
+            showToast('✅ 已恢復所有欄位預設寬度', 'success');
+        }
+
+        // 【新增】快速加寬操作欄功能
+        function expandActionColumn() {
+            const newWidth = 200; // 加寬到200px
+            
+            columnWidths['action'] = newWidth;
+            
+            const input = document.getElementById('width_action');
+            const val = document.getElementById('val_action');
+            if (input && val) {
+                input.value = newWidth;
+                val.textContent = newWidth + 'px';
+            }
+            
+            showToast('✅ 操作欄已設定為 ' + newWidth + 'px（建議用於按鈕較多時）', 'success');
         }
 
         function applyA30Percent() {
