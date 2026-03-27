@@ -1044,6 +1044,7 @@
             border: 1px solid #e0e0e0;
             background: white;
             contain: layout;
+            position: relative; /* 【修復】為sticky定位提供參考 */
         }
 
         .excel-table {
@@ -2345,6 +2346,85 @@
                 border: none !important;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
             }
+
+            /* 【修復】手機端操作列Sticky固定樣式 - 關鍵修復部分 */
+            .excel-table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                position: relative;
+                /* 添加右側陰影提示可滾動 */
+                background: linear-gradient(to left, white 30%, transparent), linear-gradient(to right, white 30%, transparent);
+                background-size: 50px 100%, 50px 100%;
+                background-position: right center, left center;
+                background-repeat: no-repeat;
+            }
+
+            /* 操作列Sticky固定 - 表頭 */
+            .excel-table thead th:last-child {
+                position: sticky;
+                right: 0;
+                z-index: 30;
+                min-width: 120px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                box-shadow: -4px 0 12px rgba(0,0,0,0.25);
+                border-left: 2px solid rgba(255,255,255,0.3);
+            }
+
+            /* 操作列Sticky固定 - 表身 */
+            .excel-table tbody td:last-child {
+                position: sticky;
+                right: 0;
+                z-index: 20;
+                min-width: 120px;
+                background: white;
+                box-shadow: -4px 0 12px rgba(0,0,0,0.15);
+                border-left: 1px solid #e0e0e0;
+            }
+
+            /* SPARE模式下的操作列表頭背景 */
+            .spare-mode .excel-table thead th:last-child {
+                background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            }
+
+            /* 斑馬紋背景修正 - 確保固定列也有正確的背景色 */
+            .excel-table tbody tr:nth-child(even) td:last-child {
+                background: #f8f9fa;
+            }
+
+            .excel-table tbody tr:hover td:last-child {
+                background: #e3f2fd;
+            }
+
+            /* 新增高亮行的固定列背景 */
+            .excel-table tbody tr.new-row td:last-child {
+                background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%) !important;
+            }
+
+            /* 操作按鈕手機端優化 - 確保適合手指點擊 */
+            .excel-table td:last-child .excel-actions {
+                display: flex;
+                gap: 6px;
+                justify-content: center;
+                min-width: 110px;
+            }
+
+            .excel-table td:last-child .btn-sm {
+                min-width: 44px;
+                min-height: 44px;
+                padding: 8px;
+                font-size: 14px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 8px;
+                touch-action: manipulation;
+                flex: 1;
+            }
+
+            /* 確保表格最小寬度撐開，強制出現橫向滾動 */
+            .excel-table {
+                min-width: 900px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -2417,6 +2497,20 @@
                 bottom: 86px;
                 right: 15px;
                 left: auto;
+            }
+
+            /* 【修復】小螢幕下操作列優化 */
+            .excel-table thead th:last-child,
+            .excel-table tbody td:last-child {
+                min-width: 110px;
+                padding: 6px 4px;
+            }
+
+            .excel-table td:last-child .btn-sm {
+                min-width: 40px;
+                min-height: 40px;
+                padding: 6px;
+                font-size: 13px;
             }
         }
 
