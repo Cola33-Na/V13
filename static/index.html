@@ -3856,33 +3856,8 @@
             closeMobileNav();
             
             loadHeaders().then(() => {
-async function loadPackingSummary() {
-    try {
-        const categoriesParam = JSON.stringify(customCategories);
-        const summaryResult = await packingApiCall('packingGetSummary', {
-            sheet: currentPackingSheet,
-            categories: categoriesParam
-        });
-
-        if (summaryResult.success && summaryResult.summary) {
-            updateSummaryDisplay(summaryResult.summary);
-            
-            // 【新增】同時更新側邊欄的全局統計
-            if (summaryResult.summary && summaryResult.summary.total !== undefined) {
-                const allCache = dashboardCache[`${currentPackingSheet}_1_all`];
-                if (allCache) {
-                    // 更新緩存中的全局統計
-                    allCache.totalRecords = summaryResult.summary.total;
-                    allCache.unclassified = summaryResult.summary.unclassified || 0;
-                    // 重新渲染側邊欄
-                    updateSidebarAndZonesFromCache();
-                }
-            }
-        }
-    } catch (e) {
-        console.error('載入 Summary 失敗:', e);
-    }
-}
+                loadPackingDataOptimized();
+            });
         }
 
         function updatePanelStyle() {
@@ -5010,13 +4985,32 @@ async function loadPackingSummary() {
             }
         }
 
+        // 【關鍵修改】更新左側統計面板 - 修正總數計算邏輯，確保與右側表格對應
         function updateSidebarStats(stats) {
             const statsDiv = document.getElementById('sidebarStats');
-            if (statsDiv && stats.total !== undefined) {
+            if (statsDiv) {
                 statsDiv.style.display = 'block';
-                document.getElementById('statTotal').textContent = stats.total || 0;
-                document.getElementById('statClassified').textContent = (stats.total - (stats.unclassified || 0)) || 0;
-                document.getElementById('statUnclassified').textContent = stats.unclassified || 0;
+                
+                // 計算實際總數：所有zone數量之和 + 未分類
+                let calculatedTotal = stats.total || 0;
+                let zonesSum = 0;
+                
+                if (stats.zones && stats.zones.length > 0) {
+                    zonesSum = stats.zones.reduce((sum, z) => sum + (z.count || 0), 0);
+                }
+                const unclassified = stats.unclassified || 0;
+                const actualTotal = zonesSum + unclassified;
+                
+                // 如果傳入的total為0或小於zones總和，使用計算值（確保綠色、橙色、藍色方框數據正確對應）
+                if (stats.total === 0 || stats.total < zonesSum) {
+                    calculatedTotal = actualTotal;
+                    totalRecords = actualTotal; // 同步更新全局變量
+                }
+                
+                // 更新左側統計數字（對應圖片中的藍色、綠色方框數據）
+                document.getElementById('statTotal').textContent = calculatedTotal;
+                document.getElementById('statClassified').textContent = zonesSum; // 已分類 = 各位置之和（對應橙色方框總和）
+                document.getElementById('statUnclassified').textContent = unclassified; // 未分類（對應綠色方框）
             }
         }
 
@@ -5037,18 +5031,18 @@ async function loadPackingSummary() {
             info.textContent = `第 ${currentPage} 頁，共 ${totalPages} 頁（每頁 ${PAGE_SIZE} 筆，共 ${totalRecords} 筆）`;
         }
 
-        async function changePage(direction) {
-            const newPage = currentPage + direction;
-            if (newPage < 1 || newPage > totalPages) return;
-            
-            currentPage = newPage;
-            await loadPackingDataOptimized();
-            
-            document.getElementById('excelTableContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-
+        // 【關鍵修改】更新位置列表 - 確保「全部資料」顯示正確總數（對應藍色方框）
         function updateZoneList(zones, unclassified) {
-            document.getElementById('zoneCountAll').textContent = totalRecords + ' 筆';
+            // 修正總數計算：如果totalRecords為0但zones有數據，則重新計算
+            let displayTotal = totalRecords;
+            if ((!displayTotal || displayTotal === 0) && zones && zones.length > 0) {
+                const zonesSum = zones.reduce((sum, z) => sum + (z.count || 0), 0);
+                displayTotal = zonesSum + (unclassified || 0);
+                totalRecords = displayTotal; // 更新全局變量以確保一致性
+            }
+            
+            // 更新左側「全部資料」數量（對應藍色方框總計）
+            document.getElementById('zoneCountAll').textContent = displayTotal + ' 筆';
 
             const zoneList = document.getElementById('zoneList');
             zoneList.innerHTML = '';
@@ -5319,6 +5313,7 @@ async function loadPackingSummary() {
             tbody.appendChild(fragment);
         }
 
+        // 【關鍵修改】更新右側統計表格 - 確保綠色（未分類）、橙色（各位置）、藍色（總計）方框數據正確對應左側
         function updateSummaryDisplay(summary) {
             const tbody = document.getElementById('zoneStatsTableBody');
             
@@ -5335,7 +5330,11 @@ async function loadPackingSummary() {
                 return;
             }
 
+            // 排序：未分類放最前，其他按數量排序，總計放最後
             const sortedZones = Object.entries(summary.zoneDetails).sort((a, b) => {
+                // 未分類始終排第一（對應綠色方框）
+                if (a[0] === '未分類' || a[0] === '') return -1;
+                if (b[0] === '未分類' || b[0] === '') return 1;
                 return b[1].quantity - a[1].quantity;
             });
 
@@ -5362,6 +5361,7 @@ async function loadPackingSummary() {
                 fragment.appendChild(tr);
             });
 
+            // 計算總計（對應藍色方框）
             const totals = sortedZones.reduce((acc, [_, stats]) => {
                 acc.quantity += stats.quantity;
                 customCategories.forEach((cat, index) => {
@@ -5392,7 +5392,22 @@ async function loadPackingSummary() {
             tbody.appendChild(fragment);
         }
 
-        
+        async function loadPackingSummary() {
+            try {
+                const categoriesParam = JSON.stringify(customCategories);
+                const summaryResult = await packingApiCall('packingGetSummary', {
+                    sheet: currentPackingSheet,
+                    categories: categoriesParam
+                });
+
+                if (summaryResult.success && summaryResult.summary) {
+                    updateSummaryDisplay(summaryResult.summary);
+                }
+            } catch (e) {
+                console.error('載入 Summary 失敗:', e);
+            }
+        }
+
         async function quickAddSearch() {
             if (isProcessingQuickAdd) return;
 
