@@ -251,6 +251,25 @@
             border-color: #11998e;
         }
 
+        /* 【新增】手動更新按鈕樣式 - 綠色主題 */
+        .title-btn-refresh {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: 2px solid #28a745;
+        }
+
+        .title-btn-refresh:hover {
+            background: linear-gradient(135deg, #218838 0%, #1ea781 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+        }
+
+        .title-btn-refresh:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         /* 圖書查詢特定樣式 */
         .search-layout {
             display: grid;
@@ -2992,6 +3011,10 @@
                                 <span class="sheet-badge packbox" id="currentSheetBadge">PACKBOX</span>
                             </div>
                             <div class="block-title-actions">
+                                <!-- 【新增】手動更新按鈕 - 放在最前面 -->
+                                <button class="title-btn title-btn-refresh" id="refreshZonesBtn" onclick="manualRefreshZones()">
+                                    🔄 手動更新
+                                </button>
                                 <button class="title-btn title-btn-primary" id="uploadFileBtn" onclick="showUploadModal()">
                                     📤 上傳Excel
                                 </button>
@@ -3215,10 +3238,12 @@
 
     <!-- 手機端紅方格懸浮操作按鈕（上傳/匯出/調整寬度/清空）- 右下角偏上，與綠方格垂直排列，間距14px -->
     <div class="mobile-packing-actions-fab" id="mobilePackingActionsFab">
-        <button class="mobile-packing-actions-main" id="mobilePackingActionsMain" onclick="toggleMobilePackingActions()">
-            ⚙️
-        </button>
+        <!-- 【新增】手機端也加入手動更新按鈕 -->
         <div class="mobile-packing-actions-menu" id="mobilePackingActionsMenu">
+            <button class="mobile-packing-action-btn adjust" onclick="manualRefreshZones(); toggleMobilePackingActions();">
+                <span>🔄</span>
+                <span>手動更新</span>
+            </button>
             <button class="mobile-packing-action-btn upload" onclick="showUploadModal(); toggleMobilePackingActions();">
                 <span>📤</span>
                 <span>上傳Excel</span>
@@ -3240,6 +3265,9 @@
                 <span>清空</span>
             </button>
         </div>
+        <button class="mobile-packing-actions-main" id="mobilePackingActionsMain" onclick="toggleMobilePackingActions()">
+            ⚙️
+        </button>
     </div>
 
     <!-- 手機端主導航懸浮選單 - 左上角橙色 -->
@@ -3541,6 +3569,46 @@
                 overlay.classList.add('active');
             } else {
                 overlay.classList.remove('active');
+            }
+        }
+
+        //================ 【新增】手動更新功能 =================
+        async function manualRefreshZones() {
+            const btn = document.getElementById('refreshZonesBtn');
+            const originalText = btn.innerHTML;
+            
+            // 禁用按鈕並顯示載入狀態
+            btn.disabled = true;
+            btn.innerHTML = '<span style="display: inline-block; width: 14px; height: 14px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 6px;"></span>更新中...';
+            
+            showGlobalLoading(true);
+            
+            try {
+                // 清除快取
+                Object.keys(dashboardCache).forEach(key => {
+                    if (key.startsWith(currentPackingSheet)) {
+                        delete dashboardCache[key];
+                    }
+                });
+                
+                // 重新載入位置列表和統計數據
+                await refreshZoneList();
+                
+                // 如果當前在查看特定位置，也重新載入該位置的數據
+                if (currentZone !== 'all') {
+                    await loadPackingDataOptimized();
+                } else {
+                    await loadPackingSummary();
+                }
+                
+                showToast('✅ 位置數據已同步更新', 'success');
+            } catch (e) {
+                console.error('手動更新失敗:', e);
+                showToast('❌ 更新失敗：' + e.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                showGlobalLoading(false);
             }
         }
 
@@ -3930,6 +3998,7 @@
             const title = document.getElementById('packingBlockTitle');
             const uploadBtn = document.getElementById('uploadFileBtn');
             const quickAddBtn = document.getElementById('quickAddBtn');
+            const refreshBtn = document.getElementById('refreshZonesBtn'); // 【新增】獲取刷新按鈕
 
             if (isSpare) {
                 title.className = 'block-title spare-title';
@@ -3940,6 +4009,12 @@
                 uploadBtn.className = 'title-btn title-btn-spare';
                 if (quickAddBtn) {
                     quickAddBtn.className = 'btn-spare quick-add-btn';
+                }
+                // 【新增】SPARE模式下更新手動更新按鈕樣式
+                if (refreshBtn) {
+                    refreshBtn.className = 'title-btn title-btn-refresh';
+                    refreshBtn.style.background = 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)';
+                    refreshBtn.style.borderColor = '#11998e';
                 }
                 document.getElementById('packingSidebar').classList.add('spare-sidebar');
                 document.getElementById('quickInputArea').classList.add('spare-mode');
@@ -3956,6 +4031,12 @@
                 uploadBtn.className = 'title-btn title-btn-primary';
                 if (quickAddBtn) {
                     quickAddBtn.className = 'btn-primary quick-add-btn';
+                }
+                // 【新增】PACKBOX模式下更新手動更新按鈕樣式
+                if (refreshBtn) {
+                    refreshBtn.className = 'title-btn title-btn-refresh';
+                    refreshBtn.style.background = '';
+                    refreshBtn.style.borderColor = '';
                 }
                 document.getElementById('packingSidebar').classList.remove('spare-sidebar');
                 document.getElementById('quickInputArea').classList.remove('spare-mode');
