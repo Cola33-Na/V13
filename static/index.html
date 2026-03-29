@@ -6491,31 +6491,38 @@
         }
 
         // 監聽視窗大小變化，控制手機版按鈕顯示
-        window.addEventListener('resize', () => {
-            const mobileManualBtn = document.getElementById('mobileManualBtn');
-            const mobilePackingBtn = document.getElementById('mobilePackingBtn');
-            const mobilePackingActionsFab = document.getElementById('mobilePackingActionsFab');
-            const mobileSearchBtn = document.getElementById('mobileSearchBtn');
-            
-            const isMobile = window.innerWidth <= 968;
-            
-            if (currentPanel === 'search') {
-                if (mobileManualBtn) mobileManualBtn.style.display = isMobile ? 'flex' : 'none';
-                if (mobilePackingBtn) mobilePackingBtn.style.display = 'none';
-                if (mobilePackingActionsFab) mobilePackingActionsFab.style.display = 'none';
-                if (mobileSearchBtn) mobileSearchBtn.style.display = 'none';
-            } else if (currentPanel === 'packing') {
-                if (mobileManualBtn) mobileManualBtn.style.display = 'none';
-                if (mobilePackingBtn) mobilePackingBtn.style.display = isMobile ? 'flex' : 'none';
-                if (mobilePackingActionsFab) mobilePackingActionsFab.style.display = isMobile ? 'flex' : 'none';
-                if (mobileSearchBtn) mobileSearchBtn.style.display = isMobile ? 'flex' : 'none';
-            } else {
-                if (mobileManualBtn) mobileManualBtn.style.display = 'none';
-                if (mobilePackingBtn) mobilePackingBtn.style.display = 'none';
-                if (mobilePackingActionsFab) mobilePackingActionsFab.style.display = 'none';
-                if (mobileSearchBtn) mobileSearchBtn.style.display = 'none';
-            }
-        });
+window.addEventListener('resize', () => {
+    const mobileManualBtn = document.getElementById('mobileManualBtn');
+    const mobilePackingBtn = document.getElementById('mobilePackingBtn');
+    const mobilePackingActionsFab = document.getElementById('mobilePackingActionsFab');
+    const mobileSearchBtn = document.getElementById('mobileSearchBtn');
+    
+    const isMobile = window.innerWidth <= 968;
+    
+    // 【關鍵修改】直接檢查實際顯示的面板，而非依賴 currentPanel 變數
+    const isPackingVisible = document.getElementById('panel-packing').classList.contains('active');
+    const isSearchVisible = document.getElementById('panel-search').classList.contains('active');
+    
+    if (isPackingVisible) {
+        // 裝箱功能面板：顯示綠色方格(統計)、紅色方格(操作)、藍色方格(搜尋)
+        if (mobileManualBtn) mobileManualBtn.style.display = 'none';
+        if (mobilePackingBtn) mobilePackingBtn.style.display = isMobile ? 'flex' : 'none';
+        if (mobilePackingActionsFab) mobilePackingActionsFab.style.display = isMobile ? 'flex' : 'none';
+        if (mobileSearchBtn) mobileSearchBtn.style.display = isMobile ? 'flex' : 'none';
+    } else if (isSearchVisible) {
+        // 圖書查詢面板：顯示 Manual Select 按鈕
+        if (mobileManualBtn) mobileManualBtn.style.display = isMobile ? 'flex' : 'none';
+        if (mobilePackingBtn) mobilePackingBtn.style.display = 'none';
+        if (mobilePackingActionsFab) mobilePackingActionsFab.style.display = 'none';
+        if (mobileSearchBtn) mobileSearchBtn.style.display = 'none';
+    } else {
+        // 其他面板：隱藏所有懸浮按鈕
+        if (mobileManualBtn) mobileManualBtn.style.display = 'none';
+        if (mobilePackingBtn) mobilePackingBtn.style.display = 'none';
+        if (mobilePackingActionsFab) mobilePackingActionsFab.style.display = 'none';
+        if (mobileSearchBtn) mobileSearchBtn.style.display = 'none';
+    }
+});
 
         // 防止頁面刷新時的狀態遺失（可選）
         window.addEventListener('beforeunload', (e) => {
