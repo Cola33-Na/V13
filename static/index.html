@@ -5990,17 +5990,18 @@
             }, 100);
         }
 
-        async function deleteLocation(key) {
+       async function deleteLocation(key) {
     if (!confirm(`確定要清除位置「${currentZone || '未分類'}」的標記嗎？\n\nKey: ${key}\n\n資料將保留，僅移除裝箱位置標記。`)) {
         return;
     }
 
     try {
-        // 【修改】將 'packingClearLocation' 改為 'packingSetLocation'，並傳入空字串
+        // 【修改】加入 force: 'true' 參數，確保可以清除已有位置的資料
         const result = await packingApiCall('packingSetLocation', {
             key: key,
-            location: '',  // 傳入空字串表示清除位置
-            sheet: currentPackingSheet
+            location: '',        // 空字串表示清除位置
+            sheet: currentPackingSheet,
+            force: 'true'        // 【關鍵】強制覆蓋，避免 LOCATION_EXISTS 錯誤
         });
 
         if (result.success) {
