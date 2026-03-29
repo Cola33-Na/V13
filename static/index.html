@@ -5991,28 +5991,30 @@
         }
 
         async function deleteLocation(key) {
-            if (!confirm(`確定要清除位置「${currentZone || '未分類'}」的標記嗎？\n\nKey: ${key}\n\n資料將保留，僅移除裝箱位置標記。`)) {
-                return;
-            }
+    if (!confirm(`確定要清除位置「${currentZone || '未分類'}」的標記嗎？\n\nKey: ${key}\n\n資料將保留，僅移除裝箱位置標記。`)) {
+        return;
+    }
 
-            try {
-                const result = await packingApiCall('packingClearLocation', {
-                    key: key,
-                    sheet: currentPackingSheet
-                });
+    try {
+        // 【修改】將 'packingClearLocation' 改為 'packingSetLocation'，並傳入空字串
+        const result = await packingApiCall('packingSetLocation', {
+            key: key,
+            location: '',  // 傳入空字串表示清除位置
+            sheet: currentPackingSheet
+        });
 
-                if (result.success) {
-                    showToast('✅ 位置標記已清除', 'success');
-                    delete dashboardCache[`${currentPackingSheet}_${currentPage}_${currentZone}`];
-                    await loadPackingDataOptimized();
-                    await refreshZoneList();
-                } else {
-                    throw new Error(result.error || '清除失敗');
-                }
-            } catch (e) {
-                showToast('❌ 清除失敗：' + e.message, 'error');
-            }
+        if (result.success) {
+            showToast('✅ 位置標記已清除', 'success');
+            delete dashboardCache[`${currentPackingSheet}_${currentPage}_${currentZone}`];
+            await loadPackingDataOptimized();
+            await refreshZoneList();
+        } else {
+            throw new Error(result.error || '清除失敗');
         }
+    } catch (e) {
+        showToast('❌ 清除失敗：' + e.message, 'error');
+    }
+}
 
         // Modal 相關函數
         function showModal(title, content, confirmCallback) {
