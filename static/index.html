@@ -5634,59 +5634,59 @@
         }
 
         // 【修改】綠色方格加入鍵 - 加入位置查驗機制，若有位置則詢問是否覆蓋
-        async function quickAddSearch() {
-            if (isProcessingQuickAdd) return;
+async function quickAddSearch() {
+    if (isProcessingQuickAdd) return;
 
-            const key = document.getElementById('quickKeyInput').value.trim();
-            if (!key) {
-                showToast('請輸入Key值', 'error');
-                return;
+    const key = document.getElementById('quickKeyInput').value.trim();
+    if (!key) {
+        showToast('請輸入Key值', 'error');
+        return;
+    }
+
+    const resultDiv = document.getElementById('quickSearchResult');
+    resultDiv.innerHTML = '<div style="padding: 10px; color: #666;">查找中...</div>';
+
+    isProcessingQuickAdd = true;
+    const addBtn = document.getElementById('quickAddBtn');
+    addBtn.disabled = true;
+    addBtn.textContent = '處理中...';
+
+    try {
+        const result = await packingApiCall('packingGetByKey', {
+            key: key,
+            sheet: currentPackingSheet
+        });
+
+        if (result.found) {
+            // 【關鍵修改】檢查是否已有位置 - 使用 String() 轉換避免類型錯誤
+            const currentLocation = result.data.F ? String(result.data.F).trim() : '';
+            
+            if (currentLocation && currentLocation !== '') {
+                // 已有位置，跳出確認對話框
+                const confirmOverwrite = confirm(
+                    `⚠️ 該資料已有位置：「${currentLocation}」\n\n` +
+                    `是否覆蓋為新位置：「${currentZone || '未分類'}」？\n\n` +
+                    `點擊「確定」覆蓋，點擊「取消」保留原有位置`
+                );
+                
+                if (!confirmOverwrite) {
+                    // 使用者取消，不覆蓋
+                    resultDiv.innerHTML = `
+                        <div class="quick-result-display" style="border-color: #ffc107;">
+                            <div class="quick-result-status" style="background: #fff3cd; color: #856404;">
+                                ⚠️ 已取消：保留原有位置「${escapeHtml(currentLocation)}」
+                            </div>
+                        </div>
+                    `;
+                    isProcessingQuickAdd = false;
+                    addBtn.disabled = false;
+                    addBtn.textContent = '➕ 加入';
+                    setTimeout(() => {
+                        resultDiv.innerHTML = '';
+                    }, 3000);
+                    return;
+                }
             }
-
-            const resultDiv = document.getElementById('quickSearchResult');
-            resultDiv.innerHTML = '<div style="padding: 10px; color: #666;">查找中...</div>';
-
-            isProcessingQuickAdd = true;
-            const addBtn = document.getElementById('quickAddBtn');
-            addBtn.disabled = true;
-            addBtn.textContent = '處理中...';
-
-            try {
-                const result = await packingApiCall('packingGetByKey', {
-                    key: key,
-                    sheet: currentPackingSheet
-                });
-
-                if (result.found) {
-                    // 【關鍵修改】檢查是否已有位置
-                    const currentLocation = result.data.F ? result.data.F.trim() : '';
-                    
-                    if (currentLocation && currentLocation !== '') {
-                        // 已有位置，跳出確認對話框
-                        const confirmOverwrite = confirm(
-                            `⚠️ 該資料已有位置：「${currentLocation}」\n\n` +
-                            `是否覆蓋為新位置：「${currentZone || '未分類'}」？\n\n` +
-                            `點擊「確定」覆蓋，點擊「取消」保留原有位置`
-                        );
-                        
-                        if (!confirmOverwrite) {
-                            // 使用者取消，不覆蓋
-                            resultDiv.innerHTML = `
-                                <div class="quick-result-display" style="border-color: #ffc107;">
-                                    <div class="quick-result-status" style="background: #fff3cd; color: #856404;">
-                                        ⚠️ 已取消：保留原有位置「${escapeHtml(currentLocation)}」
-                                    </div>
-                                </div>
-                            `;
-                            isProcessingQuickAdd = false;
-                            addBtn.disabled = false;
-                            addBtn.textContent = '➕ 加入';
-                            setTimeout(() => {
-                                resultDiv.innerHTML = '';
-                            }, 3000);
-                            return;
-                        }
-                    }
                     
                     // 繼續執行加入操作（無位置或使用者確認覆蓋）
                     lastAddedKey = key;
