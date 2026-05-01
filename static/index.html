@@ -2817,7 +2817,6 @@
                     <span class="label">圖書查詢</span>
                 </button>
 
-                <!-- 【新增】Bib查詢 -->
                 <button class="tool-btn" data-target="bib" onclick="switchPanel('bib')" title="Bib查詢">
                     <span style="font-size: 24px;">📖</span>
                     <span class="label">Bib查詢</span>
@@ -2918,7 +2917,6 @@
                     </div>
                 </div>
 
-                <!-- 【新增】Bib查詢 Panel -->
                 <div id="panel-bib" class="function-block">
                     <div class="search-layout">
                         <div class="search-main">
@@ -3249,12 +3247,10 @@
         </div>
     </div>
 
-    <!-- 手機端 Manual Select 懸浮按鈕 -->
     <button class="mobile-manual-float-btn" id="mobileManualBtn" onclick="toggleMobileManualModal()" title="Manual Select" style="display: none;">
         📋
     </button>
 
-    <!-- 手機端 Manual Select 彈窗 -->
     <div class="mobile-manual-modal" id="mobileManualModal" onclick="closeMobileManualModal(event)">
         <div class="mobile-manual-content" onclick="event.stopPropagation()">
             <div class="mobile-manual-header">
@@ -3282,12 +3278,10 @@
         </div>
     </div>
 
-    <!-- 手機端綠方格懸浮按鈕（統計與位置）- 右下角 -->
     <button class="mobile-packing-float-btn" id="mobilePackingBtn" onclick="toggleMobilePackingPanel()" title="統計與位置">
         📊
     </button>
 
-    <!-- 手機端綠方格懸浮面板（統計與位置）- 直排顯示 -->
     <div class="mobile-packing-panel" id="mobilePackingPanel" onclick="closeMobilePackingPanel(event)">
         <div class="mobile-packing-panel-content" onclick="event.stopPropagation()">
             <div class="mobile-packing-panel-header">
@@ -3332,7 +3326,6 @@
         </div>
     </div>
 
-    <!-- 手機端紅方格懸浮操作按鈕（上傳/匯出/調整寬度/清空）- 右下角偏上 -->
     <div class="mobile-packing-actions-fab" id="mobilePackingActionsFab">
         <div class="mobile-packing-actions-menu" id="mobilePackingActionsMenu">
             <button class="mobile-packing-action-btn adjust" onclick="manualRefreshZones(); toggleMobilePackingActions();">
@@ -3365,12 +3358,10 @@
         </button>
     </div>
 
-    <!-- 手機端藍色方格搜索懸浮按鈕（左下角） -->
     <button class="mobile-search-float-btn" id="mobileSearchBtn" onclick="toggleMobileSearchPanel()" title="搜尋">
         🔍
     </button>
 
-    <!-- 手機端藍色方格搜索面板 -->
     <div class="mobile-search-panel" id="mobileSearchPanel" onclick="closeMobileSearchPanel(event)">
         <div class="mobile-search-panel-content" onclick="event.stopPropagation()">
             <div class="mobile-search-panel-header">
@@ -3395,7 +3386,6 @@
         </div>
     </div>
 
-    <!-- 手機端主導航懸浮選單 - 左上角橙色 -->
     <div class="mobile-nav-fab" id="mobileNavFab">
         <button class="mobile-nav-main" id="mobileNavMain" onclick="toggleMobileNav()">
             ☰
@@ -3405,7 +3395,6 @@
                 <div class="mobile-nav-icon">🔍</div>
                 <div class="mobile-nav-text">圖書查詢</div>
             </div>
-            <!-- 【新增】Bib查詢 手機導航 -->
             <div class="mobile-nav-item" data-panel="bib" onclick="mobileSwitchPanel('bib')">
                 <div class="mobile-nav-icon">📖</div>
                 <div class="mobile-nav-text">Bib查詢</div>
@@ -3438,7 +3427,6 @@
         </div>
     </div>
 
-    <!-- Modal -->
     <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
         <div class="modal" onclick="event.stopPropagation()">
             <h3 id="modalTitle">標題</h3>
@@ -3450,7 +3438,6 @@
         </div>
     </div>
 
-    <!-- 調整篩選項目 Modal -->
     <div class="modal-overlay" id="categoryEditModalOverlay" onclick="closeCategoryEditModal(event)">
         <div class="modal" onclick="event.stopPropagation()">
             <h3>🏷️ 調整篩選項目</h3>
@@ -3466,7 +3453,6 @@
         </div>
     </div>
 
-    <!-- 調整標題寬度 Modal -->
     <div class="modal-overlay" id="widthAdjustModalOverlay" onclick="closeWidthAdjustModal(event)">
         <div class="modal" onclick="event.stopPropagation()">
             <h3>📐 調整標題寬度</h3>
@@ -3484,7 +3470,6 @@
         </div>
     </div>
 
-    <!-- Upload Modal -->
     <div class="modal-overlay upload-modal-overlay" id="uploadModalOverlay" onclick="closeUploadModal(event)">
         <div class="modal" onclick="event.stopPropagation()" style="text-align: center;">
             <h3 id="uploadModalTitle" style="text-align: left;">📤 上傳 Excel 檔案</h3>
@@ -3588,7 +3573,6 @@
                 this.value = this.value.replace(/[^\d]/g, '').slice(0, 14);
             });
             
-            // 【新增】Bib查詢輸入監聽
             document.getElementById('bibInput')?.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') searchBib();
             });
@@ -4552,13 +4536,11 @@
             }
         }
 
-        // 【新增】Bib查詢函數
         async function searchBib() {
             const input = document.getElementById('bibInput').value.trim();
             const btn = document.getElementById('bibBtn');
             const resultsDiv = document.getElementById('bibResults');
 
-            // 純數字驗證
             if (!/^\d+$/.test(input)) {
                 showLibraryStatus('bib', '只能輸入純數字', 'error');
                 return;
@@ -4600,7 +4582,6 @@
             }
         }
 
-        // 【新增】Bib查詢 Manual Select 添加函數
         async function addBibManualItem() {
             const input = document.getElementById('bibNewManualItem');
             const value = input.value.trim();
@@ -4718,7 +4699,6 @@
                 html += '</tbody></table></div></div>';
             }
 
-            // 根據當前面板寫入對應結果區
             if (currentPanel === 'bib') {
                 document.getElementById('bibResults').innerHTML = html;
             } else {
@@ -6369,7 +6349,8 @@
                     if (batchData.length === 0) continue;
                     
                     try {
-                        const result = await packingApiCall('packingBatchUpload', {
+                        // 【修正1】packingBatchUpload → packingUploadData
+                        const result = await packingApiCall('packingUploadData', {
                             sheet: currentPackingSheet,
                             data: JSON.stringify(batchData)
                         });
@@ -6556,7 +6537,8 @@
             showGlobalLoading(true);
             
             try {
-                const result = await packingApiCall('packingClearAllLocations', {
+                // 【修正3】packingClearAllLocations → packingClearLocations
+                const result = await packingApiCall('packingClearLocations', {
                     sheet: currentPackingSheet
                 });
                 
