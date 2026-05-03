@@ -2998,32 +2998,59 @@
                 </div>
 
                 <div id="panel-location" class="function-block">
-                    <div class="panel-content">
-                        <div class="block-title">📍 查詢位置</div>
+                    <div class="search-layout">
+                        <div class="search-main">
+                            <div class="block-title">📍 查詢位置</div>
 
-                        <div class="control-box">
-                            <div class="search-hint">
-                                💡 請輸入14位數條碼查詢存放位置（例如：12345678912345）
-                            </div>
+                            <div class="control-box">
+                                <div class="search-hint">
+                                    💡 請輸入14位數條碼查詢存放位置（例如：12345678912345）
+                                </div>
 
-                            <div class="search-box">
-                                <input type="text" id="locationInput" placeholder="請輸入14位數條碼..." autocomplete="off" maxlength="14" inputmode="numeric">
-                                <button class="btn-primary" onclick="searchLocation()" id="locationBtn" style="flex: 1;">
-                                    查詢位置
-                                </button>
-                            </div>
+                                <div class="search-box">
+                                    <input type="text" id="locationInput" placeholder="請輸入14位數條碼..." autocomplete="off" maxlength="14" inputmode="numeric">
+                                    <button class="btn-primary" onclick="searchLocation()" id="locationBtn" style="flex: 1;">
+                                        查詢位置
+                                    </button>
+                                </div>
 
-                            <div id="locationStatusBar" class="status-bar"></div>
+                                <div id="locationStatusBar" class="status-bar"></div>
 
-                            <div id="locationResults">
-                                <div class="empty-state">
-                                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.3; margin-bottom: 16px;">
-                                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
-                                        <circle cx="12" cy="9" r="2.5"/>
-                                    </svg>
-                                    <p>請輸入14位數條碼查詢位置</p>
+                                <div id="locationResults">
+                                    <div class="empty-state">
+                                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.3; margin-bottom: 16px;">
+                                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                                            <circle cx="12" cy="9" r="2.5"/>
+                                        </svg>
+                                        <p>請輸入14位數條碼查詢位置</p>
+                                    </div>
                                 </div>
                             </div>
+                        </div>
+
+                        <div class="search-sidebar desktop-only">
+                            <h3>
+                                📍 Location Select
+                                <span id="locationCount" style="font-size: 12px; color: #666; font-weight: normal;">(0)</span>
+                            </h3>
+
+                            <div class="manual-list" id="locationList">
+                                <div class="empty-list">載入中...</div>
+                            </div>
+
+                            <div class="manual-input-group">
+                                <input type="text" id="newLocationItem" placeholder="加入新項目..." onkeypress="if(event.key==='Enter') addLocationItem()">
+                                <button class="btn-success btn-sm" onclick="addLocationItem()">+</button>
+                            </div>
+
+                            <div class="manual-actions">
+                                <button class="btn-danger btn-sm" onclick="clearLocationSelect()">清空全部</button>
+                                <button class="btn-secondary btn-sm" onclick="removeLastLocation()">移除最後一筆</button>
+                            </div>
+
+                            <button class="btn-info btn-sm export-btn" onclick="exportLocationSelect()">
+                                📥 匯出清單 (CSV)
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -3537,6 +3564,7 @@
         let currentZone = 'all';
         let currentDisplayLimit = 100;
         let manualSelectData = [];
+        let locationSelectData = []; // 【新增】Location Select 獨立陣列
         let updateLogs = [];
         let packingDataCache = [];
         let fullDataCache = {};
@@ -3585,6 +3613,7 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             loadManualSelect();
+            loadLocationSelect(); // 【新增】載入 Location Select
             loadCustomCategories();
             loadColumnWidths();
 
@@ -4043,9 +4072,9 @@
             const mobilePackingActionsFab = document.getElementById('mobilePackingActionsFab');
             const mobileSearchBtn = document.getElementById('mobileSearchBtn');
             
-            const isSearchOrBib = (panelName === 'search' || panelName === 'bib');
+            const isSearchBibLocation = (panelName === 'search' || panelName === 'bib' || panelName === 'location');
             
-            if (isSearchOrBib) {
+            if (isSearchBibLocation) {
                 if (mobileManualBtn) mobileManualBtn.style.display = window.innerWidth <= 968 ? 'flex' : 'none';
                 if (mobilePackingBtn) mobilePackingBtn.style.display = 'none';
                 if (mobilePackingActionsFab) mobilePackingActionsFab.style.display = 'none';
@@ -4195,12 +4224,17 @@
 
         function renderMobileManualList() {
             const listDiv = document.getElementById('mobileManualList');
-
-            if (manualSelectData.length === 0) {
+            const isLocation = currentPanel === 'location';
+            const data = isLocation ? locationSelectData : manualSelectData;
+            const title = isLocation ? '📍 Location Select' : '📋 Manual Select';
+            
+            document.querySelector('.mobile-manual-title').textContent = title;
+            
+            if (data.length === 0) {
                 listDiv.innerHTML = '<div class="empty-list" style="text-align: center; padding: 20px; color: #9e9e9e;">暫無項目<br>在下方輸入添加</div>';
             } else {
                 let html = '';
-                manualSelectData.forEach((item, index) => {
+                data.forEach((item, index) => {
                     html += `
                         <div class="manual-item" style="background: white; margin-bottom: 5px; border-radius: 8px;">
                             <span class="manual-item-text" onclick="useMobileManualItem('${escapeHtml(item)}')">${escapeHtml(item)}</span>
@@ -4217,59 +4251,113 @@
             const value = input.value.trim();
             if (!value) return;
 
-            if (!manualSelectData.includes(value)) {
-                manualSelectData.push(value);
-                renderManualList();
+            const isLocation = currentPanel === 'location';
+            const targetArray = isLocation ? locationSelectData : manualSelectData;
+            const apiAction = isLocation ? 'addToLocationSelect' : 'addToManualSelect';
+
+            if (!targetArray.includes(value)) {
+                targetArray.push(value);
+                if (isLocation) {
+                    renderLocationList();
+                } else {
+                    renderManualList();
+                }
                 renderMobileManualList();
                 input.value = '';
             }
 
             try {
-                await libraryApiCall('addToManualSelect', { value: value });
+                await libraryApiCall(apiAction, { value: value });
             } catch (e) {
                 console.error('背景同步失敗:', e);
             }
         }
 
         async function removeMobileManualItem(value, index) {
-            manualSelectData.splice(index, 1);
-            renderManualList();
+            const isLocation = currentPanel === 'location';
+            const targetArray = isLocation ? locationSelectData : manualSelectData;
+            const apiAction = isLocation ? 'removeFromLocationSelect' : 'removeFromManualSelect';
+
+            targetArray.splice(index, 1);
+            if (isLocation) {
+                renderLocationList();
+            } else {
+                renderManualList();
+            }
             renderMobileManualList();
 
             try {
-                await libraryApiCall('removeFromManualSelect', { value: value });
+                await libraryApiCall(apiAction, { value: value });
             } catch (e) {
                 console.error('背景同步失敗:', e);
             }
         }
 
         async function removeMobileLastManual() {
-            if (manualSelectData.length === 0) return;
-            const lastItem = manualSelectData[manualSelectData.length - 1];
+            const isLocation = currentPanel === 'location';
+            const targetArray = isLocation ? locationSelectData : manualSelectData;
+            if (targetArray.length === 0) return;
+            const lastItem = targetArray[targetArray.length - 1];
+            const apiAction = isLocation ? 'removeFromLocationSelect' : 'removeFromManualSelect';
 
-            manualSelectData.pop();
-            renderManualList();
+            targetArray.pop();
+            if (isLocation) {
+                renderLocationList();
+            } else {
+                renderManualList();
+            }
             renderMobileManualList();
 
             try {
-                await libraryApiCall('removeFromManualSelect', { value: lastItem });
+                await libraryApiCall(apiAction, { value: lastItem });
             } catch (e) {
                 console.error('背景同步失敗:', e);
             }
         }
 
         async function clearMobileManualSelect() {
-            if (!confirm('確定清空全部 Manual Select 項目？')) return;
+            if (!confirm('確定清空全部項目？')) return;
 
-            manualSelectData = [];
-            renderManualList();
+            const isLocation = currentPanel === 'location';
+            const targetArray = isLocation ? locationSelectData : manualSelectData;
+            targetArray.length = 0;
+            
+            if (isLocation) {
+                renderLocationList();
+            } else {
+                renderManualList();
+            }
             renderMobileManualList();
 
             try {
-                await libraryApiCall('clearManualSelect');
+                const apiAction = isLocation ? 'clearLocationSelect' : 'clearManualSelect';
+                await libraryApiCall(apiAction);
             } catch (e) {
                 console.error('清空失敗:', e);
             }
+        }
+
+        function exportMobileManualSelect() {
+            const isLocation = currentPanel === 'location';
+            const data = isLocation ? locationSelectData : manualSelectData;
+            const filename = isLocation ? 'location_select_' : 'manual_select_';
+            
+            if (data.length === 0) {
+                alert('沒有可匯出的資料');
+                return;
+            }
+
+            const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + 
+                "項目名稱\n" + 
+                data.join("\n");
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", filename + new Date().toISOString().slice(0,10) + ".csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         function useMobileManualItem(value) {
@@ -4286,10 +4374,6 @@
                 closeMobileManualModal();
                 searchLocation();
             }
-        }
-
-        function exportMobileManualSelect() {
-            exportManualSelect();
         }
 
         function toggleMobilePackingPanel() {
@@ -4547,10 +4631,18 @@
                     `;
                     showLibraryStatus('search', '查無資料', 'error');
                 } else {
-                    throw new Error(data.error || '未知錯誤');
+                    // 【強化】顯示詳細錯誤資訊
+                    let errorMsg = data.error || '未知錯誤';
+                    if (data.detail) {
+                        errorMsg += '\n\n詳細：' + data.detail;
+                    }
+                    if (data.suggestion) {
+                        errorMsg += '\n\n建議：' + data.suggestion;
+                    }
+                    throw new Error(errorMsg);
                 }
             } catch (error) {
-                resultsDiv.innerHTML = `<div class="empty-state"><p>查詢失敗：${escapeHtml(error.message)}</p></div>`;
+                resultsDiv.innerHTML = `<div class="empty-state"><p>查詢失敗：${escapeHtml(error.message).replace(/\n/g, '<br>')}</p></div>`;
                 showLibraryStatus('search', '查詢失敗：' + error.message, 'error');
             } finally {
                 btn.disabled = false;
@@ -4593,10 +4685,12 @@
                     `;
                     showLibraryStatus('bib', '查無資料', 'error');
                 } else {
-                    throw new Error(data.error || '未知錯誤');
+                    let errorMsg = data.error || '未知錯誤';
+                    if (data.detail) errorMsg += '\n\n詳細：' + data.detail;
+                    throw new Error(errorMsg);
                 }
             } catch (error) {
-                resultsDiv.innerHTML = `<div class="empty-state"><p>查詢失敗：${escapeHtml(error.message)}</p></div>`;
+                resultsDiv.innerHTML = `<div class="empty-state"><p>查詢失敗：${escapeHtml(error.message).replace(/\n/g, '<br>')}</p></div>`;
                 showLibraryStatus('bib', '查詢失敗：' + error.message, 'error');
             } finally {
                 btn.disabled = false;
@@ -4758,7 +4852,7 @@
                         </div>
                     `;
                     showLibraryStatus('location', '✅ 查詢成功', 'success');
-                    addToManualSelectBackground(input);
+                    addToLocationSelectBackground(input); // 【修改】加入 LocationSelect
                     document.getElementById('locationInput').value = '';
                 } else if (data.success && !data.found) {
                     resultsDiv.innerHTML = `
@@ -5173,6 +5267,136 @@
                 document.getElementById('manualList').innerHTML = '<div class="empty-list">載入失敗</div>';
             }
         }
+
+        //================ Location Select 功能 =================
+        async function loadLocationSelect() {
+            try {
+                const data = await libraryApiCall('getLocationSelect');
+                if (data.success) {
+                    locationSelectData = data.data || [];
+                    renderLocationList();
+                }
+            } catch (e) {
+                document.getElementById('locationList').innerHTML = '<div class="empty-list">載入失敗</div>';
+            }
+        }
+
+        function renderLocationList() {
+            const listDiv = document.getElementById('locationList');
+            const countSpan = document.getElementById('locationCount');
+
+            if (locationSelectData.length === 0) {
+                listDiv.innerHTML = '<div class="empty-list">暫無項目<br>在下方輸入添加</div>';
+            } else {
+                let html = '';
+                locationSelectData.forEach((item, index) => {
+                    html += `
+                        <div class="manual-item">
+                            <span class="manual-item-text" onclick="useLocationItem('${escapeHtml(item)}')">${escapeHtml(item)}</span>
+                            <span class="manual-item-remove" onclick="removeLocationItem('${escapeHtml(item)}', ${index})">×</span>
+                        </div>
+                    `;
+                });
+                listDiv.innerHTML = html;
+            }
+            if (countSpan) countSpan.textContent = `(${locationSelectData.length})`;
+        }
+
+        async function addLocationItem() {
+            const input = document.getElementById('newLocationItem');
+            const value = input.value.trim();
+            if (!value) return;
+
+            if (!locationSelectData.includes(value)) {
+                locationSelectData.push(value);
+                renderLocationList();
+                input.value = '';
+            }
+
+            try {
+                await libraryApiCall('addToLocationSelect', { value: value });
+            } catch (e) {
+                console.error('背景同步失敗:', e);
+            }
+        }
+
+        async function removeLocationItem(value, index) {
+            if (!confirm('確定移除「' + value + '」？')) return;
+
+            locationSelectData.splice(index, 1);
+            renderLocationList();
+
+            try {
+                await libraryApiCall('removeFromLocationSelect', { value: value });
+            } catch (e) {
+                console.error('背景同步失敗:', e);
+            }
+        }
+
+        async function removeLastLocation() {
+            if (locationSelectData.length === 0) return;
+            const lastItem = locationSelectData[locationSelectData.length - 1];
+
+            locationSelectData.pop();
+            renderLocationList();
+
+            try {
+                await libraryApiCall('removeFromLocationSelect', { value: lastItem });
+            } catch (e) {
+                console.error('背景同步失敗:', e);
+            }
+        }
+
+        async function clearLocationSelect() {
+            if (!confirm('確定清空全部 Location Select 項目？')) return;
+
+            locationSelectData = [];
+            renderLocationList();
+
+            try {
+                await libraryApiCall('clearLocationSelect');
+            } catch (e) {
+                console.error('清空失敗:', e);
+            }
+        }
+
+        function exportLocationSelect() {
+            if (locationSelectData.length === 0) {
+                alert('沒有可匯出的資料');
+                return;
+            }
+
+            const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + 
+                "項目名稱\n" + 
+                locationSelectData.join("\n");
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "location_select_" + new Date().toISOString().slice(0,10) + ".csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function useLocationItem(value) {
+            document.getElementById('locationInput').value = value;
+            searchLocation();
+        }
+
+        async function addToLocationSelectBackground(value) {
+            if (!locationSelectData.includes(value)) {
+                locationSelectData.push(value);
+                renderLocationList();
+
+                try {
+                    await libraryApiCall('addToLocationSelect', { value: value });
+                } catch (e) {
+                    console.error('背景添加失敗:', e);
+                }
+            }
+        }
+        //================ Location Select 結束 =================
 
         function renderManualList() {
             const listDiv = document.getElementById('manualList');
@@ -6373,14 +6597,19 @@
                     throw new Error('Excel 檔案為空或格式不正確');
                 }
                 
-                const headers = jsonData[0];
-                const rows = jsonData.slice(1).filter(row => row.some(cell => cell !== undefined && cell !== ''));
+                // 【修正】自動檢測標題行：若第一列第一欄為14位數字條碼，則視為無標題行
+                const firstCell = jsonData[0] && jsonData[0][0] ? String(jsonData[0][0]).trim() : '';
+                const hasHeader = !/^\d{14}$/.test(firstCell);
                 
-                if (rows.length === 0) {
+                const headers = hasHeader ? jsonData[0] : ['A', 'B', 'C', 'D', 'E', 'F'];
+                const rows = hasHeader ? jsonData.slice(1) : jsonData;
+                const validRows = rows.filter(row => row.some(cell => cell !== undefined && cell !== ''));
+                
+                if (validRows.length === 0) {
                     throw new Error('沒有找到有效的資料行');
                 }
                 
-                const totalRows = rows.length;
+                const totalRows = validRows.length;
                 let processed = 0;
                 let successCount = 0;
                 let errorCount = 0;
@@ -6388,12 +6617,12 @@
                 
                 statusText.textContent = `正在處理 ${totalRows} 筆資料...`;
                 
-                for (let i = 0; i < rows.length; i += UPLOAD_BATCH_SIZE) {
+                for (let i = 0; i < validRows.length; i += UPLOAD_BATCH_SIZE) {
                     if (currentUploadController.signal.aborted) {
                         throw new Error('使用者取消上傳');
                     }
                     
-                    const batch = rows.slice(i, i + UPLOAD_BATCH_SIZE);
+                    const batch = validRows.slice(i, i + UPLOAD_BATCH_SIZE);
                     const batchData = batch.map(row => {
                         const rowData = {};
                         ['A', 'B', 'C', 'D', 'E', 'F'].forEach((col, idx) => {
@@ -6707,6 +6936,7 @@
             
             const isSearchVisible = document.getElementById('panel-search').classList.contains('active');
             const isBibVisible = document.getElementById('panel-bib').classList.contains('active');
+            const isLocationVisible = document.getElementById('panel-location').classList.contains('active');
             const isPackingVisible = document.getElementById('panel-packing').classList.contains('active');
             
             if (isPackingVisible) {
@@ -6714,7 +6944,7 @@
                 if (mobilePackingBtn) mobilePackingBtn.style.display = isMobile ? 'flex' : 'none';
                 if (mobilePackingActionsFab) mobilePackingActionsFab.style.display = isMobile ? 'flex' : 'none';
                 if (mobileSearchBtn) mobileSearchBtn.style.display = isMobile ? 'flex' : 'none';
-            } else if (isSearchVisible || isBibVisible) {
+            } else if (isSearchVisible || isBibVisible || isLocationVisible) {
                 if (mobileManualBtn) mobileManualBtn.style.display = isMobile ? 'flex' : 'none';
                 if (mobilePackingBtn) mobilePackingBtn.style.display = 'none';
                 if (mobilePackingActionsFab) mobilePackingActionsFab.style.display = 'none';
