@@ -2794,6 +2794,28 @@
         .spare-mode .global-loading-text {
             color: #11998e;
         }
+
+        .zone-item.temp-zone-item {
+            opacity: 0.75;
+            border: 2px dashed #667eea;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e3f2fd 100%);
+        }
+
+        .zone-item.temp-zone-item .zone-name::after {
+            content: " (加入中...)";
+            font-size: 11px;
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .spare-sidebar .zone-item.temp-zone-item {
+            border-color: #11998e;
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        }
+
+        .spare-sidebar .zone-item.temp-zone-item .zone-name::after {
+            color: #11998e;
+        }
     </style>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <base target="_blank">
@@ -5974,6 +5996,33 @@
         }
 
         async function addNewZone(zoneName) {
+            const tempId = 'temp-zone-' + Date.now();
+            const zoneList = document.getElementById('zoneList');
+            
+            const tempDiv = document.createElement('div');
+            tempDiv.className = 'zone-item temp-zone-item';
+            tempDiv.id = tempId;
+            tempDiv.onclick = function() { filterZone(zoneName, this); };
+            tempDiv.innerHTML = `
+                <span class="zone-name">📍 ${escapeHtml(zoneName)}</span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="zone-count">0 筆</span>
+                    <div class="zone-actions">
+                        <span style="display:inline-block;width:12px;height:12px;border:2px solid #667eea;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;"></span>
+                    </div>
+                </div>
+            `;
+            
+            const allItem = zoneList.querySelector('.zone-item:first-child');
+            if (allItem) {
+                zoneList.insertBefore(tempDiv, allItem.nextSibling);
+            } else {
+                zoneList.appendChild(tempDiv);
+            }
+            
+            updateMobilePackingPanel();
+            closeMobilePackingPanel();
+
             try {
                 const result = await packingApiCall('packingSaveZone', {
                     zoneName: zoneName,
@@ -5981,6 +6030,9 @@
                 });
 
                 if (!result.success) {
+                    const tempEl = document.getElementById(tempId);
+                    if (tempEl) tempEl.remove();
+                    
                     if (result.error === 'ZONE_EXISTS') {
                         showToast('❌ 該位置名稱已加入列表，請重新輸入', 'error', 5000);
                         return;
@@ -5991,9 +6043,14 @@
                 showToast(`✅ 位置「${zoneName}」已新增`, 'success');
                 closeModal();
                 
+                const tempEl = document.getElementById(tempId);
+                if (tempEl) tempEl.remove();
+                
                 delete dashboardCache[`${currentPackingSheet}_1_all`];
                 await refreshZoneList();
             } catch (e) {
+                const tempEl = document.getElementById(tempId);
+                if (tempEl) tempEl.remove();
                 showToast('❌ 新增失敗：' + e.message, 'error');
             }
         }
@@ -6349,7 +6406,6 @@
                     if (batchData.length === 0) continue;
                     
                     try {
-                        // 【修正1】packingBatchUpload → packingUploadData
                         const result = await packingApiCall('packingUploadData', {
                             sheet: currentPackingSheet,
                             data: JSON.stringify(batchData)
@@ -6506,7 +6562,7 @@
                 });
                 
                 if (result.success) {
-                    showToast(`✅ 已清空所有資料 (${result.deletedCount || 0} 筆)`, 'success');
+                    showToast(`✅ 已清空所有資料 (${result.deletedCount || 0} 筆)${result.clearedZones ? '，位置列表已同步清除' : ''}`, 'success');
                     
                     Object.keys(dashboardCache).forEach(key => {
                         if (key.startsWith(currentPackingSheet)) {
@@ -6537,7 +6593,6 @@
             showGlobalLoading(true);
             
             try {
-                // 【修正3】packingClearAllLocations → packingClearLocations
                 const result = await packingApiCall('packingClearLocations', {
                     sheet: currentPackingSheet
                 });
