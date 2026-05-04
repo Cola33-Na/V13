@@ -3564,7 +3564,7 @@
         let currentZone = 'all';
         let currentDisplayLimit = 100;
         let manualSelectData = [];
-        let locationSelectData = []; // 【新增】Location Select 獨立陣列
+        let locationSelectData = [];
         let updateLogs = [];
         let packingDataCache = [];
         let fullDataCache = {};
@@ -3613,7 +3613,7 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             loadManualSelect();
-            loadLocationSelect(); // 【新增】載入 Location Select
+            loadLocationSelect();
             loadCustomCategories();
             loadColumnWidths();
 
@@ -4631,7 +4631,6 @@
                     `;
                     showLibraryStatus('search', '查無資料', 'error');
                 } else {
-                    // 【強化】顯示詳細錯誤資訊
                     let errorMsg = data.error || '未知錯誤';
                     if (data.detail) {
                         errorMsg += '\n\n詳細：' + data.detail;
@@ -4852,7 +4851,7 @@
                         </div>
                     `;
                     showLibraryStatus('location', '✅ 查詢成功', 'success');
-                    addToLocationSelectBackground(input); // 【修改】加入 LocationSelect
+                    addToLocationSelectBackground(input);
                     document.getElementById('locationInput').value = '';
                 } else if (data.success && !data.found) {
                     resultsDiv.innerHTML = `
@@ -5268,7 +5267,6 @@
             }
         }
 
-        //================ Location Select 功能 =================
         async function loadLocationSelect() {
             try {
                 const data = await libraryApiCall('getLocationSelect');
@@ -5396,7 +5394,6 @@
                 }
             }
         }
-        //================ Location Select 結束 =================
 
         function renderManualList() {
             const listDiv = document.getElementById('manualList');
@@ -6565,6 +6562,65 @@
             statusBar.style.display = 'block';
         }
 
+        //================ 智能標題行檢測 =================
+        function detectHeaderRow(jsonData) {
+            if (!jsonData || jsonData.length === 0) {
+                return { hasHeader: false, headerIndex: -1, dataStartIndex: 0 };
+            }
+            
+            const maxCols = Math.max(...jsonData.map(r => r ? r.length : 0), 0);
+            
+            // 逐欄檢查：A欄 → B欄 → C欄 ...
+            for (let col = 0; col < maxCols; col++) {
+                const nonEmpty = [];
+                
+                for (let row = 0; row < jsonData.length; row++) {
+                    const val = jsonData[row] && jsonData[row][col];
+                    if (val !== undefined && val !== null && String(val).trim() !== '') {
+                        nonEmpty.push({ row: row, val: String(val).trim() });
+                    }
+                }
+                
+                // 該欄全空，繼續檢查下一欄
+                if (nonEmpty.length === 0) continue;
+                
+                const first = nonEmpty[0];
+                
+                // 第一個非空值是長數字（>=10位純數字）→ 這是數據，無標題行
+                if (/^\d{10,}$/.test(first.val)) {
+                    return { 
+                        hasHeader: false, 
+                        headerIndex: -1, 
+                        dataStartIndex: first.row 
+                    };
+                }
+                
+                // 第一個非空值不是長數字 → 可能是標題
+                // 檢查該欄下一個非空值是否為長數字，以增加判斷信心
+                if (nonEmpty.length >= 2) {
+                    const second = nonEmpty[1];
+                    if (/^\d{10,}$/.test(second.val)) {
+                        // 確定：第一個是標題，第二個才是數據
+                        return { 
+                            hasHeader: true, 
+                            headerIndex: first.row, 
+                            dataStartIndex: second.row 
+                        };
+                    }
+                }
+                
+                // 若該欄只有一個非空值且不是長數字，視為標題行（保守處理）
+                return { 
+                    hasHeader: true, 
+                    headerIndex: first.row, 
+                    dataStartIndex: first.row + 1 
+                };
+            }
+            
+            // 所有欄都全空，預設無標題行
+            return { hasHeader: false, headerIndex: -1, dataStartIndex: 0 };
+        }
+
         async function confirmModalUpload() {
             if (!selectedModalFile) {
                 showUploadStatus('❌ 請先選擇檔案', 'error');
@@ -6591,19 +6647,28 @@
                 const workbook = XLSX.read(data, { type: 'array' });
                 
                 const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: '' });
                 
                 if (jsonData.length === 0) {
                     throw new Error('Excel 檔案為空或格式不正確');
                 }
                 
-                // 【修正】自動檢測標題行：若第一列第一欄為14位數字條碼，則視為無標題行
-                const firstCell = jsonData[0] && jsonData[0][0] ? String(jsonData[0][0]).trim() : '';
-                const hasHeader = !/^\d{14}$/.test(firstCell);
+                // 【優化】智能標題行檢測：A欄全空則檢查B欄，以此類推
+                const detection = detectHeaderRow(jsonData);
+                const hasHeader = detection.hasHeader;
+                const dataStartIndex = detection.dataStartIndex;
                 
-                const headers = hasHeader ? jsonData[0] : ['A', 'B', 'C', 'D', 'E', 'F'];
-                const rows = hasHeader ? jsonData.slice(1) : jsonData;
-                const validRows = rows.filter(row => row.some(cell => cell !== undefined && cell !== ''));
+                const headers = hasHeader && detection.headerIndex >= 0 
+                    ? jsonData[detection.headerIndex] 
+                    : ['A', 'B', 'C', 'D', 'E', 'F'];
+                
+                const rows = jsonData.slice(dataStartIndex);
+                
+                // 過濾完全空白的行
+                const validRows = rows.filter(row => row.some(cell => {
+                    if (cell === undefined || cell === null) return false;
+                    return String(cell).trim() !== '';
+                }));
                 
                 if (validRows.length === 0) {
                     throw new Error('沒有找到有效的資料行');
@@ -6628,9 +6693,8 @@
                         ['A', 'B', 'C', 'D', 'E', 'F'].forEach((col, idx) => {
                             rowData[col] = row[idx] !== undefined ? String(row[idx]).trim() : '';
                         });
-                        if (!rowData.A) rowData.A = '';
                         return rowData;
-                    }).filter(item => item.A);
+                    }).filter(item => item.A !== '' || item.B !== '' || item.C !== '' || item.D !== '' || item.E !== '' || item.F !== '');
                     
                     if (batchData.length === 0) continue;
                     
@@ -6641,11 +6705,8 @@
                         });
                         
                         if (result.success) {
-                            successCount += result.imported || batchData.length;
-                            if (result.errors && result.errors.length > 0) {
-                                errors.push(...result.errors);
-                                errorCount += result.errors.length;
-                            }
+                            successCount += result.inserted || result.processed || batchData.length;
+                            if (result.updated) successCount += result.updated;
                         } else {
                             errorCount += batchData.length;
                             errors.push(...batchData.map(item => ({ key: item.A, error: result.error || '匯入失敗' })));
@@ -6673,12 +6734,9 @@
                 } else {
                     statusText.textContent = `⚠️ 完成！成功 ${successCount} 筆，失敗 ${errorCount} 筆`;
                     showUploadStatus(`⚠️ 部分失敗：成功 ${successCount} 筆，失敗 ${errorCount} 筆`, 'warning');
-                    
-                    if (errors.length > 0) {
-                        console.error('匯入錯誤詳情:', errors);
-                    }
                 }
                 
+                // 清除快取，強制重新載入
                 Object.keys(dashboardCache).forEach(key => {
                     if (key.startsWith(currentPackingSheet)) {
                         delete dashboardCache[key];
