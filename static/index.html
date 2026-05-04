@@ -2819,7 +2819,6 @@
     </style>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <base target="_blank">
-<base target="_blank">
 </head>
 
 <body>
@@ -5528,30 +5527,41 @@
             }
         }
 
-        async function loadHeaders() {
-            try {
-                const result = await packingApiCall('packingGetHeaders', { 
-                    sheet: currentPackingSheet 
-                });
-                
-                if (result.success && result.headers) {
-                    columnHeaders = result.headers;
-                    const headerRow = document.getElementById('tableHeaderRow');
-                    let html = '';
-                    columnHeaders.forEach((header, index) => {
-                        const colClass = index === 0 ? 'col-a' : (index === 5 ? 'col-f' : '');
-                        const label = index === 5 ? `${header} (位置)` : header;
-                        html += `<th class="${colClass}">${escapeHtml(label)}</th>`;
-                    });
-                    html += '<th>操作</th>';
-                    headerRow.innerHTML = html;
-                    
-                    applyColumnWidthsToTable();
-                }
-            } catch (e) {
-                console.error('載入標題失敗:', e);
-            }
+        /* ============================================
+           【修改】標題行管理：獨立函數 + 本地儲存
+           ============================================ */
+        function updateTableHeaders() {
+            const headerRow = document.getElementById('tableHeaderRow');
+            if (!headerRow) return;
+            let html = '';
+            columnHeaders.forEach((header, index) => {
+                const colClass = index === 0 ? 'col-a' : (index === 5 ? 'col-f' : '');
+                const label = index === 5 ? `${header} (位置)` : header;
+                html += `<th class="${colClass}">${escapeHtml(label)}</th>`;
+            });
+            html += '<th>操作</th>';
+            headerRow.innerHTML = html;
+            applyColumnWidthsToTable();
         }
+
+        async function loadHeaders() {
+            // 優先從 localStorage 讀取上次上傳時保存的標題（避免 GAS 把數據誤當標題）
+            const savedHeaders = localStorage.getItem('sheetHeaders_' + currentPackingSheet);
+            if (savedHeaders) {
+                try {
+                    columnHeaders = JSON.parse(savedHeaders);
+                    updateTableHeaders();
+                    return;
+                } catch (e) {
+                    console.error('載入本地標題失敗:', e);
+                }
+            }
+            
+            // 若無本地標題，使用預設 A-F，不詢問 GAS（防止數據被當標題讀取）
+            columnHeaders = ['A', 'B', 'C', 'D', 'E', 'F'];
+            updateTableHeaders();
+        }
+        /* ============================================ */
 
         async function loadPackingDataOptimized() {
             try {
@@ -6622,7 +6632,11 @@
             return { hasHeader: false, headerIndex: -1, dataStartIndex: 0 };
         }
 
-                async function confirmModalUpload() {
+        /* ============================================
+           【修改】confirmModalUpload：恢復標題檢測，
+           標題存 localStorage，只上傳數據行到 GAS
+           ============================================ */
+        async function confirmModalUpload() {
             if (!selectedModalFile) {
                 showUploadStatus('❌ 請先選擇檔案', 'error');
                 return;
@@ -6630,68 +6644,65 @@
 
             isUploading = true;
             currentUploadController = new AbortController();
-
+            
             document.getElementById('modalUploadBtn').disabled = true;
             document.getElementById('modalUploadBtn').textContent = '⏳ 上傳中...';
             document.getElementById('cancelUploadBtn').style.display = 'inline-flex';
             document.getElementById('closeUploadModalBtn').style.display = 'none';
-
+            
             const progressContainer = document.getElementById('uploadProgressContainer');
             const progressBar = document.getElementById('uploadProgressBar');
             const statusText = document.getElementById('uploadStatusText');
-
+            
             progressContainer.classList.add('active');
             statusText.classList.add('active');
-
+            
             try {
                 const data = await selectedModalFile.arrayBuffer();
                 const workbook = XLSX.read(data, { type: 'array' });
-
+                
                 const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                 const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: '' });
-
+                
                 if (jsonData.length === 0) {
                     throw new Error('Excel 檔案為空');
                 }
-
-                // 【修正】智能檢測標題行：若第一行為文字標題，則提取為欄位標題，不當作資料上傳
+                
+                // ===== 智能標題行檢測與處理 =====
                 const headerDetect = detectHeaderRow(jsonData);
                 let dataRows = jsonData;
-
+                let uploadedHeaders = null;
+                
                 if (headerDetect.hasHeader && headerDetect.headerIndex >= 0) {
-                    const headerRow = jsonData[headerDetect.headerIndex];
-
-                    // 更新前端的 columnHeaders（僅前6欄）
-                    columnHeaders = ['A','B','C','D','E','F'].map((defaultCol, idx) => {
-                        const val = headerRow[idx];
-                        return (val !== undefined && val !== null && String(val).trim() !== '') 
-                            ? String(val).trim() 
-                            : defaultCol;
-                    });
-
-                    // 同步更新 DOM 表格標題列
-                    const headerRowEl = document.getElementById('tableHeaderRow');
-                    if (headerRowEl) {
-                        let html = '';
-                        columnHeaders.forEach((header, index) => {
-                            const colClass = index === 0 ? 'col-a' : (index === 5 ? 'col-f' : '');
-                            const label = index === 5 ? `${escapeHtml(header)} (位置)` : escapeHtml(header);
-                            html += `<th class="${colClass}">${label}</th>`;
-                        });
-                        html += '<th>操作</th>';
-                        headerRowEl.innerHTML = html;
-                        applyColumnWidthsToTable();
+                    const headerRow = jsonData[headerDetect.headerIndex] || [];
+                    uploadedHeaders = [];
+                    for (let i = 0; i < 6; i++) {
+                        const val = headerRow[i];
+                        uploadedHeaders.push(
+                            val !== undefined && val !== null && String(val).trim() !== '' 
+                                ? String(val).trim() 
+                                : String.fromCharCode(65 + i)
+                        );
                     }
-
-                    // 資料從標題行之後開始
+                    // 保存標題供網頁顯示使用（GAS 不需修改，標題由前端管理）
+                    localStorage.setItem('sheetHeaders_' + currentPackingSheet, JSON.stringify(uploadedHeaders));
+                    columnHeaders = uploadedHeaders;
+                    updateTableHeaders();
+                    
                     dataRows = jsonData.slice(headerDetect.dataStartIndex);
-                    statusText.textContent = `已識別標題行「${columnHeaders[0]}…」，資料從第 ${headerDetect.dataStartIndex + 1} 行開始，共 ${dataRows.length} 筆`;
+                    showUploadStatus(
+                        `✅ 已識別標題行（第 ${headerDetect.headerIndex + 1} 行）：${uploadedHeaders.slice(0, 3).join(', ')}…，數據從第 ${headerDetect.dataStartIndex + 1} 行開始`, 
+                        'success'
+                    );
                 } else {
-                    dataRows = jsonData;
-                    statusText.textContent = `未識別到標題行，全部 ${dataRows.length} 行作為資料處理`;
+                    localStorage.removeItem('sheetHeaders_' + currentPackingSheet);
+                    columnHeaders = ['A', 'B', 'C', 'D', 'E', 'F'];
+                    updateTableHeaders();
+                    showUploadStatus('ℹ️ 未檢測到標題行，所有行作為數據處理', 'info');
                 }
-
-                // 過濾「整行六欄全空」的空白行
+                // =================================
+                
+                // 只過濾「整行六欄全空」的空白行
                 const validRows = dataRows.filter(row => {
                     if (!row || row.length === 0) return false;
                     return row.some(cell => {
@@ -6699,22 +6710,24 @@
                         return String(cell).trim() !== '';
                     });
                 });
-
+                
                 if (validRows.length === 0) {
                     throw new Error('沒有找到有效的資料行');
                 }
-
+                
                 const totalRows = validRows.length;
                 let processed = 0;
                 let successCount = 0;
                 let errorCount = 0;
                 const errors = [];
-
+                
+                statusText.textContent = `正在處理 ${totalRows} 筆資料...`;
+                
                 for (let i = 0; i < validRows.length; i += UPLOAD_BATCH_SIZE) {
                     if (currentUploadController.signal.aborted) {
                         throw new Error('使用者取消上傳');
                     }
-
+                    
                     const batch = validRows.slice(i, i + UPLOAD_BATCH_SIZE);
                     const batchData = batch.map(row => {
                         const rowData = {};
@@ -6723,15 +6736,15 @@
                         });
                         return rowData;
                     }).filter(item => item.A !== '' || item.B !== '' || item.C !== '' || item.D !== '' || item.E !== '' || item.F !== '');
-
+                    
                     if (batchData.length === 0) continue;
-
+                    
                     try {
                         const result = await packingApiCall('packingUploadData', {
                             sheet: currentPackingSheet,
                             data: JSON.stringify(batchData)
                         });
-
+                        
                         if (result.success) {
                             successCount += result.inserted || result.processed || batchData.length;
                             if (result.updated) successCount += result.updated;
@@ -6743,19 +6756,19 @@
                         errorCount += batchData.length;
                         errors.push(...batchData.map(item => ({ key: item.A, error: e.message })));
                     }
-
+                    
                     processed += batch.length;
                     const percent = Math.round((processed / totalRows) * 100);
                     progressBar.style.width = percent + '%';
                     progressBar.textContent = percent + '%';
                     statusText.textContent = `處理中... (${processed}/${totalRows})`;
-
+                    
                     await new Promise(resolve => setTimeout(resolve, 100));
                 }
-
+                
                 progressBar.style.width = '100%';
                 progressBar.textContent = '100%';
-
+                
                 if (errorCount === 0) {
                     statusText.textContent = `✅ 完成！成功匯入 ${successCount} 筆資料`;
                     showUploadStatus(`✅ 上傳成功！共匯入 ${successCount} 筆資料`, 'success');
@@ -6763,33 +6776,33 @@
                     statusText.textContent = `⚠️ 完成！成功 ${successCount} 筆，失敗 ${errorCount} 筆`;
                     showUploadStatus(`⚠️ 部分失敗：成功 ${successCount} 筆，失敗 ${errorCount} 筆`, 'warning');
                 }
-
+                
                 Object.keys(dashboardCache).forEach(key => {
                     if (key.startsWith(currentPackingSheet)) {
                         delete dashboardCache[key];
                     }
                 });
-
+                
                 setTimeout(async () => {
                     await loadPackingDataOptimized();
                     await refreshZoneList();
-
+                    
                     document.getElementById('modalUploadBtn').disabled = false;
                     document.getElementById('modalUploadBtn').textContent = '🚀 開始上傳';
                     document.getElementById('cancelUploadBtn').style.display = 'none';
                     document.getElementById('closeUploadModalBtn').style.display = 'inline-flex';
-
+                    
                     setTimeout(() => {
                         closeUploadModal();
                     }, 2000);
                 }, 500);
-
+                
             } catch (error) {
                 progressBar.style.width = '0%';
                 progressBar.textContent = '0%';
                 statusText.textContent = '❌ 上傳失敗';
                 showUploadStatus('❌ ' + error.message, 'error');
-
+                
                 document.getElementById('modalUploadBtn').disabled = false;
                 document.getElementById('modalUploadBtn').textContent = '🚀 重新上傳';
                 document.getElementById('cancelUploadBtn').style.display = 'none';
@@ -6799,7 +6812,9 @@
                 currentUploadController = null;
             }
         }
-        function cancelUpload()
+        /* ============================================ */
+
+        function cancelUpload() {
             if (currentUploadController) {
                 currentUploadController.abort();
             }
