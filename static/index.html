@@ -4771,16 +4771,16 @@
                                 </div>
                                 <div class="barcode-collapse-content" style="display: none; margin-top: 10px; max-height: 300px; overflow-y: auto; background: rgba(255,255,255,0.95); border-radius: 8px; padding: 10px;">
                                     <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                                        ${barcodes.map((bc) => `
-                                            <a href="javascript:void(0)" 
-                                               onclick="searchBarcodeFromBib('${escapeHtml(bc)}')" 
-                                               style="background: #fff3cd; color: #e65100; padding: 8px 14px; border-radius: 20px; font-size: 14px; font-weight: 600; text-decoration: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.2s; display: inline-block; border: 1px solid #ffcc80;"
-                                               onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 8px rgba(0,0,0,0.2)'"
-                                               onmouseout="this.style.transform='';this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)'"
-                                            >
-                                                ${escapeHtml(bc)}
-                                            </a>
-                                        `).join('')}
+${barcodes.map((bc) => `
+    <span 
+       onclick="searchBarcodeFromBib('${escapeHtml(bc)}')" 
+       style="background: #fff3cd; color: #e65100; padding: 8px 14px; border-radius: 20px; font-size: 14px; font-weight: 600; text-decoration: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.2s; display: inline-block; border: 1px solid #ffcc80; cursor: pointer;"
+       onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 8px rgba(0,0,0,0.2)'"
+       onmouseout="this.style.transform='';this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)'"
+    >
+        ${escapeHtml(bc)}
+    </span>
+`).join('')}
                                     </div>
                                 </div>
                             </div>
