@@ -4592,7 +4592,8 @@
             document.getElementById('mobilePackingSearchInput').value = '';
             document.getElementById('mobilePackingSearchRange').value = 'A';
             document.getElementById('packingSearchInput').value = '';
-            searchPackingData();
+            currentPage = 1;
+            loadPackingDataOptimized();
         }
 
         async function searchBook() {
@@ -4715,10 +4716,13 @@
             }
         }
 
+        // 【修改】Bib查詢顯示Barcode折疊列表，取消地址(橙色方格)
         function displayLibraryResults(data) {
             const book = data.bookInfo;
             const libs = data.libraries;
             const rawLocation = data.rawLocation || '';
+            const isBib = currentPanel === 'bib';
+            const barcodes = data.barcodes || [];
 
             const bookFields = [
                 { num: 1, key: 'title', label: '書名' },
@@ -4753,16 +4757,55 @@
 
             bookInfoHtml += '</div></div>';
 
-            const displayHint = libs.total > libs.displayed ? ` (顯示前 ${libs.displayed} 筆)` : '';
+            let summaryHtml = '';
+            if (isBib) {
+                // Bib查詢：顯示Barcode折疊列表（取代原有地址/位置方格）
+                if (barcodes.length > 0) {
+                    summaryHtml = `
+                        <div class="library-summary" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);">
+                            <span>📚 Bib對應條碼：${barcodes.length} 個</span>
+                            <div class="barcode-collapse" style="margin-top: 15px;">
+                                <div class="barcode-collapse-header" onclick="toggleBarcodeCollapse(this)" style="cursor: pointer; background: rgba(255,255,255,0.2); padding: 10px 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; user-select: none;">
+                                    <span>📱 點擊展開查看條碼列表</span>
+                                    <span class="collapse-icon" style="font-size: 20px; transition: transform 0.3s;">▼</span>
+                                </div>
+                                <div class="barcode-collapse-content" style="display: none; margin-top: 10px; max-height: 300px; overflow-y: auto; background: rgba(255,255,255,0.95); border-radius: 8px; padding: 10px;">
+                                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                        ${barcodes.map((bc) => `
+                                            <a href="javascript:void(0)" 
+                                               onclick="searchBarcodeFromBib('${escapeHtml(bc)}')" 
+                                               style="background: #fff3cd; color: #e65100; padding: 8px 14px; border-radius: 20px; font-size: 14px; font-weight: 600; text-decoration: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.2s; display: inline-block; border: 1px solid #ffcc80;"
+                                               onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 8px rgba(0,0,0,0.2)'"
+                                               onmouseout="this.style.transform='';this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)'"
+                                            >
+                                                ${escapeHtml(bc)}
+                                            </a>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    summaryHtml = `
+                        <div class="library-summary" style="background: linear-gradient(135deg, #9e9e9e 0%, #616161 100%);">
+                            <span>📚 無對應條碼</span>
+                            <span class="location-badge">找不到Barcode資料</span>
+                        </div>
+                    `;
+                }
+            } else {
+                // 圖書查詢：保持原有邏輯
+                const displayHint = libs.total > libs.displayed ? ` (顯示前 ${libs.displayed} 筆)` : '';
+                summaryHtml = `
+                    <div class="library-summary">
+                        <span>📚 可選圖書館：${libs.total} 間${displayHint}</span>
+                        ${rawLocation ? `<span class="location-badge">位置: ${escapeHtml(rawLocation)}</span>` : '<span class="location-badge">無位置資料</span>'}
+                    </div>
+                `;
+            }
 
-            let librarySummaryHtml = `
-                <div class="library-summary">
-                    <span>📚 可選圖書館：${libs.total} 間${displayHint}</span>
-                    ${rawLocation ? `<span class="location-badge">位置: ${escapeHtml(rawLocation)}</span>` : '<span class="location-badge">無位置資料</span>'}
-                </div>
-            `;
-
-            let html = librarySummaryHtml + bookInfoHtml;
+            let html = summaryHtml + bookInfoHtml;
 
             if (libs && libs.list && libs.list.length > 0) {
                 html += `
@@ -4819,6 +4862,32 @@
             } else {
                 document.getElementById('results').innerHTML = html;
             }
+        }
+
+        // 【新增】Barcode折疊展開/收合
+        function toggleBarcodeCollapse(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('.collapse-icon');
+            const label = header.querySelector('span');
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                icon.style.transform = 'rotate(180deg)';
+                label.textContent = '📱 點擊收合條碼列表';
+            } else {
+                content.style.display = 'none';
+                icon.style.transform = 'rotate(0deg)';
+                label.textContent = '📱 點擊展開查看條碼列表';
+            }
+        }
+
+        // 【新增】點擊Barcode後自動填入圖書查詢並跳轉查詢
+        function searchBarcodeFromBib(barcode) {
+            closeMobileManualModal();
+            document.getElementById('searchInput').value = barcode;
+            switchPanel('search');
+            setTimeout(() => {
+                searchBook();
+            }, 300);
         }
 
         async function searchLocation() {
@@ -5919,7 +5988,74 @@
             }
         }
 
-        function searchPackingData() {
+        // 【修改】裝箱管理搜索：未分類時搜索全部資料，特定位置時搜索整個該位置資料
+        async function searchPackingData() {
+            const keyword = document.getElementById('packingSearchInput').value.trim();
+            const range = document.getElementById('packingSearchRange').value;
+
+            if (!keyword) {
+                currentPage = 1;
+                await loadPackingDataOptimized();
+                return;
+            }
+
+            // 確定搜索範圍
+            let searchZone = currentZone;
+            if (currentZone === '') {
+                // 在未分類位置時，搜索全部資料
+                searchZone = 'all';
+            }
+
+            const tbody = document.getElementById('excelTableBody');
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;"><div class="spinner" style="margin: 0 auto 15px;"></div><p>搜尋中...</p></td></tr>';
+
+            try {
+                const result = await packingApiCall('packingSearchData', {
+                    sheet: currentPackingSheet,
+                    zone: searchZone,
+                    keyword: keyword,
+                    range: range
+                });
+
+                if (result.success) {
+                    packingDataCache = result.data || [];
+                    totalRecords = result.count || 0;
+                    totalPages = 1;
+                    currentPage = 1;
+                    
+                    // 更新標題顯示搜索範圍
+                    const searchScope = currentZone === '' ? '全部資料' : (currentZone || '未分類');
+                    document.getElementById('dataListTitle').textContent = 
+                        `🔍 「${escapeHtml(keyword)}」搜尋結果 (${searchScope})`;
+                    
+                    renderDataListOptimized();
+                    updatePaginationControls();
+                    
+                    if (packingDataCache.length === 0) {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="7" style="text-align: center; padding: 40px; color: #9e9e9e;">
+                                    沒有符合「${escapeHtml(keyword)}」的資料
+                                </td>
+                            </tr>
+                        `;
+                    }
+                } else {
+                    throw new Error(result.error || '搜尋失敗');
+                }
+            } catch (e) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: #c62828;">
+                            搜尋失敗：${escapeHtml(e.message)}
+                        </td>
+                    </tr>
+                `;
+                showToast('搜尋失敗：' + e.message, 'error');
+            }
+        }
+
+        function searchPackingDataLocal() {
             const keyword = document.getElementById('packingSearchInput').value.trim();
             const range = document.getElementById('packingSearchRange').value;
 
