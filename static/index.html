@@ -4596,19 +4596,20 @@
             loadPackingDataOptimized();
         }
 
-        // 【修正】圖書查詢：Loading 時鎖定輸入框與按鈕
+        // 【修正】圖書查詢：Loading時禁用輸入框與按鈕
         async function searchBook() {
-            const input = document.getElementById('searchInput');
+            const inputEl = document.getElementById('searchInput');
+            const input = inputEl.value.trim();
             const btn = document.getElementById('searchBtn');
             const resultsDiv = document.getElementById('results');
 
             const barcodeRegex = /^\d{14}$/;
-            if (!barcodeRegex.test(input.value.trim())) {
+            if (!barcodeRegex.test(input)) {
                 showLibraryStatus('search', '必須為14位數條碼', 'error');
                 return;
             }
 
-            input.disabled = true;
+            inputEl.disabled = true;
             btn.disabled = true;
             btn.textContent = '查詢中...';
             resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>查詢中...</p></div>';
@@ -4616,19 +4617,19 @@
 
             try {
                 const data = await libraryApiCall('query', {
-                    input: input.value.trim(),
+                    input: input,
                     limit: currentDisplayLimit
                 });
 
                 if (data.success && data.found) {
                     displayLibraryResults(data);
                     showLibraryStatus('search', `✅ 查詢成功`, 'success');
-                    addToManualSelectBackground(input.value.trim());
-                    input.value = '';
+                    addToManualSelectBackground(input);
+                    inputEl.value = '';
                 } else if (data.success && !data.found) {
                     resultsDiv.innerHTML = `
                         <div class="empty-state">
-                            <p>找不到條碼「${escapeHtml(input.value.trim())}」</p>
+                            <p>找不到條碼「${escapeHtml(input)}」</p>
                             <p style="font-size: 13px; margin-top: 10px;">請確認條碼是否正確</p>
                         </div>
                     `;
@@ -4647,24 +4648,25 @@
                 resultsDiv.innerHTML = `<div class="empty-state"><p>查詢失敗：${escapeHtml(error.message).replace(/\n/g, '<br>')}</p></div>`;
                 showLibraryStatus('search', '查詢失敗：' + error.message, 'error');
             } finally {
-                input.disabled = false;
+                inputEl.disabled = false;
                 btn.disabled = false;
                 btn.textContent = '查詢';
             }
         }
 
-        // 【修正】Bib查詢：Loading 時鎖定輸入框與按鈕
+        // 【修正】Bib查詢：Loading時禁用輸入框與按鈕
         async function searchBib() {
-            const input = document.getElementById('bibInput');
+            const inputEl = document.getElementById('bibInput');
+            const input = inputEl.value.trim();
             const btn = document.getElementById('bibBtn');
             const resultsDiv = document.getElementById('bibResults');
 
-            if (!/^\d+$/.test(input.value.trim())) {
+            if (!/^\d+$/.test(input)) {
                 showLibraryStatus('bib', '只能輸入純數字', 'error');
                 return;
             }
 
-            input.disabled = true;
+            inputEl.disabled = true;
             btn.disabled = true;
             btn.textContent = '查詢中...';
             resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>查詢中...</p></div>';
@@ -4672,19 +4674,19 @@
 
             try {
                 const data = await libraryApiCall('queryByBookId', {
-                    bookId: input.value.trim(),
+                    bookId: input,
                     limit: currentDisplayLimit
                 });
 
                 if (data.success && data.found) {
                     displayLibraryResults(data);
                     showLibraryStatus('bib', `✅ 查詢成功`, 'success');
-                    addToManualSelectBackground(input.value.trim());
-                    input.value = '';
+                    addToManualSelectBackground(input);
+                    inputEl.value = '';
                 } else if (data.success && !data.found) {
                     resultsDiv.innerHTML = `
                         <div class="empty-state">
-                            <p>找不到Bib編號「${escapeHtml(input.value.trim())}」</p>
+                            <p>找不到Bib編號「${escapeHtml(input)}」</p>
                             <p style="font-size: 13px; margin-top: 10px;">請確認Bib編號是否正確</p>
                         </div>
                     `;
@@ -4698,7 +4700,7 @@
                 resultsDiv.innerHTML = `<div class="empty-state"><p>查詢失敗：${escapeHtml(error.message).replace(/\n/g, '<br>')}</p></div>`;
                 showLibraryStatus('bib', '查詢失敗：' + error.message, 'error');
             } finally {
-                input.disabled = false;
+                inputEl.disabled = false;
                 btn.disabled = false;
                 btn.textContent = '查詢';
             }
@@ -4896,45 +4898,46 @@ ${barcodes.map((bc) => `
             }, 300);
         }
 
-        // 【修正】查詢位置：Loading 時鎖定輸入框與按鈕
+        // 【修正】查詢位置：Loading時禁用輸入框與按鈕
         async function searchLocation() {
-            const input = document.getElementById('locationInput');
+            const inputEl = document.getElementById('locationInput');
+            const input = inputEl.value.trim();
             const btn = document.getElementById('locationBtn');
             const resultsDiv = document.getElementById('locationResults');
 
             const barcodeRegex = /^\d{14}$/;
-            if (!barcodeRegex.test(input.value.trim())) {
+            if (!barcodeRegex.test(input)) {
                 showLibraryStatus('location', '必須為14位數條碼', 'error');
                 return;
             }
 
-            input.disabled = true;
+            inputEl.disabled = true;
             btn.disabled = true;
             btn.textContent = '查詢中...';
             resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>查詢位置中...</p></div>';
             showLibraryStatus('location', '查詢進行中...', 'info');
 
             try {
-                const data = await libraryApiCall('queryLocation', { barcode: input.value.trim() });
+                const data = await libraryApiCall('queryLocation', { barcode: input });
 
                 if (data.success && data.found) {
                     const location = data.location || '無位置資料';
                     resultsDiv.innerHTML = `
                         <div class="location-result-box" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px solid #4caf50; border-radius: 12px; padding: 25px; text-align: center;">
                             <div style="font-size: 16px; color: #666; margin-bottom: 10px;">條碼編號</div>
-                            <div style="font-size: 24px; font-weight: 700; color: #333; margin-bottom: 15px; font-family: monospace;">${escapeHtml(input.value.trim())}</div>
+                            <div style="font-size: 24px; font-weight: 700; color: #333; margin-bottom: 15px; font-family: monospace;">${escapeHtml(input)}</div>
                             <div style="font-size: 16px; color: #666; margin-bottom: 10px;">存放位置</div>
                             <div style="font-size: 32px; font-weight: 700; color: #2e7d32; padding: 15px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">${escapeHtml(location)}</div>
                         </div>
                     `;
                     showLibraryStatus('location', '✅ 查詢成功', 'success');
-                    addToLocationSelectBackground(input.value.trim());
-                    input.value = '';
+                    addToLocationSelectBackground(input);
+                    inputEl.value = '';
                 } else if (data.success && !data.found) {
                     resultsDiv.innerHTML = `
                         <div class="location-result-box" style="background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border: 2px solid #f44336; border-radius: 12px; padding: 25px; text-align: center;">
                             <div style="font-size: 16px; color: #666; margin-bottom: 10px;">條碼編號</div>
-                            <div style="font-size: 24px; font-weight: 700; color: #333; margin-bottom: 15px; font-family: monospace;">${escapeHtml(input.value.trim())}</div>
+                            <div style="font-size: 24px; font-weight: 700; color: #333; margin-bottom: 15px; font-family: monospace;">${escapeHtml(input)}</div>
                             <div style="font-size: 18px; font-weight: 700; color: #c62828;">找不到Barcode，請重新確認</div>
                         </div>
                     `;
@@ -4946,7 +4949,7 @@ ${barcodes.map((bc) => `
                 resultsDiv.innerHTML = `<div class="empty-state"><p>查詢失敗：${escapeHtml(error.message)}</p></div>`;
                 showLibraryStatus('location', '查詢失敗：' + error.message, 'error');
             } finally {
-                input.disabled = false;
+                inputEl.disabled = false;
                 btn.disabled = false;
                 btn.textContent = '查詢位置';
             }
@@ -4960,14 +4963,12 @@ ${barcodes.map((bc) => `
             }
         }
 
-        // 【修正】單一位置更新：Loading 時鎖定輸入框與按鈕
+        // 【修正】單一位置更新：Loading時禁用輸入框
         async function updateSingleLocation() {
-            const bookKeyInput = document.getElementById('singleBookKey');
-            const locationInput = document.getElementById('singleLocation');
-            const updateBtn = document.querySelector('#panel-single button[onclick="updateSingleLocation()"]');
-            
-            const bookKey = bookKeyInput.value.trim();
-            const location = locationInput.value.trim();
+            const bookKeyEl = document.getElementById('singleBookKey');
+            const locationEl = document.getElementById('singleLocation');
+            const bookKey = bookKeyEl.value.trim();
+            const location = locationEl.value.trim();
 
             const barcodeRegex = /^\d{14}$/;
             if (!barcodeRegex.test(bookKey)) {
@@ -4980,9 +4981,8 @@ ${barcodes.map((bc) => `
                 return;
             }
 
-            bookKeyInput.disabled = true;
-            locationInput.disabled = true;
-            if (updateBtn) updateBtn.disabled = true;
+            bookKeyEl.disabled = true;
+            locationEl.disabled = true;
 
             try {
                 const data = await libraryApiCall('updateSingleLocation', {
@@ -4992,29 +4992,27 @@ ${barcodes.map((bc) => `
 
                 if (data.success) {
                     addLog(`✅ ${bookKey} → ${location}`, 'success');
+                    bookKeyEl.value = '';
+                    locationEl.value = '';
+                    bookKeyEl.focus();
                 } else {
                     addLog(`❌ ${bookKey}：${data.error}`, 'error');
                 }
             } catch (e) {
                 addLog(`❌ ${bookKey}：${e.message}`, 'error');
             } finally {
-                bookKeyInput.disabled = false;
-                locationInput.disabled = false;
-                if (updateBtn) updateBtn.disabled = false;
-                bookKeyInput.value = '';
-                bookKeyInput.focus();
+                bookKeyEl.disabled = false;
+                locationEl.disabled = false;
             }
         }
 
-        // 【修正】批量位置更新：Loading 時鎖定輸入框與按鈕
+        // 【修正】批量位置更新：Loading時禁用輸入框與按鈕
         async function submitBatchUpdateAsync(btnElement) {
             const btn = btnElement || event.target;
-            const batchDataEl = document.getElementById('batchData');
-            const batchDefaultLocationEl = document.getElementById('batchDefaultLocation');
-            const clearBtn = document.querySelector('#panel-batch .btn-warning');
-            
-            const rawData = batchDataEl.value.trim();
-            const defaultLoc = batchDefaultLocationEl.value.trim();
+            const rawDataEl = document.getElementById('batchData');
+            const defaultLocEl = document.getElementById('batchDefaultLocation');
+            const rawData = rawDataEl.value.trim();
+            const defaultLoc = defaultLocEl.value.trim();
 
             if (!rawData) {
                 showLibraryStatus('batch', '❌ 請輸入批量資料', 'error');
@@ -5022,7 +5020,7 @@ ${barcodes.map((bc) => `
             }
             if (!defaultLoc) {
                 showLibraryStatus('batch', '❌ 預設新位置不能為空值', 'error');
-                batchDefaultLocationEl.focus();
+                defaultLocEl.focus();
                 return;
             }
 
@@ -5063,59 +5061,59 @@ ${barcodes.map((bc) => `
             let successCount = 0;
             let failCount = 0;
 
-            batchDataEl.disabled = true;
-            batchDefaultLocationEl.disabled = true;
-            if (clearBtn) clearBtn.disabled = true;
+            rawDataEl.disabled = true;
+            defaultLocEl.disabled = true;
             btn.disabled = true;
             currentBatchId = 'BATCH_' + Date.now();
             startStatusMonitoring();
 
-            for (let i = 0; i < totalBatches; i++) {
-                const batchKeys = validKeys.slice(i * BATCH_SIZE, (i + 1) * BATCH_SIZE);
-                const processedData = batchKeys.map(k => k + ',' + defaultLoc).join('\n');
+            try {
+                for (let i = 0; i < totalBatches; i++) {
+                    const batchKeys = validKeys.slice(i * BATCH_SIZE, (i + 1) * BATCH_SIZE);
+                    const processedData = batchKeys.map(k => k + ',' + defaultLoc).join('\n');
 
-                try {
                     showLibraryStatus('batch', 
                         `⏳ 處理第 ${i + 1}/${totalBatches} 批 (${batchKeys.length} 筆)...`, 
                         'info'
                     );
 
-                    await libraryApiCall('batchUpdateLocation', { 
-                        data: processedData,
-                        defaultLocation: '',
-                        async: 'true',
-                        batchId: currentBatchId + '_P' + i,
-                        itemCount: batchKeys.length
-                    });
+                    try {
+                        await libraryApiCall('batchUpdateLocation', { 
+                            data: processedData,
+                            defaultLocation: '',
+                            async: 'true',
+                            batchId: currentBatchId + '_P' + i,
+                            itemCount: batchKeys.length
+                        });
+                        successCount += batchKeys.length;
+                    } catch (e) {
+                        console.error(`第 ${i + 1} 批失敗:`, e);
+                        failCount += batchKeys.length;
+                        showLibraryStatus('batch', `❌ 第 ${i + 1}/${totalBatches} 批失敗: ${e.message}`, 'error');
+                    }
 
-                    successCount += batchKeys.length;
-                } catch (e) {
-                    console.error(`第 ${i + 1} 批失敗:`, e);
-                    failCount += batchKeys.length;
-                    showLibraryStatus('batch', `❌ 第 ${i + 1}/${totalBatches} 批失敗: ${e.message}`, 'error');
+                    if (i < totalBatches - 1) {
+                        await new Promise(r => setTimeout(r, 300));
+                    }
                 }
 
-                if (i < totalBatches - 1) {
-                    await new Promise(r => setTimeout(r, 300));
+                rawDataEl.value = '';
+
+                if (failCount === 0) {
+                    showLibraryStatus('batch', `✅ 全部完成！成功送出 ${successCount} 筆`, 'success');
+                } else {
+                    showLibraryStatus('batch', `⚠️ 處理結束：成功 ${successCount} 筆 / 失敗 ${failCount} 筆`, 'warning');
                 }
-            }
 
-            batchDataEl.value = '';
-            
-            if (failCount === 0) {
-                showLibraryStatus('batch', `✅ 全部完成！成功送出 ${successCount} 筆`, 'success');
-            } else {
-                showLibraryStatus('batch', `⚠️ 處理結束：成功 ${successCount} 筆 / 失敗 ${failCount} 筆`, 'warning');
+                setTimeout(() => checkBatchStatus(true), 1000);
+            } catch (error) {
+                showLibraryStatus('batch', '❌ 處理失敗：' + error.message, 'error');
+            } finally {
+                rawDataEl.disabled = false;
+                defaultLocEl.disabled = false;
+                btn.disabled = false;
+                btn.textContent = '確認批量更新（異步）';
             }
-
-            setTimeout(() => checkBatchStatus(true), 1000);
-            
-            // finally 解鎖
-            batchDataEl.disabled = false;
-            batchDefaultLocationEl.disabled = false;
-            if (clearBtn) clearBtn.disabled = false;
-            btn.disabled = false;
-            btn.textContent = '確認批量更新（異步）';
         }
 
         function startStatusMonitoring() {
@@ -6242,13 +6240,11 @@ ${barcodes.map((bc) => `
             }
         }
 
-        // 【修正】快速新增：Loading 時鎖定輸入框與按鈕
+        // 【修正】快速新增：Loading時禁用輸入框與按鈕
         async function quickAddSearch() {
             if (isProcessingQuickAdd) return;
 
             const keyInput = document.getElementById('quickKeyInput');
-            const addBtn = document.getElementById('quickAddBtn');
-            
             const key = keyInput.value.trim();
             if (!key) {
                 showToast('請輸入Key值', 'error');
@@ -6258,9 +6254,10 @@ ${barcodes.map((bc) => `
             const resultDiv = document.getElementById('quickSearchResult');
             resultDiv.innerHTML = '<div style="padding: 10px; color: #666;">查找中...</div>';
 
+            isProcessingQuickAdd = true;
+            const addBtn = document.getElementById('quickAddBtn');
             keyInput.disabled = true;
             addBtn.disabled = true;
-            isProcessingQuickAdd = true;
             addBtn.textContent = '處理中...';
 
             try {
@@ -6287,10 +6284,6 @@ ${barcodes.map((bc) => `
                                     </div>
                                 </div>
                             `;
-                            isProcessingQuickAdd = false;
-                            keyInput.disabled = false;
-                            addBtn.disabled = false;
-                            addBtn.textContent = '➕ 加入';
                             setTimeout(() => {
                                 resultDiv.innerHTML = '';
                             }, 3000);
@@ -6812,7 +6805,6 @@ ${barcodes.map((bc) => `
            【修改】confirmModalUpload：恢復標題檢測，
            標題存 localStorage，只上傳數據行到 GAS
            ============================================ */
-        // 【修正】上傳 Excel：Loading 時鎖定檔案選擇與上傳按鈕
         async function confirmModalUpload() {
             if (!selectedModalFile) {
                 showUploadStatus('❌ 請先選擇檔案', 'error');
@@ -6822,12 +6814,8 @@ ${barcodes.map((bc) => `
             isUploading = true;
             currentUploadController = new AbortController();
             
-            const fileInput = document.getElementById('modalFileInput');
-            const uploadBtn = document.getElementById('modalUploadBtn');
-            
-            fileInput.disabled = true;
-            uploadBtn.disabled = true;
-            uploadBtn.textContent = '⏳ 上傳中...';
+            document.getElementById('modalUploadBtn').disabled = true;
+            document.getElementById('modalUploadBtn').textContent = '⏳ 上傳中...';
             document.getElementById('cancelUploadBtn').style.display = 'inline-flex';
             document.getElementById('closeUploadModalBtn').style.display = 'none';
             
@@ -6968,8 +6956,8 @@ ${barcodes.map((bc) => `
                     await loadPackingDataOptimized();
                     await refreshZoneList();
                     
-                    uploadBtn.disabled = false;
-                    uploadBtn.textContent = '🚀 開始上傳';
+                    document.getElementById('modalUploadBtn').disabled = false;
+                    document.getElementById('modalUploadBtn').textContent = '🚀 開始上傳';
                     document.getElementById('cancelUploadBtn').style.display = 'none';
                     document.getElementById('closeUploadModalBtn').style.display = 'inline-flex';
                     
@@ -6984,14 +6972,13 @@ ${barcodes.map((bc) => `
                 statusText.textContent = '❌ 上傳失敗';
                 showUploadStatus('❌ ' + error.message, 'error');
                 
-                uploadBtn.disabled = false;
-                uploadBtn.textContent = '🚀 重新上傳';
+                document.getElementById('modalUploadBtn').disabled = false;
+                document.getElementById('modalUploadBtn').textContent = '🚀 重新上傳';
                 document.getElementById('cancelUploadBtn').style.display = 'none';
                 document.getElementById('closeUploadModalBtn').style.display = 'inline-flex';
             } finally {
                 isUploading = false;
                 currentUploadController = null;
-                fileInput.disabled = false;
             }
         }
         /* ============================================ */
@@ -7003,7 +6990,7 @@ ${barcodes.map((bc) => `
             isUploading = false;
         }
 
-        // 【修正】滙出 Excel：改為 page=0 獲取全部資料，不再只滙 200 筆
+        // 【修正】滙出 Excel：傳入 page: 0 以獲取全部資料（不分頁）
         async function exportPackingExcel() {
             const btn = event.target;
             const originalText = btn.textContent;
