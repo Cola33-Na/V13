@@ -2819,6 +2819,7 @@
     </style>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <base target="_blank">
+<base target="_blank">
 </head>
 
 <body>
@@ -6323,15 +6324,11 @@ ${barcodes.map((bc) => `
                     resultDiv.innerHTML = quickResultHtml;
                     
                     keyInput.value = '';
-
-                    // FIX: Wait for background save to complete before focusing input
-                    // This ensures the input is ready for the next scan only after data is saved
-                    try {
-                        await performQuickAddBackground(key, result.data, currentLocation !== '');
-                    } catch (bgErr) {
-                        console.error('背景同步失敗:', bgErr);
-                    }
                     keyInput.focus();
+
+                    setTimeout(() => {
+                        performQuickAddBackground(key, result.data, currentLocation !== '');
+                    }, 10);
 
                 } else {
                     resultDiv.innerHTML = '<div style="color: #c62828; padding: 15px; background: #ffebee; border-radius: 8px; margin-top: 10px;">❌ 找不到該 Key 值</div>';
@@ -6467,13 +6464,6 @@ ${barcodes.map((bc) => `
                 });
                 
                 if (zonesResult.success) {
-                    // FIX: Update dashboardCache so mobile zone list (updateMobileZoneList) can read it
-                    const cacheKey = currentPackingSheet + '_1_all';
-                    if (!dashboardCache[cacheKey]) {
-                        dashboardCache[cacheKey] = {};
-                    }
-                    dashboardCache[cacheKey].zones = zonesResult.zones || [];
-                    dashboardCache[cacheKey].unclassified = zonesResult.unclassified || 0;
                     updateSidebarStats(zonesResult);
                     updateZoneList(zonesResult.zones || [], zonesResult.unclassified || 0);
                     
