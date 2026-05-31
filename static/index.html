@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>圖書查詢與裝箱 - 手機優化版</title>
+    <title>圖書查詢與裝箱 - 手機優化版 V13 Fix</title>
     <style>
         * {
             margin: 0;
@@ -2819,7 +2819,6 @@
     </style>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <base target="_blank">
-<base target="_blank">
 </head>
 
 <body>
@@ -3531,7 +3530,7 @@
                     <div style="font-weight: 600; font-size: 18px; margin-bottom: 8px;">點擊選擇 Excel 檔案</div>
                     <div class="upload-hint" style="font-size: 13px; color: #888; line-height: 1.6;">
                         支援格式：.xlsx, .xls<br>
-                        A-F欄位對應：A=Key, B-E=資料, F=位置（可留空）<<br>
+                        A-F欄位對應：A=Key, B-E=資料, F=位置（可留空）<br>
                         檔案大小限制：5MB
                     </div>
                 </label>
@@ -4023,7 +4022,7 @@
                 if (cat && (cat.enabled !== false) && cat.label) {
                     html += `
                         <th class="orange-header">
-                            ${escapeHtml(cat.label)}<<br>
+                            ${escapeHtml(cat.label)}<br>
                             <span class="stats-table-header-note">${cat.column}欄="${escapeHtml(cat.value)}"</span>
                         </th>
                     `;
@@ -4377,7 +4376,8 @@
             }
         }
 
-        function toggleMobilePackingPanel() {
+        // 【修正】統計與位置面板：打開時主動刷新zone數據
+        async function toggleMobilePackingPanel() {
             const panel = document.getElementById('mobilePackingPanel');
             const btn = document.getElementById('mobilePackingBtn');
 
@@ -4386,6 +4386,8 @@
             } else {
                 panel.classList.add('active');
                 btn.classList.add('active');
+                // 確保zone數據已加載
+                await refreshZoneList();
                 updateMobilePackingPanel();
             }
         }
@@ -4597,7 +4599,7 @@
             loadPackingDataOptimized();
         }
 
-        // 【修正】圖書查詢：Loading時禁用輸入框與按鈕
+        // 【修正】圖書查詢：Loading時禁用輸入框與按鈕，完成後重新聚焦
         async function searchBook() {
             const inputEl = document.getElementById('searchInput');
             const input = inputEl.value.trim();
@@ -4607,6 +4609,7 @@
             const barcodeRegex = /^\d{14}$/;
             if (!barcodeRegex.test(input)) {
                 showLibraryStatus('search', '必須為14位數條碼', 'error');
+                inputEl.focus();
                 return;
             }
 
@@ -4652,10 +4655,11 @@
                 inputEl.disabled = false;
                 btn.disabled = false;
                 btn.textContent = '查詢';
+                inputEl.focus(); // 【修正】重新聚焦輸入框
             }
         }
 
-        // 【修正】Bib查詢：Loading時禁用輸入框與按鈕
+        // 【修正】Bib查詢：Loading時禁用輸入框與按鈕，完成後重新聚焦
         async function searchBib() {
             const inputEl = document.getElementById('bibInput');
             const input = inputEl.value.trim();
@@ -4664,6 +4668,7 @@
 
             if (!/^\d+$/.test(input)) {
                 showLibraryStatus('bib', '只能輸入純數字', 'error');
+                inputEl.focus();
                 return;
             }
 
@@ -4704,6 +4709,7 @@
                 inputEl.disabled = false;
                 btn.disabled = false;
                 btn.textContent = '查詢';
+                inputEl.focus(); // 【修正】重新聚焦輸入框
             }
         }
 
@@ -4899,7 +4905,7 @@ ${barcodes.map((bc) => `
             }, 300);
         }
 
-        // 【修正】查詢位置：Loading時禁用輸入框與按鈕
+        // 【修正】查詢位置：Loading時禁用輸入框與按鈕，完成後重新聚焦
         async function searchLocation() {
             const inputEl = document.getElementById('locationInput');
             const input = inputEl.value.trim();
@@ -4909,6 +4915,7 @@ ${barcodes.map((bc) => `
             const barcodeRegex = /^\d{14}$/;
             if (!barcodeRegex.test(input)) {
                 showLibraryStatus('location', '必須為14位數條碼', 'error');
+                inputEl.focus();
                 return;
             }
 
@@ -4953,6 +4960,7 @@ ${barcodes.map((bc) => `
                 inputEl.disabled = false;
                 btn.disabled = false;
                 btn.textContent = '查詢位置';
+                inputEl.focus(); // 【修正】重新聚焦輸入框
             }
         }
 
@@ -4964,7 +4972,7 @@ ${barcodes.map((bc) => `
             }
         }
 
-        // 【修正】單一位置更新：Loading時禁用輸入框
+        // 【修正】單一位置更新：Loading時禁用輸入框，完成後重新聚焦
         async function updateSingleLocation() {
             const bookKeyEl = document.getElementById('singleBookKey');
             const locationEl = document.getElementById('singleLocation');
@@ -4974,11 +4982,13 @@ ${barcodes.map((bc) => `
             const barcodeRegex = /^\d{14}$/;
             if (!barcodeRegex.test(bookKey)) {
                 addLog(`❌ ${bookKey || '(空)'}：必須為14位數條碼`, 'error');
+                bookKeyEl.focus();
                 return;
             }
 
             if (!location) {
                 addLog(`❌ ${bookKey}：位置不能為空值`, 'error');
+                locationEl.focus();
                 return;
             }
 
@@ -4995,7 +5005,6 @@ ${barcodes.map((bc) => `
                     addLog(`✅ ${bookKey} → ${location}`, 'success');
                     bookKeyEl.value = '';
                     locationEl.value = '';
-                    bookKeyEl.focus();
                 } else {
                     addLog(`❌ ${bookKey}：${data.error}`, 'error');
                 }
@@ -5004,6 +5013,7 @@ ${barcodes.map((bc) => `
             } finally {
                 bookKeyEl.disabled = false;
                 locationEl.disabled = false;
+                bookKeyEl.focus(); // 【修正】重新聚焦輸入框
             }
         }
 
@@ -6241,7 +6251,7 @@ ${barcodes.map((bc) => `
             }
         }
 
-        // 【修正】快速新增：Loading時禁用輸入框與按鈕
+        // 【修正】快速新增：Loading時禁用輸入框與按鈕，完成後重新聚焦
         async function quickAddSearch() {
             if (isProcessingQuickAdd) return;
 
@@ -6249,6 +6259,7 @@ ${barcodes.map((bc) => `
             const key = keyInput.value.trim();
             if (!key) {
                 showToast('請輸入Key值', 'error');
+                keyInput.focus();
                 return;
             }
 
@@ -6324,7 +6335,6 @@ ${barcodes.map((bc) => `
                     resultDiv.innerHTML = quickResultHtml;
                     
                     keyInput.value = '';
-                    keyInput.focus();
 
                     setTimeout(() => {
                         performQuickAddBackground(key, result.data, currentLocation !== '');
@@ -6340,6 +6350,7 @@ ${barcodes.map((bc) => `
                 keyInput.disabled = false;
                 addBtn.disabled = false;
                 addBtn.textContent = '➕ 加入';
+                keyInput.focus(); // 【修正】重新聚焦輸入框，方便下一筆輸入
                 
                 setTimeout(() => {
                     if (resultDiv.querySelector('.quick-result-status')) {
@@ -6457,6 +6468,7 @@ ${barcodes.map((bc) => `
             }
         }
 
+        // 【修正】refreshZoneList：寫入 dashboardCache 供手機面板使用
         async function refreshZoneList() {
             try {
                 const zonesResult = await packingApiCall('packingGetZones', { 
@@ -6464,11 +6476,19 @@ ${barcodes.map((bc) => `
                 });
                 
                 if (zonesResult.success) {
+                    // 寫入cache供手機面板使用
+                    const cacheKey = `${currentPackingSheet}_1_all`;
+                    if (!dashboardCache[cacheKey]) {
+                        dashboardCache[cacheKey] = {};
+                    }
+                    dashboardCache[cacheKey].zones = zonesResult.zones || [];
+                    dashboardCache[cacheKey].unclassified = zonesResult.unclassified || 0;
+                    dashboardCache[cacheKey].totalRecords = zonesResult.total || 0;
+                    cacheTimestamp[cacheKey] = Date.now();
+                    
                     updateSidebarStats(zonesResult);
                     updateZoneList(zonesResult.zones || [], zonesResult.unclassified || 0);
-                    
                     updateMobilePackingPanel();
-                    
                     if (currentZone === 'all') {
                         await loadPackingSummary();
                     }
