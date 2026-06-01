@@ -5004,7 +5004,7 @@ ${barcodes.map((bc) => `
                 if (data.success) {
                     addLog(`✅ ${bookKey} → ${location}`, 'success');
                     bookKeyEl.value = '';
-                    locationEl.value = '';
+                    
                 } else {
                     addLog(`❌ ${bookKey}：${data.error}`, 'error');
                 }
