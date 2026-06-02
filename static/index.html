@@ -4974,48 +4974,50 @@ ${barcodes.map((bc) => `
 
         // 【修正】單一位置更新：Loading時禁用輸入框，完成後重新聚焦
         async function updateSingleLocation() {
-            const bookKeyEl = document.getElementById('singleBookKey');
-            const locationEl = document.getElementById('singleLocation');
-            const bookKey = bookKeyEl.value.trim();
-            const location = locationEl.value.trim();
+    const bookKeyEl = document.getElementById('singleBookKey');
+    const locationEl = document.getElementById('singleLocation');
+    const bookKey = bookKeyEl.value.trim();
+    const location = locationEl.value.trim();
 
-            const barcodeRegex = /^\d{14}$/;
-            if (!barcodeRegex.test(bookKey)) {
-                addLog(`❌ ${bookKey || '(空)'}：必須為14位數條碼`, 'error');
-                bookKeyEl.focus();
-                return;
-            }
+    const barcodeRegex = /^\d{14}$/;
+    if (!barcodeRegex.test(bookKey)) {
+        addLog(`❌ ${bookKey || '(空)'}：必須為14位數條碼`, 'error');
+        bookKeyEl.focus();
+        return;
+    }
 
-            if (!location) {
-                addLog(`❌ ${bookKey}：位置不能為空值`, 'error');
-                locationEl.focus();
-                return;
-            }
+    if (!location) {
+        addLog(`❌ ${bookKey}：位置不能為空值`, 'error');
+        locationEl.focus();
+        return;
+    }
 
-            bookKeyEl.disabled = true;
-            locationEl.disabled = true;
+    bookKeyEl.disabled = true;
+    locationEl.disabled = true;
 
-            try {
-                const data = await libraryApiCall('updateSingleLocation', {
-                    bookKey: bookKey,
-                    location: location
-                });
+    try {
+        const data = await libraryApiCall('updateSingleLocation', {
+            bookKey: bookKey,
+            location: location
+        });
 
-                if (data.success) {
-                    addLog(`✅ ${bookKey} → ${location}`, 'success');
-                    bookKeyEl.value = '';
-                    
-                } else {
-                    addLog(`❌ ${bookKey}：${data.error}`, 'error');
-                }
-            } catch (e) {
-                addLog(`❌ ${bookKey}：${e.message}`, 'error');
-            } finally {
-                bookKeyEl.disabled = false;
-                locationEl.disabled = false;
-                bookKeyEl.focus(); // 【修正】重新聚焦輸入框
-            }
+        if (data.success) {
+            addLog(`✅ ${bookKey} → ${location}`, 'success');
+            bookKeyEl.value = '';
+            // 新位置保留不清空
+        } else {
+            addLog(`❌ ${bookKey}：${data.error}`, 'error');
+            bookKeyEl.value = ''; // 失敗也清空條碼，保留位置
         }
+    } catch (e) {
+        addLog(`❌ ${bookKey}：${e.message}`, 'error');
+        bookKeyEl.value = ''; // 異常也清空條碼，保留位置
+    } finally {
+        bookKeyEl.disabled = false;
+        locationEl.disabled = false;
+        bookKeyEl.focus(); // 始終聚焦條碼框，方便連續掃描
+    }
+}
 
         // 【修正】批量位置更新：Loading時禁用輸入框與按鈕
         async function submitBatchUpdateAsync(btnElement) {
