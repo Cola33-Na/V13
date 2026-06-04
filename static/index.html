@@ -2896,6 +2896,7 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 
 <body>
@@ -3698,7 +3699,7 @@
             'action': 150
         };
         
-        const MAX_LOGS = 50;
+        // const MAX_LOGS = 50; // 【修正】已移除50筆限制，改為無限制
         const UPLOAD_BATCH_SIZE = 10;
         const PAGE_SIZE = 200;
 
@@ -5073,6 +5074,7 @@ ${barcodes.map((bc) => `
     const barcodeRegex = /^\d{14}$/;
     if (!barcodeRegex.test(bookKey)) {
         addLog(`❌ ${bookKey || '(空)'}：必須為14位數條碼`, 'error');
+        bookKeyEl.value = ''; // 【修正】格式錯誤也清空條碼框
         bookKeyEl.focus();
         return;
     }
@@ -5092,20 +5094,19 @@ ${barcodes.map((bc) => `
             location: location
         });
 
-        if (data.success) {
+        // 【修正】嚴格判斷布林值 true，避免字符串誤判
+        if (data.success === true) {
             addLog(`✅ ${bookKey} → ${location}`, 'success');
-            bookKeyEl.value = '';
-            // 新位置保留不清空
         } else {
-            addLog(`❌ ${bookKey}：${data.error}`, 'error');
-            bookKeyEl.value = ''; // 失敗也清空條碼，保留位置
+            const errMsg = data.error || data.message || '更新失敗（伺服器回傳失敗）';
+            addLog(`❌ ${bookKey}：${errMsg}`, 'error');
         }
     } catch (e) {
-        addLog(`❌ ${bookKey}：${e.message}`, 'error');
-        bookKeyEl.value = ''; // 異常也清空條碼，保留位置
+        addLog(`❌ ${bookKey}：${e.message || '連線異常'}`, 'error');
     } finally {
         bookKeyEl.disabled = false;
         locationEl.disabled = false;
+        bookKeyEl.value = ''; // 【修正】無論成功/失敗/異常/格式錯誤，統一清空條碼框
         bookKeyEl.focus(); // 始終聚焦條碼框，方便連續掃描
     }
 }
