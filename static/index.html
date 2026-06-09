@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>圖書查詢與裝箱 - 手機優化版 V13 Fix</title>
+    <title>圖書查詢與裝箱 - 手機優化版 V13.1</title>
     <style>
         * {
             margin: 0;
@@ -2895,8 +2895,6 @@
     </style>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <base target="_blank">
-<base target="_blank">
-<base target="_blank">
 </head>
 
 <body>
@@ -2907,7 +2905,7 @@
 
     <div class="container">
         <div class="header">
-            <h1>📚 圖書查詢與裝箱系統</h1>
+            <h1>📚 圖書查詢與裝箱系統 V13.1</h1>
         </div>
 
         <div class="main-wrapper">
@@ -3622,7 +3620,7 @@
                     <div style="font-weight: 600; font-size: 18px; margin-bottom: 8px;">點擊選擇 Excel 檔案</div>
                     <div class="upload-hint" style="font-size: 13px; color: #888; line-height: 1.6;">
                         支援格式：.xlsx, .xls<br>
-                        A-F欄位對應：A=Key, B-E=資料, F=位置（可留空）<br>
+                        A-F欄位對應：A=Key, B-E=資料, F=位置（可留空）<<br>
                         檔案大小限制：5MB
                     </div>
                 </label>
@@ -3699,7 +3697,6 @@
             'action': 150
         };
         
-        // const MAX_LOGS = 50; // 【修正】已移除50筆限制，改為無限制
         const UPLOAD_BATCH_SIZE = 10;
         const PAGE_SIZE = 200;
 
@@ -4114,7 +4111,7 @@
                 if (cat && (cat.enabled !== false) && cat.label) {
                     html += `
                         <th class="orange-header">
-                            ${escapeHtml(cat.label)}<br>
+                            ${escapeHtml(cat.label)}<<br>
                             <span class="stats-table-header-note">${cat.column}欄="${escapeHtml(cat.value)}"</span>
                         </th>
                     `;
@@ -4468,7 +4465,6 @@
             }
         }
 
-        // 【修正】統計與位置面板：打開時主動刷新zone數據
         async function toggleMobilePackingPanel() {
             const panel = document.getElementById('mobilePackingPanel');
             const btn = document.getElementById('mobilePackingBtn');
@@ -4478,7 +4474,6 @@
             } else {
                 panel.classList.add('active');
                 btn.classList.add('active');
-                // 確保zone數據已加載
                 await refreshZoneList();
                 updateMobilePackingPanel();
             }
@@ -4691,7 +4686,6 @@
             loadPackingDataOptimized();
         }
 
-        // 【修正】圖書查詢：Loading時禁用輸入框與按鈕，完成後重新聚焦
         async function searchBook() {
             const inputEl = document.getElementById('searchInput');
             const input = inputEl.value.trim();
@@ -4747,11 +4741,10 @@
                 inputEl.disabled = false;
                 btn.disabled = false;
                 btn.textContent = '查詢';
-                inputEl.focus(); // 【修正】重新聚焦輸入框
+                inputEl.focus();
             }
         }
 
-        // 【修正】Bib查詢：Loading時禁用輸入框與按鈕，完成後重新聚焦
         async function searchBib() {
             const inputEl = document.getElementById('bibInput');
             const input = inputEl.value.trim();
@@ -4801,7 +4794,7 @@
                 inputEl.disabled = false;
                 btn.disabled = false;
                 btn.textContent = '查詢';
-                inputEl.focus(); // 【修正】重新聚焦輸入框
+                inputEl.focus();
             }
         }
 
@@ -4823,7 +4816,6 @@
             }
         }
 
-        // 【修改】Bib查詢顯示Barcode折疊列表，取消地址(橙色方格)
         function displayLibraryResults(data) {
             const book = data.bookInfo;
             const libs = data.libraries;
@@ -4866,7 +4858,6 @@
 
             let summaryHtml = '';
             if (isBib) {
-                // Bib查詢：顯示Barcode折疊列表（取代原有地址/位置方格）
                 if (barcodes.length > 0) {
                     summaryHtml = `
                         <div class="library-summary" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);">
@@ -4902,7 +4893,6 @@ ${barcodes.map((bc) => `
                     `;
                 }
             } else {
-                // 圖書查詢：保持原有邏輯
                 const displayHint = libs.total > libs.displayed ? ` (顯示前 ${libs.displayed} 筆)` : '';
                 summaryHtml = `
                     <div class="library-summary">
@@ -4971,7 +4961,6 @@ ${barcodes.map((bc) => `
             }
         }
 
-        // 【新增】Barcode折疊展開/收合
         function toggleBarcodeCollapse(header) {
             const content = header.nextElementSibling;
             const icon = header.querySelector('.collapse-icon');
@@ -4987,7 +4976,6 @@ ${barcodes.map((bc) => `
             }
         }
 
-        // 【新增】點擊Barcode後自動填入圖書查詢並跳轉查詢
         function searchBarcodeFromBib(barcode) {
             closeMobileManualModal();
             document.getElementById('searchInput').value = barcode;
@@ -4997,7 +4985,6 @@ ${barcodes.map((bc) => `
             }, 300);
         }
 
-        // 【修正】查詢位置：Loading時禁用輸入框與按鈕，完成後重新聚焦
         async function searchLocation() {
             const inputEl = document.getElementById('locationInput');
             const input = inputEl.value.trim();
@@ -5052,7 +5039,7 @@ ${barcodes.map((bc) => `
                 inputEl.disabled = false;
                 btn.disabled = false;
                 btn.textContent = '查詢位置';
-                inputEl.focus(); // 【修正】重新聚焦輸入框
+                inputEl.focus();
             }
         }
 
@@ -5064,54 +5051,51 @@ ${barcodes.map((bc) => `
             }
         }
 
-        // 【修正】單一位置更新：Loading時禁用輸入框，完成後重新聚焦
         async function updateSingleLocation() {
-    const bookKeyEl = document.getElementById('singleBookKey');
-    const locationEl = document.getElementById('singleLocation');
-    const bookKey = bookKeyEl.value.trim();
-    const location = locationEl.value.trim();
+            const bookKeyEl = document.getElementById('singleBookKey');
+            const locationEl = document.getElementById('singleLocation');
+            const bookKey = bookKeyEl.value.trim();
+            const location = locationEl.value.trim();
 
-    const barcodeRegex = /^\d{14}$/;
-    if (!barcodeRegex.test(bookKey)) {
-        addLog(`❌ ${bookKey || '(空)'}：必須為14位數條碼`, 'error');
-        bookKeyEl.value = ''; // 【修正】格式錯誤也清空條碼框
-        bookKeyEl.focus();
-        return;
-    }
+            const barcodeRegex = /^\d{14}$/;
+            if (!barcodeRegex.test(bookKey)) {
+                addLog(`❌ ${bookKey || '(空)'}：必須為14位數條碼`, 'error');
+                bookKeyEl.value = '';
+                bookKeyEl.focus();
+                return;
+            }
 
-    if (!location) {
-        addLog(`❌ ${bookKey}：位置不能為空值`, 'error');
-        locationEl.focus();
-        return;
-    }
+            if (!location) {
+                addLog(`❌ ${bookKey}：位置不能為空值`, 'error');
+                locationEl.focus();
+                return;
+            }
 
-    bookKeyEl.disabled = true;
-    locationEl.disabled = true;
+            bookKeyEl.disabled = true;
+            locationEl.disabled = true;
 
-    try {
-        const data = await libraryApiCall('updateSingleLocation', {
-            bookKey: bookKey,
-            location: location
-        });
+            try {
+                const data = await libraryApiCall('updateSingleLocation', {
+                    bookKey: bookKey,
+                    location: location
+                });
 
-        // 【修正】嚴格判斷布林值 true，避免字符串誤判
-        if (data.success === true) {
-            addLog(`✅ ${bookKey} → ${location}`, 'success');
-        } else {
-            const errMsg = data.error || data.message || '更新失敗（伺服器回傳失敗）';
-            addLog(`❌ ${bookKey}：${errMsg}`, 'error');
+                if (data.success === true) {
+                    addLog(`✅ ${bookKey} → ${location}`, 'success');
+                } else {
+                    const errMsg = data.error || data.message || '更新失敗（伺服器回傳失敗）';
+                    addLog(`❌ ${bookKey}：${errMsg}`, 'error');
+                }
+            } catch (e) {
+                addLog(`❌ ${bookKey}：${e.message || '連線異常'}`, 'error');
+            } finally {
+                bookKeyEl.disabled = false;
+                locationEl.disabled = false;
+                bookKeyEl.value = '';
+                bookKeyEl.focus();
+            }
         }
-    } catch (e) {
-        addLog(`❌ ${bookKey}：${e.message || '連線異常'}`, 'error');
-    } finally {
-        bookKeyEl.disabled = false;
-        locationEl.disabled = false;
-        bookKeyEl.value = ''; // 【修正】無論成功/失敗/異常/格式錯誤，統一清空條碼框
-        bookKeyEl.focus(); // 始終聚焦條碼框，方便連續掃描
-    }
-}
 
-        // 【修正】批量位置更新：Loading時禁用輸入框與按鈕
         async function submitBatchUpdateAsync(btnElement) {
             const btn = btnElement || event.target;
             const rawDataEl = document.getElementById('batchData');
@@ -5286,7 +5270,7 @@ ${barcodes.map((bc) => `
                 text.className = 'batch-status-text idle';
                 text.textContent = '系統狀態：已完成';
                 detail.style.display = 'block';
-                message.innerHTML = `上次處理完成<br>時間：${data.completedTime || '剛剛'}<br>結果：成功 ${data.successCount || 0} 筆，失敗 ${data.errorCount || 0} 筆`;
+                message.innerHTML = `上次處理完成<br>時間：${data.completedTime || '剛剛'}<<br>結果：成功 ${data.successCount || 0} 筆，失敗 ${data.errorCount || 0} 筆`;
                 progressBar.style.display = 'none';
             } else {
                 dot.className = 'status-dot idle';
@@ -5407,10 +5391,6 @@ ${barcodes.map((bc) => `
                 type: type
             });
 
-            if (updateLogs.length > MAX_LOGS) {
-                updateLogs = updateLogs.slice(0, MAX_LOGS);
-            }
-
             renderLogs();
         }
 
@@ -5424,7 +5404,6 @@ ${barcodes.map((bc) => `
                 return;
             }
 
-            // 統計成功/失敗數量
             const successCount = updateLogs.filter(log => log.type === 'success').length;
             const errorCount = updateLogs.filter(log => log.type === 'error').length;
             const totalCount = updateLogs.length;
@@ -5746,9 +5725,6 @@ ${barcodes.map((bc) => `
             }
         }
 
-        /* ============================================
-           【修改】標題行管理：獨立函數 + 本地儲存
-           ============================================ */
         function updateTableHeaders() {
             const headerRow = document.getElementById('tableHeaderRow');
             if (!headerRow) return;
@@ -5764,7 +5740,6 @@ ${barcodes.map((bc) => `
         }
 
         async function loadHeaders() {
-            // 優先從 localStorage 讀取上次上傳時保存的標題（避免 GAS 把數據誤當標題）
             const savedHeaders = localStorage.getItem('sheetHeaders_' + currentPackingSheet);
             if (savedHeaders) {
                 try {
@@ -5776,11 +5751,9 @@ ${barcodes.map((bc) => `
                 }
             }
             
-            // 若無本地標題，使用預設 A-F，不詢問 GAS（防止數據被當標題讀取）
             columnHeaders = ['A', 'B', 'C', 'D', 'E', 'F'];
             updateTableHeaders();
         }
-        /* ============================================ */
 
         async function loadPackingDataOptimized() {
             try {
@@ -6138,7 +6111,6 @@ ${barcodes.map((bc) => `
             }
         }
 
-        // 【修改】裝箱管理搜索：未分類時搜索全部資料，特定位置時搜索整個該位置資料
         async function searchPackingData() {
             const keyword = document.getElementById('packingSearchInput').value.trim();
             const range = document.getElementById('packingSearchRange').value;
@@ -6149,10 +6121,8 @@ ${barcodes.map((bc) => `
                 return;
             }
 
-            // 確定搜索範圍
             let searchZone = currentZone;
             if (currentZone === '') {
-                // 在未分類位置時，搜索全部資料
                 searchZone = 'all';
             }
 
@@ -6173,7 +6143,6 @@ ${barcodes.map((bc) => `
                     totalPages = 1;
                     currentPage = 1;
                     
-                    // 更新標題顯示搜索範圍
                     const searchScope = currentZone === '' ? '全部資料' : (currentZone || '未分類');
                     document.getElementById('dataListTitle').textContent = 
                         `🔍 「${escapeHtml(keyword)}」搜尋結果 (${searchScope})`;
@@ -6358,7 +6327,6 @@ ${barcodes.map((bc) => `
             }
         }
 
-        // 【修正】快速新增：Loading時禁用輸入框與按鈕，完成後重新聚焦
         async function quickAddSearch() {
             if (isProcessingQuickAdd) return;
 
@@ -6457,7 +6425,7 @@ ${barcodes.map((bc) => `
                 keyInput.disabled = false;
                 addBtn.disabled = false;
                 addBtn.textContent = '➕ 加入';
-                keyInput.focus(); // 【修正】重新聚焦輸入框，方便下一筆輸入
+                keyInput.focus();
                 
                 setTimeout(() => {
                     if (resultDiv.querySelector('.quick-result-status')) {
@@ -6575,7 +6543,6 @@ ${barcodes.map((bc) => `
             }
         }
 
-        // 【修正】refreshZoneList：寫入 dashboardCache 供手機面板使用
         async function refreshZoneList() {
             try {
                 const zonesResult = await packingApiCall('packingGetZones', { 
@@ -6583,7 +6550,6 @@ ${barcodes.map((bc) => `
                 });
                 
                 if (zonesResult.success) {
-                    // 寫入cache供手機面板使用
                     const cacheKey = `${currentPackingSheet}_1_all`;
                     if (!dashboardCache[cacheKey]) {
                         dashboardCache[cacheKey] = {};
@@ -6870,7 +6836,6 @@ ${barcodes.map((bc) => `
             statusBar.style.display = 'block';
         }
 
-        //================ 智能標題行檢測 =================
         function detectHeaderRow(jsonData) {
             if (!jsonData || jsonData.length === 0) {
                 return { hasHeader: false, headerIndex: -1, dataStartIndex: 0 };
@@ -6878,7 +6843,6 @@ ${barcodes.map((bc) => `
             
             const maxCols = Math.max(...jsonData.map(r => r ? r.length : 0), 0);
             
-            // 逐欄檢查：A欄 → B欄 → C欄 ...
             for (let col = 0; col < maxCols; col++) {
                 const nonEmpty = [];
                 
@@ -6889,12 +6853,10 @@ ${barcodes.map((bc) => `
                     }
                 }
                 
-                // 該欄全空，繼續檢查下一欄
                 if (nonEmpty.length === 0) continue;
                 
                 const first = nonEmpty[0];
                 
-                // 第一個非空值是長數字（>=10位純數字）→ 這是數據，無標題行
                 if (/^\d{10,}$/.test(first.val)) {
                     return { 
                         hasHeader: false, 
@@ -6903,12 +6865,9 @@ ${barcodes.map((bc) => `
                     };
                 }
                 
-                // 第一個非空值不是長數字 → 可能是標題
-                // 檢查該欄下一個非空值是否為長數字，以增加判斷信心
                 if (nonEmpty.length >= 2) {
                     const second = nonEmpty[1];
                     if (/^\d{10,}$/.test(second.val)) {
-                        // 確定：第一個是標題，第二個才是數據
                         return { 
                             hasHeader: true, 
                             headerIndex: first.row, 
@@ -6917,7 +6876,6 @@ ${barcodes.map((bc) => `
                     }
                 }
                 
-                // 若該欄只有一個非空值且不是長數字，視為標題行（保守處理）
                 return { 
                     hasHeader: true, 
                     headerIndex: first.row, 
@@ -6925,14 +6883,9 @@ ${barcodes.map((bc) => `
                 };
             }
             
-            // 所有欄都全空，預設無標題行
             return { hasHeader: false, headerIndex: -1, dataStartIndex: 0 };
         }
 
-        /* ============================================
-           【修改】confirmModalUpload：恢復標題檢測，
-           標題存 localStorage，只上傳數據行到 GAS
-           ============================================ */
         async function confirmModalUpload() {
             if (!selectedModalFile) {
                 showUploadStatus('❌ 請先選擇檔案', 'error');
@@ -6965,7 +6918,6 @@ ${barcodes.map((bc) => `
                     throw new Error('Excel 檔案為空');
                 }
                 
-                // ===== 智能標題行檢測與處理 =====
                 const headerDetect = detectHeaderRow(jsonData);
                 let dataRows = jsonData;
                 let uploadedHeaders = null;
@@ -6981,7 +6933,6 @@ ${barcodes.map((bc) => `
                                 : String.fromCharCode(65 + i)
                         );
                     }
-                    // 保存標題供網頁顯示使用（GAS 不需修改，標題由前端管理）
                     localStorage.setItem('sheetHeaders_' + currentPackingSheet, JSON.stringify(uploadedHeaders));
                     columnHeaders = uploadedHeaders;
                     updateTableHeaders();
@@ -6997,9 +6948,7 @@ ${barcodes.map((bc) => `
                     updateTableHeaders();
                     showUploadStatus('ℹ️ 未檢測到標題行，所有行作為數據處理', 'info');
                 }
-                // =================================
                 
-                // 只過濾「整行六欄全空」的空白行
                 const validRows = dataRows.filter(row => {
                     if (!row || row.length === 0) return false;
                     return row.some(cell => {
@@ -7109,7 +7058,6 @@ ${barcodes.map((bc) => `
                 currentUploadController = null;
             }
         }
-        /* ============================================ */
 
         function cancelUpload() {
             if (currentUploadController) {
@@ -7118,7 +7066,6 @@ ${barcodes.map((bc) => `
             isUploading = false;
         }
 
-        // 【修正】滙出 Excel：傳入 page: 0 以獲取全部資料（不分頁）
         async function exportPackingExcel() {
             const btn = event.target;
             const originalText = btn.textContent;
@@ -7283,7 +7230,7 @@ ${barcodes.map((bc) => `
                 '"': '&quot;',
                 "'": '&#039;'
             };
-            return String(text).replace(/[&<>"']/g, m => map[m]);
+            return String(text).replace(/[&<<>"']/g, m => map[m]);
         }
 
         function showToast(message, type = 'info', duration = 3000) {
