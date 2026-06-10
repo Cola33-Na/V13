@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>圖書查詢與裝箱 - 手機優化版 V13.1</title>
+    <title>圖書查詢與裝箱 - 手機優化版 V13.2</title>
     <style>
         * {
             margin: 0;
@@ -1545,6 +1545,11 @@
             border-left: 3px solid #dc3545;
         }
 
+        .log-item.pending {
+            background: #fff3cd;
+            border-left: 3px solid #ffc107;
+        }
+
         .empty-log {
             text-align: center;
             padding: 30px;
@@ -2845,6 +2850,10 @@
             border-left: 4px solid #dc3545;
         }
 
+        .log-stat-item.pending-stat {
+            border-left: 4px solid #ffc107;
+        }
+
         .log-stat-item.total-stat {
             border-left: 4px solid #667eea;
         }
@@ -2870,6 +2879,10 @@
 
         .error-stat .log-stat-value {
             color: #dc3545;
+        }
+
+        .pending-stat .log-stat-value {
+            color: #856404;
         }
 
         .total-stat .log-stat-value {
@@ -2905,7 +2918,7 @@
 
     <div class="container">
         <div class="header">
-            <h1>📚 圖書查詢與裝箱系統 V13.1</h1>
+            <h1>📚 圖書查詢與裝箱系統 V13.2</h1>
         </div>
 
         <div class="main-wrapper">
@@ -3142,6 +3155,14 @@
                             </div>
                             <div style="margin-top: 10px; font-size: 13px; color: #6c757d;">設定查詢結果顯示的圖書館數量上限（預設100筆）</div>
                         </div>
+                        <div class="control-box" style="margin-top: 15px;">
+                            <label style="display: block; margin-bottom: 10px; font-weight: 600;">單一位置更新延遲（秒）：</label>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <input type="number" id="singleUpdateDelayInput" value="0.3" min="0.1" max="100" step="0.1" style="width: 150px;">
+                                <button class="btn-secondary" onclick="updateSingleUpdateDelay()">套用設定</button>
+                            </div>
+                            <div style="margin-top: 10px; font-size: 13px; color: #6c757d;">設定輸入條碼後的鎖定/延遲時間（0.1–100秒），預設0.3秒。數值越小可掃描越快，但需配合網路速度。</div>
+                        </div>
                     </div>
                 </div>
 
@@ -3164,6 +3185,10 @@
                                 <div class="log-stat-item error-stat">
                                     <span class="log-stat-label">❌ 失敗</span>
                                     <span class="log-stat-value" id="logErrorCount">0</span>
+                                </div>
+                                <div class="log-stat-item pending-stat">
+                                    <span class="log-stat-label">⏳ 緩存</span>
+                                    <span class="log-stat-value" id="logPendingCount">0</span>
                                 </div>
                                 <div class="log-stat-item total-stat">
                                     <span class="log-stat-label">📊 總計</span>
@@ -3620,7 +3645,7 @@
                     <div style="font-weight: 600; font-size: 18px; margin-bottom: 8px;">點擊選擇 Excel 檔案</div>
                     <div class="upload-hint" style="font-size: 13px; color: #888; line-height: 1.6;">
                         支援格式：.xlsx, .xls<br>
-                        A-F欄位對應：A=Key, B-E=資料, F=位置（可留空）<<br>
+                        A-F欄位對應：A=Key, B-E=資料, F=位置（可留空）<br>
                         檔案大小限制：5MB
                     </div>
                 </label>
@@ -3697,6 +3722,8 @@
             'action': 150
         };
         
+        let singleUpdateDelay = 0.3;
+        
         const UPLOAD_BATCH_SIZE = 10;
         const PAGE_SIZE = 200;
 
@@ -3705,6 +3732,13 @@
             loadLocationSelect();
             loadCustomCategories();
             loadColumnWidths();
+
+            const savedDelay = localStorage.getItem('singleUpdateDelay');
+            if (savedDelay) {
+                singleUpdateDelay = parseFloat(savedDelay);
+                const delayInput = document.getElementById('singleUpdateDelayInput');
+                if (delayInput) delayInput.value = singleUpdateDelay;
+            }
 
             document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') searchBook();
@@ -3737,6 +3771,14 @@
                     e.preventDefault();
                     quickAddSearch();
                 }
+            });
+
+            document.getElementById('singleUpdateDelayInput')?.addEventListener('input', function(e) {
+                let val = this.value;
+                val = val.replace(/[^0-9.]/g, '');
+                const parts = val.split('.');
+                if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
+                this.value = val;
             });
 
             setTimeout(preloadAllData, 1000);
@@ -4111,7 +4153,7 @@
                 if (cat && (cat.enabled !== false) && cat.label) {
                     html += `
                         <th class="orange-header">
-                            ${escapeHtml(cat.label)}<<br>
+                            ${escapeHtml(cat.label)}<br>
                             <span class="stats-table-header-note">${cat.column}欄="${escapeHtml(cat.value)}"</span>
                         </th>
                     `;
@@ -5051,7 +5093,20 @@ ${barcodes.map((bc) => `
             }
         }
 
-        async function updateSingleLocation() {
+        function updateSingleUpdateDelay() {
+            const input = document.getElementById('singleUpdateDelayInput');
+            const val = parseFloat(input.value);
+            if (!isNaN(val) && val >= 0.1 && val <= 100) {
+                singleUpdateDelay = val;
+                localStorage.setItem('singleUpdateDelay', val);
+                showLibraryStatus('display', `✅ 已設定單一更新延遲為 ${val} 秒`, 'success');
+            } else {
+                showLibraryStatus('display', '❌ 請輸入 0.1–100 之間的數值', 'error');
+                input.value = singleUpdateDelay;
+            }
+        }
+
+        function updateSingleLocation() {
             const bookKeyEl = document.getElementById('singleBookKey');
             const locationEl = document.getElementById('singleLocation');
             const bookKey = bookKeyEl.value.trim();
@@ -5059,40 +5114,51 @@ ${barcodes.map((bc) => `
 
             const barcodeRegex = /^\d{14}$/;
             if (!barcodeRegex.test(bookKey)) {
-                addLog(`❌ ${bookKey || '(空)'}：必須為14位數條碼`, 'error');
+                addLog(`❌ ${bookKey || '(空)'}：必須為14位數條碼`, 'error', bookKey);
                 bookKeyEl.value = '';
-                bookKeyEl.focus();
+                setTimeout(() => bookKeyEl.focus(), singleUpdateDelay * 1000);
                 return;
             }
 
             if (!location) {
-                addLog(`❌ ${bookKey}：位置不能為空值`, 'error');
-                locationEl.focus();
+                addLog(`❌ ${bookKey}：位置不能為空值`, 'error', bookKey);
+                setTimeout(() => locationEl.focus(), singleUpdateDelay * 1000);
                 return;
             }
 
+            bookKeyEl.value = '';
             bookKeyEl.disabled = true;
-            locationEl.disabled = true;
 
-            try {
-                const data = await libraryApiCall('updateSingleLocation', {
-                    bookKey: bookKey,
-                    location: location
-                });
-
-                if (data.success === true) {
-                    addLog(`✅ ${bookKey} → ${location}`, 'success');
-                } else {
-                    const errMsg = data.error || data.message || '更新失敗（伺服器回傳失敗）';
-                    addLog(`❌ ${bookKey}：${errMsg}`, 'error');
-                }
-            } catch (e) {
-                addLog(`❌ ${bookKey}：${e.message || '連線異常'}`, 'error');
-            } finally {
+            setTimeout(() => {
                 bookKeyEl.disabled = false;
-                locationEl.disabled = false;
-                bookKeyEl.value = '';
                 bookKeyEl.focus();
+            }, singleUpdateDelay * 1000);
+
+            addLog(`⏳ ${bookKey} → ${location} (處理中...)`, 'pending', bookKey);
+
+            libraryApiCall('updateSingleLocation', { bookKey, location })
+                .then(data => {
+                    if (data.success === true) {
+                        updateLogByBarcode(bookKey, 'success', `✅ ${bookKey} → ${location}`);
+                    } else {
+                        const errMsg = data.error || data.message || '更新失敗（伺服器回傳失敗）';
+                        updateLogByBarcode(bookKey, 'error', `❌ ${bookKey}：${errMsg}`);
+                    }
+                })
+                .catch(e => {
+                    updateLogByBarcode(bookKey, 'error', `❌ ${bookKey}：${e.message || '連線異常'}`);
+                });
+        }
+
+        function updateLogByBarcode(barcode, type, message) {
+            const log = updateLogs.find(l => l.barcode === barcode && l.type === 'pending');
+            if (log) {
+                log.type = type;
+                log.message = message;
+                log.time = new Date().toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                renderLogs();
+            } else {
+                addLog(message, type, barcode);
             }
         }
 
@@ -5270,7 +5336,7 @@ ${barcodes.map((bc) => `
                 text.className = 'batch-status-text idle';
                 text.textContent = '系統狀態：已完成';
                 detail.style.display = 'block';
-                message.innerHTML = `上次處理完成<br>時間：${data.completedTime || '剛剛'}<<br>結果：成功 ${data.successCount || 0} 筆，失敗 ${data.errorCount || 0} 筆`;
+                message.innerHTML = `上次處理完成<br>時間：${data.completedTime || '剛剛'}<br>結果：成功 ${data.successCount || 0} 筆，失敗 ${data.errorCount || 0} 筆`;
                 progressBar.style.display = 'none';
             } else {
                 dot.className = 'status-dot idle';
@@ -5381,14 +5447,15 @@ ${barcodes.map((bc) => `
             showLibraryStatus('batch', '已清空輸入內容', 'success');
         }
 
-        function addLog(message, type = 'success') {
+        function addLog(message, type = 'success', barcode = null) {
             const now = new Date();
             const timeStr = now.toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
             updateLogs.unshift({
                 time: timeStr,
                 message: message,
-                type: type
+                type: type,
+                barcode: barcode
             });
 
             renderLogs();
@@ -5406,10 +5473,12 @@ ${barcodes.map((bc) => `
 
             const successCount = updateLogs.filter(log => log.type === 'success').length;
             const errorCount = updateLogs.filter(log => log.type === 'error').length;
+            const pendingCount = updateLogs.filter(log => log.type === 'pending').length;
             const totalCount = updateLogs.length;
 
             document.getElementById('logSuccessCount').textContent = successCount;
             document.getElementById('logErrorCount').textContent = errorCount;
+            document.getElementById('logPendingCount').textContent = pendingCount;
             document.getElementById('logTotalCount').textContent = totalCount;
             if (statsPanel) statsPanel.style.display = 'flex';
 
@@ -7230,7 +7299,7 @@ ${barcodes.map((bc) => `
                 '"': '&quot;',
                 "'": '&#039;'
             };
-            return String(text).replace(/[&<<>"']/g, m => map[m]);
+            return String(text).replace(/[&<>"']/g, m => map[m]);
         }
 
         function showToast(message, type = 'info', duration = 3000) {
