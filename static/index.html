@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>圖書查詢與裝箱 - V13.3</title>
+    <title>圖書查詢與裝箱 - V13.4</title>
     <style>
         * {
             margin: 0;
@@ -2976,7 +2976,7 @@
 
     <div class="container">
         <div class="header">
-            <h1>📚 圖書查詢與裝箱系統 V13.3</h1>
+            <h1>📚 圖書查詢與裝箱系統 V13.4</h1>
         </div>
 
         <div class="main-wrapper">
@@ -3806,13 +3806,13 @@
         
         let singleUpdateDelay = 0.3;
         
-        // 【V13.3】欄位顯示控制
+        // 【V13.4】欄位顯示控制
         let visibleColumns = {
             A: true, B: true, C: true, D: true, E: true, F: true,
             G: false, H: false, I: false, J: false, K: false
         };
         
-        // 【V13.3】排序狀態
+        // 【V13.4】排序狀態
         let sortState = { column: null, direction: 'asc' };
         let fullSortedData = null;
         
@@ -3876,7 +3876,7 @@
 
             setTimeout(preloadAllData, 1000);
             
-            // 【V13.3】GAS 預熱機制
+            // 【V13.4】GAS 預熱機制
             setTimeout(warmupGAS, 500);
             setTimeout(warmupGAS, 3000);
             
@@ -3893,7 +3893,7 @@
             }
         });
 
-        // 【V13.3】GAS 預熱函數
+        // 【V13.4】GAS 預熱函數
         async function warmupGAS() {
             try {
                 await libraryApiCall('getManualSelect', {}, 15000);
@@ -3990,7 +3990,7 @@
             showGlobalLoading(true);
             
             try {
-                // 【V13.3】清除排序狀態
+                // 【V13.4】清除排序狀態
                 sortState = { column: null, direction: 'asc' };
                 fullSortedData = null;
                 
@@ -4019,7 +4019,7 @@
             }
         }
 
-        // 【V13.3】載入欄位顯示設定
+        // 【V13.4】載入欄位顯示設定
         function loadVisibleColumns() {
             const saved = localStorage.getItem('visibleColumns_' + currentPackingSheet);
             if (saved) {
@@ -4306,7 +4306,7 @@
                 if (cat && (cat.enabled !== false) && cat.label) {
                     html += `
                         <th class="orange-header">
-                            ${escapeHtml(cat.label)}<br>
+                            ${escapeHtml(cat.label)}<<br>
                             <span class="stats-table-header-note">${cat.column}欄="${escapeHtml(cat.value)}"</span>
                         </th>
                     `;
@@ -5952,7 +5952,7 @@ ${barcodes.map((bc) => `
             }
         }
 
-        // 【V13.3】更新表格標題（支援排序圖示與欄位顯示控制）
+        // 【V13.4】更新表格標題（支援排序圖示與欄位顯示控制）
         function updateTableHeaders() {
             const headerRow = document.getElementById('tableHeaderRow');
             if (!headerRow) return;
@@ -5972,7 +5972,7 @@ ${barcodes.map((bc) => `
             applyColumnWidthsToTable();
         }
 
-        // 【V13.3】標題列排序功能
+        // 【V13.4】標題列排序功能
         async function handleSort(column) {
             if (sortState.column === column) {
                 sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
@@ -6051,7 +6051,7 @@ ${barcodes.map((bc) => `
 
         async function loadPackingDataOptimized() {
             try {
-                // 【V13.3】如果有排序狀態，使用已排序的資料分頁
+                // 【V13.4】如果有排序狀態，使用已排序的資料分頁
                 if (fullSortedData && sortState.column && currentZone !== 'all') {
                     const startIdx = (currentPage - 1) * PAGE_SIZE;
                     packingDataCache = fullSortedData.slice(startIdx, startIdx + PAGE_SIZE);
@@ -6223,7 +6223,7 @@ ${barcodes.map((bc) => `
         }
 
         function filterZone(zone, element) {
-            // 【V13.3】切換 zone 時清除排序
+            // 【V13.4】切換 zone 時清除排序
             sortState = { column: null, direction: 'asc' };
             fullSortedData = null;
             
@@ -6290,7 +6290,7 @@ ${barcodes.map((bc) => `
             });
         }
 
-        // 【V13.3】渲染資料列表（支援動態欄位顯示）
+        // 【V13.4】渲染資料列表（支援動態欄位顯示）
         function renderDataListOptimized() {
             const tbody = document.getElementById('excelTableBody');
             
@@ -6354,7 +6354,7 @@ ${barcodes.map((bc) => `
             tbody.appendChild(fragment);
         }
 
-        // 【V13.3】快速插入單行（支援動態欄位）
+        // 【V13.4】快速插入單行（支援動態欄位）
         function insertSingleRowFast(item) {
             const tbody = document.getElementById('excelTableBody');
             
@@ -6437,7 +6437,7 @@ ${barcodes.map((bc) => `
                 return;
             }
 
-            // 【V13.3】搜尋時清除排序
+            // 【V13.4】搜尋時清除排序
             sortState = { column: null, direction: 'asc' };
             fullSortedData = null;
 
@@ -6920,7 +6920,7 @@ ${barcodes.map((bc) => `
             }
         }
 
-        // 【V13.3】編輯 Modal（支援 G-K）
+        // 【V13.4】編輯 Modal（支援 G-K）
         function showEditModal(key) {
             const item = packingDataCache.find(i => i.A === key);
             if (!item) return;
@@ -7244,7 +7244,7 @@ ${barcodes.map((bc) => `
                     }
                     
                     const batch = validRows.slice(i, i + UPLOAD_BATCH_SIZE);
-                    // 【V13.3】支援 A-K 欄位
+                    // 【V13.4】支援 A-K 欄位
                     const batchData = batch.map(row => {
                         const rowData = {};
                         ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'].forEach((col, idx) => {
@@ -7361,7 +7361,7 @@ ${barcodes.map((bc) => `
                     return;
                 }
                 
-                // 【V13.3】匯出 A-K 欄位
+                // 【V13.4】匯出 A-K 欄位
                 const headers = columnHeaders;
                 const rows = data.map(item => [
                     item.A || '', item.B || '', item.C || '', item.D || '', item.E || '', item.F || '',
