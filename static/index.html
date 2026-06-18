@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>圖書查詢與裝箱 - 手機優化版 V13.2</title>
+    <title>圖書查詢與裝箱 - V13.3</title>
     <style>
         * {
             margin: 0;
@@ -1084,6 +1084,27 @@
             max-width: 400px;
         }
 
+        .excel-table th.sortable {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .excel-table th.sortable:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+
+        .excel-table th.sort-asc::after {
+            content: ' ▲';
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .excel-table th.sort-desc::after {
+            content: ' ▼';
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
         .excel-table th:first-child {
             border-top-left-radius: 8px;
         }
@@ -1143,6 +1164,10 @@
 
         .spare-mode .excel-table th {
             background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .spare-mode .excel-table th.sortable:hover {
+            background: linear-gradient(135deg, #38ef7d 0%, #11998e 100%);
         }
 
         .excel-table .col-a { min-width: 120px; font-weight: 600; color: #667eea; }
@@ -2905,6 +2930,39 @@
                 font-size: 11px;
             }
         }
+
+        .column-visibility-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .column-visibility-grid label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .column-visibility-grid label:hover {
+            background: #f0f4ff;
+        }
+
+        .column-visibility-grid input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .column-visibility-grid input[type="checkbox"]:disabled + span {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     </style>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <base target="_blank">
@@ -2918,7 +2976,7 @@
 
     <div class="container">
         <div class="header">
-            <h1>📚 圖書查詢與裝箱系統 V13.2</h1>
+            <h1>📚 圖書查詢與裝箱系統 V13.3</h1>
         </div>
 
         <div class="main-wrapper">
@@ -3163,6 +3221,24 @@
                             </div>
                             <div style="margin-top: 10px; font-size: 13px; color: #6c757d;">設定輸入條碼後的鎖定/延遲時間（0.1–100秒），預設0.3秒。數值越小可掃描越快，但需配合網路速度。</div>
                         </div>
+                        <div class="control-box" style="margin-top: 15px;">
+                            <label style="display: block; margin-bottom: 10px; font-weight: 600;">裝箱管理顯示欄位：</label>
+                            <div style="font-size: 13px; color: #6c757d; margin-bottom: 10px;">勾選要顯示的欄位（G-K 預設隱藏），設定會自動儲存</div>
+                            <div class="column-visibility-grid" id="columnVisibilityGrid">
+                                <label><input type="checkbox" id="colVis_A" checked disabled><span>A 欄 (Key)</span></label>
+                                <label><input type="checkbox" id="colVis_B" checked><span>B 欄</span></label>
+                                <label><input type="checkbox" id="colVis_C" checked><span>C 欄</span></label>
+                                <label><input type="checkbox" id="colVis_D" checked><span>D 欄</span></label>
+                                <label><input type="checkbox" id="colVis_E" checked><span>E 欄</span></label>
+                                <label><input type="checkbox" id="colVis_F" checked disabled><span>F 欄 (位置)</span></label>
+                                <label><input type="checkbox" id="colVis_G"><span>G 欄</span></label>
+                                <label><input type="checkbox" id="colVis_H"><span>H 欄</span></label>
+                                <label><input type="checkbox" id="colVis_I"><span>I 欄</span></label>
+                                <label><input type="checkbox" id="colVis_J"><span>J 欄</span></label>
+                                <label><input type="checkbox" id="colVis_K"><span>K 欄</span></label>
+                            </div>
+                            <button class="btn-secondary" style="margin-top: 15px;" onclick="saveVisibleColumnsSetting()">💾 儲存顯示設定</button>
+                        </div>
                     </div>
                 </div>
 
@@ -3368,6 +3444,11 @@
                                             <option value="D">D 欄</option>
                                             <option value="E">E 欄</option>
                                             <option value="F">F 欄</option>
+                                            <option value="G">G 欄</option>
+                                            <option value="H">H 欄</option>
+                                            <option value="I">I 欄</option>
+                                            <option value="J">J 欄</option>
+                                            <option value="K">K 欄</option>
                                         </select>
                                         <button class="btn-primary btn-sm" onclick="searchPackingData()">🔍 搜尋</button>
                                     </div>
@@ -3376,12 +3457,12 @@
                                         <table class="excel-table" id="excelDataTable">
                                             <thead>
                                                 <tr id="tableHeaderRow">
-                                                    <th>A(Key)</th>
-                                                    <th>B</th>
-                                                    <th>C</th>
-                                                    <th>D</th>
-                                                    <th>E</th>
-                                                    <th>F (位置)</th>
+                                                    <th class="sortable">A(Key)</th>
+                                                    <th class="sortable">B</th>
+                                                    <th class="sortable">C</th>
+                                                    <th class="sortable">D</th>
+                                                    <th class="sortable">E</th>
+                                                    <th class="sortable">F (位置)</th>
                                                     <th>操作</th>
                                                 </tr>
                                             </thead>
@@ -3542,6 +3623,11 @@
                         <option value="D">D 欄</option>
                         <option value="E">E 欄</option>
                         <option value="F">F 欄</option>
+                        <option value="G">G 欄</option>
+                        <option value="H">H 欄</option>
+                        <option value="I">I 欄</option>
+                        <option value="J">J 欄</option>
+                        <option value="K">K 欄</option>
                     </select>
                     <button class="btn-primary" onclick="mobileSearchPackingData()">🔍 搜尋</button>
                     <button class="btn-secondary" onclick="clearMobileSearch()">清空搜尋</button>
@@ -3645,7 +3731,7 @@
                     <div style="font-weight: 600; font-size: 18px; margin-bottom: 8px;">點擊選擇 Excel 檔案</div>
                     <div class="upload-hint" style="font-size: 13px; color: #888; line-height: 1.6;">
                         支援格式：.xlsx, .xls<br>
-                        A-F欄位對應：A=Key, B-E=資料, F=位置（可留空）<br>
+                        A-K欄位對應：A=Key, B-E=資料, F=位置（可留空）, G-K=擴展資料<br>
                         檔案大小限制：5MB
                     </div>
                 </label>
@@ -3696,7 +3782,7 @@
         let currentPage = 1;
         let totalPages = 1;
         let totalRecords = 0;
-        let columnHeaders = ['A', 'B', 'C', 'D', 'E', 'F'];
+        let columnHeaders = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
         
         let dashboardCache = {};
         let cacheTimestamp = {};
@@ -3713,16 +3799,22 @@
         let lastAddedKey = null;
         
         let columnWidths = {
-            'A': 156,
-            'B': 120,
-            'C': 120,
-            'D': 120,
-            'E': 120,
-            'F': 120,
+            'A': 156, 'B': 120, 'C': 120, 'D': 120, 'E': 120, 'F': 120,
+            'G': 120, 'H': 120, 'I': 120, 'J': 120, 'K': 120,
             'action': 150
         };
         
         let singleUpdateDelay = 0.3;
+        
+        // 【V13.3】欄位顯示控制
+        let visibleColumns = {
+            A: true, B: true, C: true, D: true, E: true, F: true,
+            G: false, H: false, I: false, J: false, K: false
+        };
+        
+        // 【V13.3】排序狀態
+        let sortState = { column: null, direction: 'asc' };
+        let fullSortedData = null;
         
         const UPLOAD_BATCH_SIZE = 10;
         const PAGE_SIZE = 200;
@@ -3732,6 +3824,7 @@
             loadLocationSelect();
             loadCustomCategories();
             loadColumnWidths();
+            loadVisibleColumns();
 
             const savedDelay = localStorage.getItem('singleUpdateDelay');
             if (savedDelay) {
@@ -3783,11 +3876,32 @@
 
             setTimeout(preloadAllData, 1000);
             
+            // 【V13.3】GAS 預熱機制
+            setTimeout(warmupGAS, 500);
+            setTimeout(warmupGAS, 3000);
+            
+            // 頁面可見時再次預熱
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    setTimeout(warmupGAS, 500);
+                }
+            });
+            
             const mobileManualBtn = document.getElementById('mobileManualBtn');
             if (mobileManualBtn) {
                 mobileManualBtn.style.display = window.innerWidth <= 968 ? 'flex' : 'none';
             }
         });
+
+        // 【V13.3】GAS 預熱函數
+        async function warmupGAS() {
+            try {
+                await libraryApiCall('getManualSelect', {}, 15000);
+                console.log('GAS 預熱完成');
+            } catch (e) {
+                console.log('GAS 預熱中（可能正在喚醒）:', e.message);
+            }
+        }
 
         async function libraryApiCall(action, params = {}, timeout = 60000) {
             return apiCallWithRetry(LIBRARY_API_URL, action, params, timeout, 3);
@@ -3876,6 +3990,10 @@
             showGlobalLoading(true);
             
             try {
+                // 【V13.3】清除排序狀態
+                sortState = { column: null, direction: 'asc' };
+                fullSortedData = null;
+                
                 Object.keys(dashboardCache).forEach(key => {
                     if (key.startsWith(currentPackingSheet)) {
                         delete dashboardCache[key];
@@ -3901,6 +4019,46 @@
             }
         }
 
+        // 【V13.3】載入欄位顯示設定
+        function loadVisibleColumns() {
+            const saved = localStorage.getItem('visibleColumns_' + currentPackingSheet);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    visibleColumns = { ...visibleColumns, ...parsed };
+                } catch (e) {
+                    console.error('載入欄位顯示設定失敗:', e);
+                }
+            }
+            updateColumnVisibilityUI();
+        }
+
+        function saveVisibleColumns() {
+            localStorage.setItem('visibleColumns_' + currentPackingSheet, JSON.stringify(visibleColumns));
+        }
+
+        function updateColumnVisibilityUI() {
+            const allCols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
+            allCols.forEach(col => {
+                const cb = document.getElementById('colVis_' + col);
+                if (cb) cb.checked = visibleColumns[col];
+            });
+        }
+
+        function saveVisibleColumnsSetting() {
+            const allCols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
+            allCols.forEach(col => {
+                const cb = document.getElementById('colVis_' + col);
+                if (cb && !cb.disabled) {
+                    visibleColumns[col] = cb.checked;
+                }
+            });
+            saveVisibleColumns();
+            updateTableHeaders();
+            renderDataListOptimized();
+            showToast('✅ 欄位顯示設定已儲存', 'success');
+        }
+
         function loadColumnWidths() {
             const saved = localStorage.getItem('columnWidths_' + currentPackingSheet);
             if (saved) {
@@ -3923,7 +4081,8 @@
 
         function applyColumnWidthsToTable() {
             const ths = document.querySelectorAll('#tableHeaderRow th');
-            const colKeys = ['A', 'B', 'C', 'D', 'E', 'F', 'action'];
+            const visibleCols = columnHeaders.filter(h => visibleColumns[h]);
+            const colKeys = [...visibleCols, 'action'];
             
             ths.forEach((th, index) => {
                 if (colKeys[index] && columnWidths[colKeys[index]]) {
@@ -3935,11 +4094,15 @@
 
         function showAdjustWidthModal() {
             const content = document.getElementById('widthAdjustContent');
-            const colKeys = ['A', 'B', 'C', 'D', 'E', 'F', 'action'];
-            const colNames = ['A欄 (Key/Barcode)', 'B欄', 'C欄', 'D欄', 'E欄', 'F欄 (位置)', '操作欄 (按鈕)'];
+            const visibleCols = columnHeaders.filter(h => visibleColumns[h]);
+            const colNames = {
+                'A': 'A欄 (Key/Barcode)', 'B': 'B欄', 'C': 'C欄', 'D': 'D欄', 'E': 'E欄',
+                'F': 'F欄 (位置)', 'G': 'G欄', 'H': 'H欄', 'I': 'I欄', 'J': 'J欄', 'K': 'K欄',
+                'action': '操作欄 (按鈕)'
+            };
             
             let html = '';
-            colKeys.forEach((key, index) => {
+            [...visibleCols, 'action'].forEach((key) => {
                 const currentWidth = columnWidths[key] || 120;
                 const isAction = key === 'action';
                 const highlightClass = isAction ? 'highlight-row' : '';
@@ -3948,7 +4111,7 @@
                 
                 html += `
                     <div class="width-adjust-row ${highlightClass}">
-                        <div class="width-adjust-label">${colNames[index]}</div>
+                        <div class="width-adjust-label">${colNames[key]}</div>
                         <div class="width-adjust-input">
                             <input type="range" id="width_${key}" min="${minWidth}" max="${maxWidth}" value="${currentWidth}" 
                                 oninput="document.getElementById('val_${key}').textContent = this.value + 'px'">
@@ -3970,8 +4133,8 @@
         }
 
         function applyColumnWidths() {
-            const colKeys = ['A', 'B', 'C', 'D', 'E', 'F', 'action'];
-            colKeys.forEach(key => {
+            const visibleCols = columnHeaders.filter(h => visibleColumns[h]);
+            [...visibleCols, 'action'].forEach(key => {
                 const input = document.getElementById('width_' + key);
                 if (input) {
                     columnWidths[key] = parseInt(input.value);
@@ -3986,17 +4149,13 @@
 
         function resetColumnWidths() {
             columnWidths = {
-                'A': 120,
-                'B': 120,
-                'C': 120,
-                'D': 120,
-                'E': 120,
-                'F': 120,
+                'A': 120, 'B': 120, 'C': 120, 'D': 120, 'E': 120, 'F': 120,
+                'G': 120, 'H': 120, 'I': 120, 'J': 120, 'K': 120,
                 'action': 150
             };
             
-            const colKeys = ['A', 'B', 'C', 'D', 'E', 'F', 'action'];
-            colKeys.forEach(key => {
+            const visibleCols = columnHeaders.filter(h => visibleColumns[h]);
+            [...visibleCols, 'action'].forEach(key => {
                 const input = document.getElementById('width_' + key);
                 const val = document.getElementById('val_' + key);
                 if (input && val) {
@@ -4010,32 +4169,26 @@
 
         function expandActionColumn() {
             const newWidth = 200;
-            
             columnWidths['action'] = newWidth;
-            
             const input = document.getElementById('width_action');
             const val = document.getElementById('val_action');
             if (input && val) {
                 input.value = newWidth;
                 val.textContent = newWidth + 'px';
             }
-            
             showToast('✅ 操作欄已設定為 ' + newWidth + 'px（建議用於按鈕較多時）', 'success');
         }
 
         function applyA30Percent() {
             const baseWidth = 120;
             const newWidth = Math.round(baseWidth * 1.3);
-            
             columnWidths['A'] = newWidth;
-            
             const input = document.getElementById('width_A');
             const val = document.getElementById('val_A');
             if (input && val) {
                 input.value = newWidth;
                 val.textContent = newWidth + 'px';
             }
-            
             showToast('✅ A欄已設定為 +30% (' + newWidth + 'px)', 'success');
         }
 
@@ -4078,7 +4231,7 @@
         
         function showCategoryEditModal() {
             const content = document.getElementById('categoryEditContent');
-            const colOptions = ['A', 'B', 'C', 'D', 'E', 'F'];
+            const colOptions = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
             
             let html = '';
             customCategories.forEach((cat, index) => {
@@ -4196,6 +4349,8 @@
                 setTimeout(() => document.getElementById('singleBookKey')?.focus(), 100);
             } else if (panelName === 'batch') {
                 startStatusMonitoring();
+            } else if (panelName === 'display') {
+                loadVisibleColumns();
             }
             
             const mobileManualBtn = document.getElementById('mobileManualBtn');
@@ -4237,8 +4392,11 @@
             currentZone = 'all';
             currentPage = 1;
             lastAddedKey = null;
+            sortState = { column: null, direction: 'asc' };
+            fullSortedData = null;
             delete dashboardCache[sheetName];
             loadColumnWidths();
+            loadVisibleColumns();
 
             document.querySelectorAll('.function-block').forEach(block => {
                 block.classList.remove('active');
@@ -4680,7 +4838,7 @@
                 document.getElementById('dataListTitle').textContent = (normalizedZone || '未分類') + ' 資料列表';
                 
                 const tbody = document.getElementById('excelTableBody');
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;"><div class="spinner" style="margin: 0 auto 15px;"></div><p>Loading...</p></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="12" style="text-align: center; padding: 40px;"><div class="spinner" style="margin: 0 auto 15px;"></div><p>Loading...</p></td></tr>';
                 
                 loadPackingDataOptimized();
             }
@@ -5794,18 +5952,85 @@ ${barcodes.map((bc) => `
             }
         }
 
+        // 【V13.3】更新表格標題（支援排序圖示與欄位顯示控制）
         function updateTableHeaders() {
             const headerRow = document.getElementById('tableHeaderRow');
             if (!headerRow) return;
             let html = '';
-            columnHeaders.forEach((header, index) => {
-                const colClass = index === 0 ? 'col-a' : (index === 5 ? 'col-f' : '');
-                const label = index === 5 ? `${header} (位置)` : header;
-                html += `<th class="${colClass}">${escapeHtml(label)}</th>`;
+            const allCols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
+            
+            allCols.forEach((header) => {
+                if (!visibleColumns[header]) return;
+                const colClass = header === 'A' ? 'col-a' : (header === 'F' ? 'col-f' : '');
+                const label = header === 'F' ? `${header} (位置)` : header;
+                const sortIcon = sortState.column === header ? (sortState.direction === 'asc' ? ' ▲' : ' ▼') : '';
+                const sortClass = sortState.column === header ? `sort-${sortState.direction}` : '';
+                html += `<th class="sortable ${colClass} ${sortClass}" onclick="handleSort('${header}')">${escapeHtml(label)}${sortIcon}</th>`;
             });
             html += '<th>操作</th>';
             headerRow.innerHTML = html;
             applyColumnWidthsToTable();
+        }
+
+        // 【V13.3】標題列排序功能
+        async function handleSort(column) {
+            if (sortState.column === column) {
+                sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortState.column = column;
+                sortState.direction = 'asc';
+            }
+
+            showGlobalLoading(true);
+            try {
+                // 載入該 zone 的全部資料
+                const result = await packingApiCall('packingGetAllData', {
+                    sheet: currentPackingSheet,
+                    zone: currentZone === 'all' ? '' : currentZone,
+                    page: 0
+                });
+
+                if (result.success && result.data) {
+                    fullSortedData = result.data;
+
+                    // 排序
+                    fullSortedData.sort((a, b) => {
+                        let aVal = a[column] || '';
+                        let bVal = b[column] || '';
+
+                        // 嘗試數字排序
+                        const aNum = parseFloat(aVal);
+                        const bNum = parseFloat(bVal);
+                        if (!isNaN(aNum) && !isNaN(bNum) && 
+                            aVal.toString().match(/^\d+(\.\d+)?$/) && 
+                            bVal.toString().match(/^\d+(\.\d+)?$/)) {
+                            return sortState.direction === 'asc' ? aNum - bNum : bNum - aNum;
+                        }
+
+                        // 字串排序
+                        aVal = aVal.toString().toLowerCase();
+                        bVal = bVal.toString().toLowerCase();
+                        if (aVal < bVal) return sortState.direction === 'asc' ? -1 : 1;
+                        if (aVal > bVal) return sortState.direction === 'asc' ? 1 : -1;
+                        return 0;
+                    });
+
+                    totalRecords = fullSortedData.length;
+                    totalPages = Math.ceil(totalRecords / PAGE_SIZE);
+                    currentPage = 1;
+
+                    packingDataCache = fullSortedData.slice(0, PAGE_SIZE);
+                    renderDataListOptimized();
+                    updatePaginationControls();
+                    updateTableHeaders();
+
+                    showToast(`✅ 已按 ${column} 欄${sortState.direction === 'asc' ? '升序' : '降序'}排序（共 ${totalRecords} 筆）`, 'success');
+                }
+            } catch (e) {
+                showToast('排序失敗：' + e.message, 'error');
+            } finally {
+                showGlobalLoading(false);
+            }
         }
 
         async function loadHeaders() {
@@ -5820,12 +6045,21 @@ ${barcodes.map((bc) => `
                 }
             }
             
-            columnHeaders = ['A', 'B', 'C', 'D', 'E', 'F'];
+            columnHeaders = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
             updateTableHeaders();
         }
 
         async function loadPackingDataOptimized() {
             try {
+                // 【V13.3】如果有排序狀態，使用已排序的資料分頁
+                if (fullSortedData && sortState.column && currentZone !== 'all') {
+                    const startIdx = (currentPage - 1) * PAGE_SIZE;
+                    packingDataCache = fullSortedData.slice(startIdx, startIdx + PAGE_SIZE);
+                    renderDataListOptimized();
+                    updatePaginationControls();
+                    return;
+                }
+
                 const cacheKey = `${currentPackingSheet}_${currentPage}_${currentZone}`;
                 const now = Date.now();
                 
@@ -5989,6 +6223,10 @@ ${barcodes.map((bc) => `
         }
 
         function filterZone(zone, element) {
+            // 【V13.3】切換 zone 時清除排序
+            sortState = { column: null, direction: 'asc' };
+            fullSortedData = null;
+            
             currentZone = zone ? String(zone).trim() : '';
             currentPage = 1;
 
@@ -6011,7 +6249,7 @@ ${barcodes.map((bc) => `
                 document.getElementById('dataListTitle').textContent = (currentZone || '未分類') + ' 資料列表';
                 
                 const tbody = document.getElementById('excelTableBody');
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;"><div class="spinner" style="margin: 0 auto 15px;"></div><p>Loading...</p></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="12" style="text-align: center; padding: 40px;"><div class="spinner" style="margin: 0 auto 15px;"></div><p>Loading...</p></td></tr>';
                 
                 loadPackingDataOptimized();
             }
@@ -6020,6 +6258,9 @@ ${barcodes.map((bc) => `
         function backToSummary() {
             currentZone = 'all';
             currentPage = 1;
+            sortState = { column: null, direction: 'asc' };
+            fullSortedData = null;
+            
             document.querySelectorAll('.zone-item').forEach(item => {
                 item.classList.remove('active');
             });
@@ -6039,7 +6280,7 @@ ${barcodes.map((bc) => `
             currentPage = newPage;
             
             const tbody = document.getElementById('excelTableBody');
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;"><div class="spinner" style="margin: 0 auto 15px;"></div><p>載入中...</p></td></tr>';
+            tbody.innerHTML = '<tr><td colspan="12" style="text-align: center; padding: 40px;"><div class="spinner" style="margin: 0 auto 15px;"></div><p>載入中...</p></td></tr>';
             
             document.getElementById('prevPageBtn').disabled = true;
             document.getElementById('nextPageBtn').disabled = true;
@@ -6049,13 +6290,15 @@ ${barcodes.map((bc) => `
             });
         }
 
+        // 【V13.3】渲染資料列表（支援動態欄位顯示）
         function renderDataListOptimized() {
             const tbody = document.getElementById('excelTableBody');
             
             if (packingDataCache.length === 0) {
+                const visibleCount = Object.values(visibleColumns).filter(v => v).length;
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="7" style="text-align: center; padding: 40px; color: #9e9e9e;">
+                        <td colspan="${visibleCount + 1}" style="text-align: center; padding: 40px; color: #9e9e9e;">
                             <p>此位置沒有資料</p>
                             <p style="font-size: 12px; margin-top: 10px; color: #bbb;">
                                 位置名稱：${escapeHtml(currentZone || '(空白)')}<br>
@@ -6083,12 +6326,13 @@ ${barcodes.map((bc) => `
                 if (isNew) tr.classList.add('new-row');
                 
                 let html = '';
+                const allCols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
                 
-                columnHeaders.forEach((header, index) => {
-                    const colKey = ['A', 'B', 'C', 'D', 'E', 'F'][index];
+                allCols.forEach((colKey) => {
+                    if (!visibleColumns[colKey]) return;
                     const value = item[colKey] || '-';
-                    const colClass = index === 0 ? 'col-a' : (index === 5 ? 'col-f' : '');
-                    const newBadge = (isNew && index === 0) ? '<span class="new-badge">NEW</span>' : '';
+                    const colClass = colKey === 'A' ? 'col-a' : (colKey === 'F' ? 'col-f' : '');
+                    const newBadge = (isNew && colKey === 'A') ? '<span class="new-badge">NEW</span>' : '';
                     html += `<td class="${colClass}">${escapeHtml(value)}${newBadge}</td>`;
                 });
 
@@ -6110,6 +6354,7 @@ ${barcodes.map((bc) => `
             tbody.appendChild(fragment);
         }
 
+        // 【V13.3】快速插入單行（支援動態欄位）
         function insertSingleRowFast(item) {
             const tbody = document.getElementById('excelTableBody');
             
@@ -6125,11 +6370,13 @@ ${barcodes.map((bc) => `
             tr.style.animation = 'highlightNew 2s ease';
             
             let html = '';
-            columnHeaders.forEach((header, index) => {
-                const colKey = ['A', 'B', 'C', 'D', 'E', 'F'][index];
+            const allCols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
+            
+            allCols.forEach((colKey) => {
+                if (!visibleColumns[colKey]) return;
                 const value = item[colKey] || '-';
-                const colClass = index === 0 ? 'col-a' : (index === 5 ? 'col-f' : '');
-                const newBadge = index === 0 ? '<span class="new-badge">NEW</span>' : '';
+                const colClass = colKey === 'A' ? 'col-a' : (colKey === 'F' ? 'col-f' : '');
+                const newBadge = colKey === 'A' ? '<span class="new-badge">NEW</span>' : '';
                 html += `<td class="${colClass}">${escapeHtml(value)}${newBadge}</td>`;
             });
             
@@ -6190,13 +6437,17 @@ ${barcodes.map((bc) => `
                 return;
             }
 
+            // 【V13.3】搜尋時清除排序
+            sortState = { column: null, direction: 'asc' };
+            fullSortedData = null;
+
             let searchZone = currentZone;
             if (currentZone === '') {
                 searchZone = 'all';
             }
 
             const tbody = document.getElementById('excelTableBody');
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;"><div class="spinner" style="margin: 0 auto 15px;"></div><p>搜尋中...</p></td></tr>';
+            tbody.innerHTML = '<tr><td colspan="12" style="text-align: center; padding: 40px;"><div class="spinner" style="margin: 0 auto 15px;"></div><p>搜尋中...</p></td></tr>';
 
             try {
                 const result = await packingApiCall('packingSearchData', {
@@ -6220,9 +6471,10 @@ ${barcodes.map((bc) => `
                     updatePaginationControls();
                     
                     if (packingDataCache.length === 0) {
+                        const visibleCount = Object.values(visibleColumns).filter(v => v).length;
                         tbody.innerHTML = `
                             <tr>
-                                <td colspan="7" style="text-align: center; padding: 40px; color: #9e9e9e;">
+                                <td colspan="${visibleCount + 1}" style="text-align: center; padding: 40px; color: #9e9e9e;">
                                     沒有符合「${escapeHtml(keyword)}」的資料
                                 </td>
                             </tr>
@@ -6232,77 +6484,16 @@ ${barcodes.map((bc) => `
                     throw new Error(result.error || '搜尋失敗');
                 }
             } catch (e) {
+                const visibleCount = Object.values(visibleColumns).filter(v => v).length;
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="7" style="text-align: center; padding: 40px; color: #c62828;">
+                        <td colspan="${visibleCount + 1}" style="text-align: center; padding: 40px; color: #c62828;">
                             搜尋失敗：${escapeHtml(e.message)}
                         </td>
                     </tr>
                 `;
                 showToast('搜尋失敗：' + e.message, 'error');
             }
-        }
-
-        function searchPackingDataLocal() {
-            const keyword = document.getElementById('packingSearchInput').value.trim();
-            const range = document.getElementById('packingSearchRange').value;
-
-            if (!keyword) {
-                renderDataListOptimized();
-                return;
-            }
-
-            const filtered = packingDataCache.filter(item => {
-                const value = item[range] || '';
-                return value.toString().toLowerCase().includes(keyword.toLowerCase());
-            });
-
-            const tbody = document.getElementById('excelTableBody');
-            
-            if (filtered.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="7" style="text-align: center; padding: 40px; color: #9e9e9e;">
-                            沒有符合的資料（僅搜尋當前頁）
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            const fragment = document.createDocumentFragment();
-            
-            filtered.forEach(item => {
-                const isNew = lastAddedKey && item.A === lastAddedKey;
-                const tr = document.createElement('tr');
-                if (isNew) tr.classList.add('new-row');
-                
-                let html = '';
-                
-                columnHeaders.forEach((header, index) => {
-                    const colKey = ['A', 'B', 'C', 'D', 'E', 'F'][index];
-                    const value = item[colKey] || '-';
-                    const colClass = index === 0 ? 'col-a' : (index === 5 ? 'col-f' : '');
-                    const newBadge = (isNew && index === 0) ? '<span class="new-badge">NEW</span>' : '';
-                    html += `<td class="${colClass}">${escapeHtml(value)}${newBadge}</td>`;
-                });
-
-                html += `
-                    <td>
-                        <div class="excel-actions">
-                            <button class="btn-sm btn-secondary" onclick="showEditModal('${escapeHtml(item.A)}')" title="編輯">✏️</button>
-                            <button class="btn-sm btn-warning" onclick="deleteLocation('${escapeHtml(item.A)}')" title="清除位置">🧹</button>
-                            <button class="btn-sm btn-danger" onclick="deleteRow(${item.rowIndex}, '${escapeHtml(item.A)}')" title="刪除整列">🗑️</button>
-                        </div>
-                    </td>
-                `;
-                
-                tr.innerHTML = html;
-                fragment.appendChild(tr);
-            });
-
-            tbody.innerHTML = '';
-            tbody.appendChild(fragment);
         }
 
         function updateSummaryDisplay(summary) {
@@ -6463,12 +6654,12 @@ ${barcodes.map((bc) => `
                     }
                     totalRecords++;
                     
+                    const allCols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
                     const quickResultHtml = `
                         <div class="quick-result-display">
                             <div class="quick-result-grid">
-                                ${columnHeaders.map((h, i) => {
-                                    const k = ['A','B','C','D','E','F'][i];
-                                    return `<div class="quick-result-item"><label>${h}</label><value>${escapeHtml(newItem[k]) || '-'}</value></div>`;
+                                ${allCols.map((h) => {
+                                    return `<div class="quick-result-item"><label>${h}</label><value>${escapeHtml(newItem[h]) || '-'}</value></div>`;
                                 }).join('')}
                             </div>
                             <div class="quick-result-status">
@@ -6729,32 +6920,39 @@ ${barcodes.map((bc) => `
             }
         }
 
+        // 【V13.3】編輯 Modal（支援 G-K）
         function showEditModal(key) {
             const item = packingDataCache.find(i => i.A === key);
             if (!item) return;
 
             let inputsHtml = '';
-            columnHeaders.forEach((header, index) => {
-                const colKey = ['A', 'B', 'C', 'D', 'E', 'F'][index];
+            const allCols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
+            allCols.forEach((colKey) => {
                 const value = item[colKey] || '';
-                const isF = index === 5;
+                const isF = colKey === 'F';
+                const isA = colKey === 'A';
                 
-                inputsHtml += `
-                    <div style="${isF ? 'background: #fff3cd; padding: 10px; border-radius: 6px; border: 1px solid #ffc107; margin-bottom: 10px;' : 'margin-bottom: 10px;'}">
-                        <label style="font-size: 12px; color: ${isF ? '#856404' : '#888'}; display: block; margin-bottom: 4px; ${isF ? 'font-weight: 600;' : ''}">
-                            ${escapeHtml(header)} ${isF ? '(位置)' : ''}
-                        </label>
-                        <input type="text" id="edit_${colKey}" value="${escapeHtml(value)}" style="width: 100%; ${isF ? 'border-color: #ffc107;' : ''}">
-                    </div>
-                `;
+                if (isA) {
+                    inputsHtml += `
+                        <div style="padding: 10px; background: #f0f4ff; border-radius: 6px; border-left: 4px solid #667eea; margin-bottom: 10px;">
+                            <label style="font-size: 12px; color: #666; display: block; margin-bottom: 4px;">Key (A欄)</label>
+                            <div style="font-weight: 600; color: #333; font-size: 16px;">${escapeHtml(value)}</div>
+                        </div>
+                    `;
+                } else {
+                    inputsHtml += `
+                        <div style="${isF ? 'background: #fff3cd; padding: 10px; border-radius: 6px; border: 1px solid #ffc107; margin-bottom: 10px;' : 'margin-bottom: 10px;'}">
+                            <label style="font-size: 12px; color: ${isF ? '#856404' : '#888'}; display: block; margin-bottom: 4px; ${isF ? 'font-weight: 600;' : ''}">
+                                ${colKey} ${isF ? '(位置)' : ''}
+                            </label>
+                            <input type="text" id="edit_${colKey}" value="${escapeHtml(value)}" style="width: 100%; ${isF ? 'border-color: #ffc107;' : ''}">
+                        </div>
+                    `;
+                }
             });
 
             const content = `
                 <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <div style="padding: 10px; background: #f0f4ff; border-radius: 6px; border-left: 4px solid #667eea; margin-bottom: 5px;">
-                        <label style="font-size: 12px; color: #666; display: block; margin-bottom: 4px;">Key (A欄)</label>
-                        <div style="font-weight: 600; color: #333; font-size: 16px;">${escapeHtml(item.A)}</div>
-                    </div>
                     ${inputsHtml}
                 </div>
             `;
@@ -6762,8 +6960,10 @@ ${barcodes.map((bc) => `
             showModal('✏️ 編輯資料', content, async () => {
                 try {
                     const newValues = {};
-                    ['A','B','C','D','E','F'].forEach(col => {
-                        newValues[col] = document.getElementById(`edit_${col}`).value;
+                    allCols.forEach(col => {
+                        if (col !== 'A') {
+                            newValues[col] = document.getElementById(`edit_${col}`).value;
+                        }
                     });
 
                     await packingApiCall('packingSetLocation', {
@@ -6994,7 +7194,7 @@ ${barcodes.map((bc) => `
                 if (headerDetect.hasHeader && headerDetect.headerIndex >= 0) {
                     const headerRow = jsonData[headerDetect.headerIndex] || [];
                     uploadedHeaders = [];
-                    for (let i = 0; i < 6; i++) {
+                    for (let i = 0; i < 11; i++) {
                         const val = headerRow[i];
                         uploadedHeaders.push(
                             val !== undefined && val !== null && String(val).trim() !== '' 
@@ -7013,7 +7213,7 @@ ${barcodes.map((bc) => `
                     );
                 } else {
                     localStorage.removeItem('sheetHeaders_' + currentPackingSheet);
-                    columnHeaders = ['A', 'B', 'C', 'D', 'E', 'F'];
+                    columnHeaders = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
                     updateTableHeaders();
                     showUploadStatus('ℹ️ 未檢測到標題行，所有行作為數據處理', 'info');
                 }
@@ -7044,13 +7244,14 @@ ${barcodes.map((bc) => `
                     }
                     
                     const batch = validRows.slice(i, i + UPLOAD_BATCH_SIZE);
+                    // 【V13.3】支援 A-K 欄位
                     const batchData = batch.map(row => {
                         const rowData = {};
-                        ['A', 'B', 'C', 'D', 'E', 'F'].forEach((col, idx) => {
+                        ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'].forEach((col, idx) => {
                             rowData[col] = row[idx] !== undefined ? String(row[idx]).trim() : '';
                         });
                         return rowData;
-                    }).filter(item => item.A !== '' || item.B !== '' || item.C !== '' || item.D !== '' || item.E !== '' || item.F !== '');
+                    }).filter(item => item.A !== '' || item.B !== '' || item.C !== '' || item.D !== '' || item.E !== '' || item.F !== '' || item.G !== '' || item.H !== '' || item.I !== '' || item.J !== '' || item.K !== '');
                     
                     if (batchData.length === 0) continue;
                     
@@ -7160,14 +7361,11 @@ ${barcodes.map((bc) => `
                     return;
                 }
                 
+                // 【V13.3】匯出 A-K 欄位
                 const headers = columnHeaders;
                 const rows = data.map(item => [
-                    item.A || '',
-                    item.B || '',
-                    item.C || '',
-                    item.D || '',
-                    item.E || '',
-                    item.F || ''
+                    item.A || '', item.B || '', item.C || '', item.D || '', item.E || '', item.F || '',
+                    item.G || '', item.H || '', item.I || '', item.J || '', item.K || ''
                 ]);
                 
                 const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
@@ -7215,6 +7413,8 @@ ${barcodes.map((bc) => `
                     
                     currentPage = 1;
                     lastAddedKey = null;
+                    sortState = { column: null, direction: 'asc' };
+                    fullSortedData = null;
                     
                     await loadPackingDataOptimized();
                     await refreshZoneList();
