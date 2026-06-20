@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>圖書查詢與裝箱 - 手機優化版 V13.13</title>
+    <title>圖書查詢與裝箱 - 手機優化版 V13.14</title>
     <style>
         * {
             margin: 0;
@@ -2978,7 +2978,7 @@
 
     <div class="container">
         <div class="header">
-            <h1>📚 圖書查詢與裝箱 V13.13</h1>
+            <h1>📚 圖書查詢與裝箱 V13.14</h1>
         </div>
 
         <div class="main-wrapper">
@@ -3224,6 +3224,15 @@
                                 <button class="btn-secondary" onclick="updateQueryRetryCount()">套用設定</button>
                             </div>
                             <div style="margin-top: 10px; font-size: 13px; color: #6c757d;">設定圖書查詢失敗時的重試次數（1–10次）。若網路不穩定可調高。</div>
+                        </div>
+
+                        <div class="control-box" style="margin-top: 15px;">
+                            <label style="display: block; margin-bottom: 10px; font-weight: 600;">圖書查詢多線程數量：</label>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <input type="number" id="queryThreadCount" value="1" min="1" max="5" style="width: 150px;">
+                                <button class="btn-secondary" onclick="updateQueryThreadCount()">套用設定</button>
+                            </div>
+                            <div style="margin-top: 10px; font-size: 13px; color: #856404;">⚠️ 線程太多會造成連線不穩，建議保持預設值 1。</div>
                         </div>
 
                         <div class="control-box" style="margin-top: 15px;">
@@ -3825,6 +3834,7 @@
         let singleUpdateDelay = 0.3;
         let queryRetryCount = 3;
         let queryTimeout = 30;
+        let queryThreadCount = 1;
         
         let visibleColumns = {
             'A': true, 'B': true, 'C': true, 'D': true, 'E': true, 'F': true,
@@ -3862,6 +3872,13 @@
                 queryTimeout = parseInt(savedTimeout);
                 const el = document.getElementById('queryTimeout');
                 if (el) el.value = queryTimeout;
+            }
+
+            const savedThreadCount = localStorage.getItem('queryThreadCount');
+            if (savedThreadCount) {
+                queryThreadCount = parseInt(savedThreadCount);
+                const el = document.getElementById('queryThreadCount');
+                if (el) el.value = queryThreadCount;
             }
 
             const savedVisible = localStorage.getItem('visibleColumns');
@@ -3926,9 +3943,10 @@
             }
         });
 
-        // V13.13: Increased timeout per attempt to handle slow HKPL responses
+        // V13.14: Increased timeout per attempt to handle slow HKPL responses
         async function libraryApiCall(action, params = {}) {
             const totalTimeout = queryTimeout * 1000 * queryRetryCount + 10000;
+            params.threadCount = queryThreadCount;
             return apiCallWithRetry(LIBRARY_API_URL, action, params, totalTimeout, 1);
         }
         
@@ -3936,7 +3954,7 @@
             return apiCallWithRetry(PACKING_API_URL, action, params, timeout, 3);
         }
         
-        // V13.13: Improved retry with progressive timeout and better backoff
+        // V13.14: Improved retry with progressive timeout and better backoff
         async function apiCallWithRetry(baseUrl, action, params, timeout, maxRetries) {
             let lastError;
 
@@ -5254,6 +5272,17 @@ ${barcodes.map((bc) => `
                 showLibraryStatus('display', `✅ 已設定重試次數為 ${val} 次`, 'success');
             } else {
                 showLibraryStatus('display', '❌ 請輸入 1–10 之間的數值', 'error');
+            }
+        }
+
+        function updateQueryThreadCount() {
+            const val = parseInt(document.getElementById('queryThreadCount').value);
+            if (val >= 1 && val <= 5) {
+                queryThreadCount = val;
+                localStorage.setItem('queryThreadCount', val);
+                showLibraryStatus('display', `已設定多線程數量為 ${val}`, 'success');
+            } else {
+                showLibraryStatus('display', '❌ 請輸入 1–5 之間的數值', 'error');
             }
         }
 
