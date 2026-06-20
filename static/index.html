@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>圖書查詢與裝箱 - 手機優化版 V13.8</title>
+    <title>圖書查詢與裝箱 - 手機優化版 V13.10</title>
     <style>
         * {
             margin: 0;
@@ -2978,7 +2978,7 @@
 
     <div class="container">
         <div class="header">
-            <h1>📚 圖書查詢與裝箱 V13.8</h1>
+            <h1>📚 圖書查詢與裝箱 V13.10</h1>
         </div>
 
         <div class="main-wrapper">
@@ -3220,19 +3220,19 @@
                         <div class="control-box" style="margin-top: 15px;">
                             <label style="display: block; margin-bottom: 10px; font-weight: 600;">圖書查詢重試次數：</label>
                             <div style="display: flex; gap: 10px; align-items: center;">
-                                <input type="number" id="queryRetryCount" value="4" min="1" max="10" style="width: 150px;">
+                                <input type="number" id="queryRetryCount" value="3" min="1" max="10" style="width: 150px;">
                                 <button class="btn-secondary" onclick="updateQueryRetryCount()">套用設定</button>
                             </div>
-                            <div style="margin-top: 10px; font-size: 13px; color: #6c757d;">設定圖書查詢失敗時的重試次數（1–10次）。V13.8預設4次，配合並行請求機制提高成功率。</div>
+                            <div style="margin-top: 10px; font-size: 13px; color: #6c757d;">設定圖書查詢失敗時的重試次數（1–10次）。V13.10預設4次，配合並行請求機制提高成功率。</div>
                         </div>
 
                         <div class="control-box" style="margin-top: 15px;">
                             <label style="display: block; margin-bottom: 10px; font-weight: 600;">圖書查詢超時時間（秒）：</label>
                             <div style="display: flex; gap: 10px; align-items: center;">
-                                <input type="number" id="queryTimeout" value="35" min="10" max="90" style="width: 150px;">
+                                <input type="number" id="queryTimeout" value="30" min="5" max="60" style="width: 150px;">
                                 <button class="btn-secondary" onclick="updateQueryTimeout()">套用設定</button>
                             </div>
-                            <div style="margin-top: 10px; font-size: 13px; color: #6c757d;">設定每次查詢請求的超時時間（10–90秒）。V13.8建議35秒以上。數值越大越能容忍慢速網路。</div>
+                            <div style="margin-top: 10px; font-size: 13px; color: #6c757d;">設定每次查詢請求的超時時間（10–90秒）。V13.10建議35秒以上。數值越大越能容忍慢速網路。</div>
                         </div>
 
                         <div class="control-box" style="margin-top: 15px;">
@@ -3823,8 +3823,8 @@
         };
         
         let singleUpdateDelay = 0.3;
-        let queryRetryCount = 4;
-        let queryTimeout = 35;
+        let queryRetryCount = 3;
+        let queryTimeout = 30;
         
         let visibleColumns = {
             'A': true, 'B': true, 'C': true, 'D': true, 'E': true, 'F': true,
@@ -3926,10 +3926,9 @@
             }
         });
 
-        // V13.8: Increased timeout per attempt to handle slow HKPL responses
+        // V13.10: Increased timeout per attempt to handle slow HKPL responses
         async function libraryApiCall(action, params = {}) {
-            const perAttemptTimeout = Math.max(queryTimeout * 1000, 25000); // min 25s per attempt
-            const totalTimeout = perAttemptTimeout * queryRetryCount + 15000;
+            const perAttemptTimeout = queryTimeout * 1000;
             return apiCallWithRetry(LIBRARY_API_URL, action, params, perAttemptTimeout, queryRetryCount);
         }
         
@@ -3937,30 +3936,25 @@
             return apiCallWithRetry(PACKING_API_URL, action, params, timeout, 3);
         }
         
-        // V13.8: Improved retry with progressive timeout and better backoff
+        // V13.10: Improved retry with progressive timeout and better backoff
         async function apiCallWithRetry(baseUrl, action, params, timeout, maxRetries) {
             let lastError;
-
             for (let attempt = 1; attempt <= maxRetries; attempt++) {
                 try {
-                    // V13.8: Progressive timeout - longer for each retry
-                    const attemptTimeout = timeout + (attempt - 1) * 5000;
-                    const result = await executeApiCall(baseUrl, action, params, attemptTimeout);
+                    const result = await executeApiCall(baseUrl, action, params, timeout);
                     return result;
                 } catch (error) {
                     lastError = error;
                     console.warn(`API呼叫失敗 (嘗試 ${attempt}/${maxRetries}): ${error.message}`);
-
                     if (attempt < maxRetries) {
-                        // V13.8: Better backoff with random jitter
-                        const delay = Math.min(1500 * attempt + Math.floor(Math.random() * 1000), 10000);
+                        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
                         await new Promise(resolve => setTimeout(resolve, delay));
                     }
                 }
             }
-
             throw new Error(`請求失敗（已重試${maxRetries}次）: ${lastError.message}`);
-        }
+        }次）: ${lastError.message}`);
+        }        }
 
         function executeApiCall(baseUrl, action, params, timeout) {
             return new Promise((resolve, reject) => {
@@ -4933,8 +4927,15 @@
                     throw new Error(errorMsg);
                 }
             } catch (error) {
-                resultsDiv.innerHTML = `<div class="empty-state"><p>查詢失敗：${escapeHtml(error.message).replace(/\n/g, '<br>')}</p></div>`;
-                showLibraryStatus('search', '查詢失敗：' + error.message, 'error');
+                // V13.10: Show error but suggest immediate retry
+                resultsDiv.innerHTML = `
+                    <div class="empty-state">
+                        <p>查詢失敗：${escapeHtml(error.message).replace(/\n/g, '<br>')}</p>
+                        <p style="font-size: 13px; margin-top: 10px; color: #856404;">V13.10：這是暫時性連線問題，請直接再按一次「查詢」按鈕重試</p>
+                        <button class="btn-primary" onclick="searchBook()" style="margin-top: 15px;">🔄 立即重試</button>
+                    </div>
+                `;
+                showLibraryStatus('search', 'V13.10暫時性連線問題，請再試一次', 'warning');
             } finally {
                 inputEl.disabled = false;
                 btn.disabled = false;
@@ -4987,8 +4988,14 @@
                     throw new Error(errorMsg);
                 }
             } catch (error) {
-                resultsDiv.innerHTML = `<div class="empty-state"><p>查詢失敗：${escapeHtml(error.message).replace(/\n/g, '<br>')}</p></div>`;
-                showLibraryStatus('bib', '查詢失敗：' + error.message, 'error');
+                resultsDiv.innerHTML = `
+                    <div class="empty-state">
+                        <p>查詢失敗：${escapeHtml(error.message).replace(/\n/g, '<br>')}</p>
+                        <p style="font-size: 13px; margin-top: 10px; color: #856404;">V13.10：暫時性連線問題，請再按一次「查詢」重試</p>
+                        <button class="btn-primary" onclick="searchBib()" style="margin-top: 15px;">🔄 立即重試</button>
+                    </div>
+                `;
+                showLibraryStatus('bib', 'V13.10暫時性連線問題，請再試一次', 'warning');
             } finally {
                 inputEl.disabled = false;
                 btn.disabled = false;
