@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>圖書查詢與裝箱 - 手機優化版 V13.14</title>
+    <title>圖書查詢與裝箱 - 手機優化版 V13.15</title>
     <style>
         * {
             margin: 0;
@@ -2978,7 +2978,7 @@
 
     <div class="container">
         <div class="header">
-            <h1>📚 圖書查詢與裝箱 V13.14</h1>
+            <h1>📚 圖書查詢與裝箱 V13.15</h1>
         </div>
 
         <div class="main-wrapper">
@@ -3943,18 +3943,17 @@
             }
         });
 
-        // V13.14: Increased timeout per attempt to handle slow HKPL responses
         async function libraryApiCall(action, params = {}) {
             const totalTimeout = queryTimeout * 1000 * queryRetryCount + 10000;
             params.threadCount = queryThreadCount;
-            return apiCallWithRetry(LIBRARY_API_URL, action, params, totalTimeout, 1);
+            params.timeout = queryTimeout;
+            return apiCallWithRetry(LIBRARY_API_URL, action, params, totalTimeout, queryRetryCount);
         }
         
         async function packingApiCall(action, params = {}, timeout = 60000) {
             return apiCallWithRetry(PACKING_API_URL, action, params, timeout, 3);
         }
         
-        // V13.14: Improved retry with progressive timeout and better backoff
         async function apiCallWithRetry(baseUrl, action, params, timeout, maxRetries) {
             let lastError;
 
