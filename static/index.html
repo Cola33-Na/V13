@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>圖書查詢與裝箱 - 手機優化版 V13.16</title>
+    <title>圖書查詢與裝箱 - 手機優化版 V13.17</title>
     <style>
         * {
             margin: 0;
@@ -2978,7 +2978,7 @@
 
     <div class="container">
         <div class="header">
-            <h1>📚 圖書查詢與裝箱 V13.16</h1>
+            <h1>📚 圖書查詢與裝箱 V13.17</h1>
         </div>
 
         <div class="main-wrapper">
@@ -4896,38 +4896,25 @@
             loadPackingDataOptimized();
         }
 
-                // V13.16: Animated attempt log display for library query
-        async function showAttemptLogAnimation(panel, attemptLog, finalCallback) {
-            if (!attemptLog || attemptLog.length === 0) {
-                if (finalCallback) finalCallback();
-                return;
-            }
-
-            const statusBar = document.getElementById(panel === 'bib' ? 'bibStatusBar' : panel === 'location' ? 'locationStatusBar' : 'statusBar');
+                // V13.17: Animated attempt log display for library query
+        function formatAttemptLog(attemptLog) {
+            if (!attemptLog || attemptLog.length === 0) return '查詢中...';
+            let parts = ['查詢中...'];
             let retryCount = 0;
-
             for (let i = 0; i < attemptLog.length; i++) {
                 const log = attemptLog[i];
-                let msg = '查詢中...';
-
                 if (log.status === 'fail') {
-                    msg += '提取失敗';
-                    if (log.willRetry) {
-                        retryCount++;
-                    }
+                    parts.push('提取失敗');
                 } else if (log.status === 'retry') {
-                    msg += '重試.' + retryCount;
+                    retryCount++;
+                    parts.push('重試.' + retryCount);
                 } else if (log.status === 'success') {
-                    msg += '提取成功';
+                    parts.push('提取成功');
                 } else if (log.status === 'notfound') {
-                    msg += '找不到記錄';
+                    parts.push('找不到記錄');
                 }
-
-                if (statusBar) statusBar.textContent = msg;
-                await new Promise(r => setTimeout(r, 400));
             }
-
-            if (finalCallback) await finalCallback();
+            return parts.join('');
         }
 
         async function searchBook() {
@@ -4956,9 +4943,9 @@
                     maxRetries: queryRetryCount
                 });
 
-                // V13.16: Show attempt log animation if available
+                // V13.17: Show attempt log text in status bar
                 if (data.attemptLog && data.attemptLog.length > 0) {
-                    await showAttemptLogAnimation('search', data.attemptLog);
+                    showLibraryStatus('search', formatAttemptLog(data.attemptLog), 'info');
                 }
 
                 if (data.success && data.found) {
@@ -5020,9 +5007,9 @@
                     maxRetries: queryRetryCount
                 });
 
-                // V13.16: Show attempt log animation if available
+                // V13.17: Show attempt log text in status bar
                 if (data.attemptLog && data.attemptLog.length > 0) {
-                    await showAttemptLogAnimation('bib', data.attemptLog);
+                    showLibraryStatus('bib', formatAttemptLog(data.attemptLog), 'info');
                 }
 
                 if (data.success && data.found) {
